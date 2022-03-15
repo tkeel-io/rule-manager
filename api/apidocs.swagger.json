@@ -1,0 +1,530 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "api/helloworld/v1/error.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "Greeter"
+    },
+    {
+      "name": "Openapi"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/addons/identify": {
+      "post": {
+        "summary": "openapi addons identify",
+        "operationId": "Identify",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1AddonsIdentifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AddonsIdentifyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Openapi"
+        ]
+      }
+    },
+    "/helloworld/{name}": {
+      "post": {
+        "summary": "Get a message.（服务描述）",
+        "operationId": "SayHello",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1HelloResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "description": "Description sample of helloworld's name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "description": "query filed",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "query filed",
+              "required": [
+                "query"
+              ]
+            }
+          }
+        ],
+        "tags": [
+          "Greeter"
+        ]
+      }
+    },
+    "/identify": {
+      "get": {
+        "summary": "openapi identify",
+        "operationId": "Identify",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1IdentifyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Openapi"
+        ]
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "openapi status",
+        "operationId": "Status",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1StatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Openapi"
+        ]
+      }
+    },
+    "/tenant/disable": {
+      "post": {
+        "summary": "openapi tenant disable",
+        "operationId": "TenantDisable",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1TenantDisableResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TenantDisableRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Openapi"
+        ]
+      }
+    },
+    "/tenant/enable": {
+      "post": {
+        "summary": "openapi tenant enable",
+        "operationId": "TenantEnable",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/v1TenantEnableResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TenantEnableRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Openapi"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PermissionDependence": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string",
+          "description": "ID\u003e/authority ID.The content in \u003c\u003e is variable."
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AddonsIdentifyRequest": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "$ref": "#/definitions/v1BriefPluginInfo"
+        },
+        "implemented_addons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ImplementedAddons"
+          }
+        }
+      },
+      "description": "*\r\nThe request value of the POST /v1/addons/identify,\r\nused when the plugin in the registration process implements\r\nthe extension point of the registered plugin."
+    },
+    "v1AddonsIdentifyResponse": {
+      "type": "object",
+      "properties": {
+        "res": {
+          "$ref": "#/definitions/v1Result"
+        }
+      },
+      "description": "*\r\nThe response value of the POST /v1/addons/identify,\r\nused when the plugin in the registration process implements\r\nthe extension point of the registered plugin."
+    },
+    "v1AddonsPoint": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        }
+      },
+      "description": "*\r\nmessage plugin declares extension point."
+    },
+    "v1BriefPluginInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "description": "*\r\nmessage brief plugin information."
+    },
+    "v1ConsoleEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "entry": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ConsoleEntry"
+          }
+        }
+      },
+      "description": "plugin console entry."
+    },
+    "v1HelloResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "description": "Hello Response"
+        }
+      },
+      "title": "The response message containing the greetings"
+    },
+    "v1IdentifyResponse": {
+      "type": "object",
+      "properties": {
+        "res": {
+          "$ref": "#/definitions/v1Result"
+        },
+        "plugin_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "tkeel_version": {
+          "type": "string"
+        },
+        "addons_point": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1AddonsPoint"
+          }
+        },
+        "implemented_plugin": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ImplementedPlugin"
+          }
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ConsoleEntry"
+          }
+        },
+        "dependence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1BriefPluginInfo"
+          }
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Permission"
+          }
+        }
+      },
+      "description": "*\r\nThe response value of the GET /v1/identify,\r\nused when the plugin registered."
+    },
+    "v1ImplementedAddons": {
+      "type": "object",
+      "properties": {
+        "addons_point": {
+          "type": "string"
+        },
+        "implemented_endpoint": {
+          "type": "string"
+        }
+      },
+      "description": "*\r\nmessage plugin declares implemented other plugin extension point."
+    },
+    "v1ImplementedPlugin": {
+      "type": "object",
+      "properties": {
+        "plugin": {
+          "$ref": "#/definitions/v1BriefPluginInfo"
+        },
+        "addons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ImplementedAddons"
+          }
+        }
+      },
+      "description": "*\r\nmessage plugin implemented other plugin."
+    },
+    "v1Permission": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "dependences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionDependence"
+          }
+        },
+        "desc": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Permission"
+          }
+        }
+      },
+      "description": "plugin define permission."
+    },
+    "v1PluginStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "WAIT_RUNNING",
+        "ERR_REGISTER",
+        "RUNNING"
+      ],
+      "default": "UNKNOWN",
+      "description": "*\r\nplugin state enum."
+    },
+    "v1Result": {
+      "type": "object",
+      "properties": {
+        "ret": {
+          "$ref": "#/definitions/v1Retcode"
+        },
+        "msg": {
+          "type": "string"
+        }
+      },
+      "description": "*\r\nmessage result."
+    },
+    "v1Retcode": {
+      "type": "string",
+      "enum": [
+        "OK",
+        "BAD_REQEUST",
+        "INTERNAL_ERROR"
+      ],
+      "default": "OK",
+      "description": "*\r\nerror code enum."
+    },
+    "v1StatusResponse": {
+      "type": "object",
+      "properties": {
+        "res": {
+          "$ref": "#/definitions/v1Result"
+        },
+        "status": {
+          "$ref": "#/definitions/v1PluginStatus"
+        }
+      },
+      "description": "*\r\nThe request value of the GET /v1/Status.\r\nused when the tkeel checks the status of plugins regularly."
+    },
+    "v1TenantDisableRequest": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "extra": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "*\r\nThe request value of the POST /v1/tenant/disable,\r\nused when the tenant administrator disables the plugin."
+    },
+    "v1TenantDisableResponse": {
+      "type": "object",
+      "properties": {
+        "res": {
+          "$ref": "#/definitions/v1Result"
+        }
+      },
+      "description": "*\r\nThe response value of the POST /v1/tenant/disable,\r\nused when the tenant administrator disables the plugin."
+    },
+    "v1TenantEnableRequest": {
+      "type": "object",
+      "properties": {
+        "tenant_id": {
+          "type": "string"
+        },
+        "extra": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "description": "*\r\nThe request value of the POST /v1/tenant/enable,\r\nused when the tenant administrator enables the plugin."
+    },
+    "v1TenantEnableResponse": {
+      "type": "object",
+      "properties": {
+        "res": {
+          "$ref": "#/definitions/v1Result"
+        }
+      },
+      "description": "*\r\nThe response value of the POST /v1/tenant/enable,\r\nused when the tenant administrator enables the plugin."
+    }
+  }
+}
