@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+
+package dto;
+
+
+
+message String {
+    string value = 1;
+}
+
+message Int32 {
+    int32 value = 1;
+}
+
+message Float {
+    float value = 1;
+}
+
+message Bool {
+    bool value = 1;
+}
+
+
+message Pager {
+    Int32 limit = 1;
+    Int32 offset = 2;
+    String sort_key = 3;
+    Bool Reverse = 4;
+}
+
+
