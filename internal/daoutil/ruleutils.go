@@ -5,19 +5,19 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tkeel-io/rule-manager/constant"
-	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	daorequest "github.com/tkeel-io/rule-manager/internal/dao/utils"
 	"git.internal.yunify.com/manage/common/db"
 	"git.internal.yunify.com/manage/common/log"
 	"github.com/go-pg/pg"
+	"github.com/tkeel-io/rule-manager/constant"
+	dao "github.com/tkeel-io/rule-manager/internal/dao"
+	daorequest "github.com/tkeel-io/rule-manager/internal/dao/utils"
 )
 
 func QueryRule(ctx context.Context, ruleId, userId string) (*dao.Rule, error) {
 
 	rule := &dao.Rule{
-		Id:     ruleId,
-		UserId: userId,
+		ID:     ruleId,
+		UserID: userId,
 	}
 	return rule, rule.Select(ctx)
 }
@@ -31,14 +31,14 @@ func UpdateStatusPG(ctx context.Context, id, userId, status string) (err error) 
 	var tx *pg.Tx
 	rule := dao.Rule{}
 	if tx, err = db.GetTransaction(); nil == err {
-		_, err = rule.Update(ctx, tx, &daorequest.RuleUpdateReq{
-			Id:     id,
-			UserId: userId,
-			Status: &status,
+		_, err = rule.Update(ctx, tx, dao.RuleUpdateCondition{
+			ID:     id,
+			UserID: userId,
+			Status: status,
 		})
 
 		//commit transacation.
-		err = daorequest.OnTransacation(tx, err, "[UpdateRuleStaus]", log.Fields{
+		err = daorequest.CommitTransaction(tx, err, "[UpdateRuleStatus]", log.Fields{
 			"desc":    "update rule status sucessaful.",
 			"rule_id": id,
 			"status":  status,
@@ -48,7 +48,7 @@ func UpdateStatusPG(ctx context.Context, id, userId, status string) (err error) 
 	return err
 }
 
-func GenerateSelectText(topicType string, fields []*daorequest.SelectField) string {
+func GenerateSelectText(topicType string, fields []*dao.SelectField) string {
 	switch topicType {
 	case constant.TopicTypeProperty:
 		return GenerateSelectTextP(fields)
@@ -62,7 +62,7 @@ func GenerateSelectText(topicType string, fields []*daorequest.SelectField) stri
 	return ""
 }
 
-func GenerateSelectTextP(fields []*daorequest.SelectField) string {
+func GenerateSelectTextP(fields []*dao.SelectField) string {
 
 	//generate alias.
 	elems := make([]string, 0)
@@ -89,7 +89,7 @@ func GenerateSelectTextP(fields []*daorequest.SelectField) string {
 	return strings.Join(elems, ", ")
 }
 
-func GenerateSelectTextE(fields []*daorequest.SelectField) string {
+func GenerateSelectTextE(fields []*dao.SelectField) string {
 
 	elems := []string{"params"}
 	for _, field := range fields {

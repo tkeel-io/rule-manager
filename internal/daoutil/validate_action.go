@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"strings"
 
+	"git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/rule-manager/constant"
 	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	"git.internal.yunify.com/manage/common/log"
 )
 
 func ValidateAction(ctx context.Context, action *dao.Action) (bool, error) {
 
-	// Id              string            `sql:"id,type:varchar(255), notnull, unique"`
-	// UserId          string            `sql:"user_id,type:varchar(255)"`
-	// RuleId          string            `sql:"rule_id,type:varchar(255), notnull"`
+	// ID              string            `sql:"id,type:varchar(255), notnull, unique"`
+	// UserID          string            `sql:"user_id,type:varchar(255)"`
+	// RuleID          string            `sql:"rule_id,type:varchar(255), notnull"`
 	// Name            string            `sql:"name,type:varchar(255), notnull"`
 	// Status          bool              `sql:"status"`
 	// Configuration   map[string]string `sql:"configuration, notnull"`

@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"git.internal.yunify.com/manage/common/log"
-	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
 )
 
@@ -36,29 +34,4 @@ func WherePage(query *orm.Query, page *Pager) {
 			query.Offset(int(*page.Offset))
 		}
 	}
-}
-
-func OnTransacation(tx *pg.Tx, err error, title string, fields log.Fields) error {
-	if err != nil {
-		log.ErrorWithFields(title, log.Fields{
-			"error": err,
-		})
-		er := tx.Rollback()
-		if er != nil {
-			log.ErrorWithFields(title, log.Fields{
-				"desc":  "rollback error.",
-				"error": er,
-			})
-		}
-	} else {
-		err = tx.Commit()
-		if err != nil {
-			log.ErrorWithFields(title, log.Fields{
-				"desc":  "commit error.",
-				"error": err,
-			})
-		}
-		log.InfoWithFields(title, fields)
-	}
-	return err
 }

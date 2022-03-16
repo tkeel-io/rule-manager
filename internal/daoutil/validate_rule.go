@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/rule-manager/constant"
 	dao "github.com/tkeel-io/rule-manager/internal/dao"
 	xutils "github.com/tkeel-io/rule-manager/internal/utils"
-	"git.internal.yunify.com/manage/common/log"
 )
 
 // /*
@@ -23,8 +23,8 @@ import (
 // */
 
 func ValidateRule(ctx context.Context, rule *dao.Rule) (bool, error) {
-	// Id           string         `sql:"id,type:varchar(255), notnull, unique"`
-	// UserId       string         `sql:"user_id,type:varchar(255)"`
+	// ID           string         `sql:"id,type:varchar(255), notnull, unique"`
+	// UserID       string         `sql:"user_id,type:varchar(255)"`
 	// Name         string         `sql:"name,type:varchar(255), unique"`
 	// Status       string         `sql:"statustype:varchar(31)"`
 	// RuleDesc     string         `sql:"rule_desc"`
