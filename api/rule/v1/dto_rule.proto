@@ -141,7 +141,6 @@ message RuleCreateReq {
     string short_topic = 9;
     string where = 10;
     string raw = 11;
-    int32 iot_user_privilege = 12;
 }
 
 message RuleCreateResp {
