@@ -22,6 +22,7 @@ init:
 api:
 	protoc --proto_path=. \
 	       --proto_path=./third_party \
+	       --proto_path=./api/rule/v1 \
  	       --go_out=paths=source_relative:. \
  	       --go-http_out=paths=source_relative:. \
  	       --go-grpc_out=paths=source_relative:. \

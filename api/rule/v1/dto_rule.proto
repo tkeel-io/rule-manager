@@ -1,22 +1,94 @@
+
 syntax = "proto3";
 
+package api.rule;
 
+import "google/api/annotations.proto";
+import "api/rule/v1/wrappers.proto";
 
-package dto;
-import "wrappers.proto";
-
-
+option go_package = "github.com/tkeel-io/rule-manager/api/rule/v1;v1";
+option java_multiple_files = true;
+option java_package = "api.rule";
 
 //service
 service Rules {
-    rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp);
-    rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp);
-    rpc RuleDelete(RuleDeleteReq) returns (RuleDeleteResp);
-    rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp);
-    rpc RuleStatus(RuleStatusReq) returns (RuleStatusResp);
-    rpc RuleDebug(RuleDebugReq) returns (RuleDebugResp);
-    rpc RuleDebugMessage (RuleDebugMsgReq) returns (RuleDebugMsgResp);
-    rpc RuleError (RuleErrorReq) returns (RuleErrorResp);
+    rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp) {
+		option (google.api.http) = {
+			put : "/rules"
+			body : "*"
+		};
+    };
+
+    rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp) {
+		option (google.api.http) = {
+			put : "/rules/{id}"
+			body : "*"
+		};
+
+    };
+
+    rpc RuleDelete(RuleDeleteReq) returns (RuleDeleteResp) {
+		option (google.api.http) = {
+			delete : "/rules/{id}"
+		};
+    };
+
+    rpc RuleGet(RuleGetReq) returns (Rule) {
+		option (google.api.http) = {
+			get : "/rules/{id}"
+		};
+    };
+
+
+    rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp) {
+		option (google.api.http) = {
+			get : "/rules"
+		};
+
+    };
+
+    rpc RuleStatus(RuleStatusReq) returns (RuleStatusResp) {
+		option (google.api.http) = {
+			post : "/rules/{id}/status"
+			body : "*"
+		};
+    };
+
+    rpc RuleStart(RuleStartReq) returns (RuleStartResp) {
+		option (google.api.http) = {
+			post : "/rules/{id}/start"
+			body : "*"
+		};
+    };
+
+    rpc RuleStop(RuleStopReq) returns (RuleStopResp) {
+		option (google.api.http) = {
+			post : "/rules/{id}/stop"
+			body : "*"
+		};
+    };
+
+    rpc RuleDebug(RuleDebugReq) returns (RuleDebugResp) {
+		option (google.api.http) = {
+			post : "/rules/{rule_id}/debug"
+			body : "*"
+		};
+
+    };
+
+    rpc RuleDebugMessage (RuleDebugMsgReq) returns (RuleDebugMsgResp) {
+		option (google.api.http) = {
+			get : "/rules/{rule_id}/debug/messages"
+		};
+
+    };
+
+    rpc RuleError (RuleErrorReq) returns (RuleErrorResp) {
+		option (google.api.http) = {
+			get : "/rules/{rule_id}/errors"
+		};
+
+    };
 }   
  
 
@@ -106,6 +178,12 @@ message RuleDeleteReq {
 message RuleDeleteResp {
 }
 
+//rule delete.
+message RuleGetReq {
+    string id = 1;
+    string user_id =2;
+}
+
 
 
 //rule query
@@ -149,6 +227,40 @@ message RuleStatusReq {
 
 
 message RuleStatusResp {
+    string id = 1;
+    string status = 2;
+}
+
+message RuleStartReq {
+    string id = 1;
+    enum StatusOp {
+        STATUS_READ = 0;
+        STATUS_WRITE = 1;
+    }
+    StatusOp operator  = 2;    
+    string status = 3;
+    string user_id = 4;
+}
+
+
+message RuleStartResp {
+    string id = 1;
+    string status = 2;
+}
+
+message RuleStopReq {
+    string id = 1;
+    enum StatusOp {
+        STATUS_READ = 0;
+        STATUS_WRITE = 1;
+    }
+    StatusOp operator  = 2;    
+    string status = 3;
+    string user_id = 4;
+}
+
+
+message RuleStopResp {
     string id = 1;
     string status = 2;
 }
