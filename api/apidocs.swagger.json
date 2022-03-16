@@ -972,10 +972,6 @@
         },
         "raw": {
           "type": "string"
-        },
-        "iot_user_privilege": {
-          "type": "integer",
-          "format": "int32"
         }
       },
       "description": "Rule create."
