@@ -1,11 +1,9 @@
 package constant
 
-//-------------evevt type
-
 type EventType = uint8
 
 const (
-	EVENT_RULE_CREATE EventType = iota
+	EVENT_RULE_CREATE EventType = iota + 1
 	EVENT_RULE_DELETE
 	EVENT_RULE_UPDATE
 	EVENT_ACTION_CREATE

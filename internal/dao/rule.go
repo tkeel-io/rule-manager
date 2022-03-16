@@ -170,8 +170,8 @@ type SelectField struct {
 }
 
 type RuleDeleteCondition struct {
-	Id     string
-	UserId string
+	ID     string
+	UserID string
 }
 
 type RuleQueryCondition struct {
