@@ -17,6 +17,7 @@ import (
 	helloworld "github.com/tkeel-io/rule-manager/api/helloworld/v1"
 
 	openapi "github.com/tkeel-io/rule-manager/api/openapi/v1"
+	Rules_v1 "github.com/tkeel-io/rule-manager/api/rule/v1"
 )
 
 var (
@@ -58,6 +59,10 @@ func main() {
 		OpenapiSrv := service.NewOpenapiService()
 		openapi.RegisterOpenapiHTTPServer(httpSrv.Container, OpenapiSrv)
 		openapi.RegisterOpenapiServer(grpcSrv.GetServe(), OpenapiSrv)
+
+		RulesSrv := service.NewRulesService()
+		Rules_v1.RegisterRulesHTTPServer(httpSrv.Container, RulesSrv)
+		Rules_v1.RegisterRulesServer(grpcSrv.GetServe(), RulesSrv)
 	}
 
 	if err := app.Run(context.TODO()); err != nil {

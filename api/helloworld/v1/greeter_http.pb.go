@@ -87,7 +87,7 @@ func (h *GreeterHTTPHandler) SayHello(req *go_restful.Request, resp *go_restful.
 			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
 		return
 	}
-	resp.WriteHeader(http.StatusOK)
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
 
 	var remain int
 	for {
