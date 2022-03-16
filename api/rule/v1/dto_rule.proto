@@ -1,4 +1,3 @@
-
 syntax = "proto3";
 
 package api.rule;
@@ -10,158 +9,158 @@ option go_package = "github.com/tkeel-io/rule-manager/api/rule/v1;v1";
 option java_multiple_files = true;
 option java_package = "api.rule";
 
-//service
+// service
 service Rules {
-    rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp) {
-		option (google.api.http) = {
-			put : "/rules"
-			body : "*"
-		};
+  rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp) {
+    option (google.api.http) = {
+      put : "/rules"
+      body : "*"
+    };
+  };
+
+  rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp) {
+    option (google.api.http) = {
+      put : "/rules/{id}"
+      body : "*"
     };
 
-    rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp) {
-		option (google.api.http) = {
-			put : "/rules/{id}"
-			body : "*"
-		};
+  };
 
+  rpc RuleDelete(RuleDeleteReq) returns (RuleDeleteResp) {
+    option (google.api.http) = {
+      delete : "/rules/{id}"
+    };
+  };
+
+  rpc RuleGet(RuleGetReq) returns (Rule) {
+    option (google.api.http) = {
+      get : "/rules/{id}"
+    };
+  };
+
+
+  rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp) {
+    option (google.api.http) = {
+      get : "/rules"
     };
 
-    rpc RuleDelete(RuleDeleteReq) returns (RuleDeleteResp) {
-		option (google.api.http) = {
-			delete : "/rules/{id}"
-		};
+  };
+
+  rpc RuleStatus(RuleStatusReq) returns (RuleStatusResp) {
+    option (google.api.http) = {
+      post : "/rules/{id}/status"
+      body : "*"
+    };
+  };
+
+  rpc RuleStart(RuleStartReq) returns (RuleStartResp) {
+    option (google.api.http) = {
+      post : "/rules/{id}/start"
+      body : "*"
+    };
+  };
+
+  rpc RuleStop(RuleStopReq) returns (RuleStopResp) {
+    option (google.api.http) = {
+      post : "/rules/{id}/stop"
+      body : "*"
+    };
+  };
+
+  rpc RuleDebug(RuleDebugReq) returns (RuleDebugResp) {
+    option (google.api.http) = {
+      post : "/rules/{rule_id}/debug"
+      body : "*"
     };
 
-    rpc RuleGet(RuleGetReq) returns (Rule) {
-		option (google.api.http) = {
-			get : "/rules/{id}"
-		};
+  };
+
+  rpc RuleDebugMessage (RuleDebugMsgReq) returns (RuleDebugMsgResp) {
+    option (google.api.http) = {
+      get : "/rules/{rule_id}/debug/messages"
     };
 
+  };
 
-    rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp) {
-		option (google.api.http) = {
-			get : "/rules"
-		};
-
+  rpc RuleError (RuleErrorReq) returns (RuleErrorResp) {
+    option (google.api.http) = {
+      get : "/rules/{rule_id}/errors"
     };
 
-    rpc RuleStatus(RuleStatusReq) returns (RuleStatusResp) {
-		option (google.api.http) = {
-			post : "/rules/{id}/status"
-			body : "*"
-		};
-    };
+  };
+}
 
-    rpc RuleStart(RuleStartReq) returns (RuleStartResp) {
-		option (google.api.http) = {
-			post : "/rules/{id}/start"
-			body : "*"
-		};
-    };
-
-    rpc RuleStop(RuleStopReq) returns (RuleStopResp) {
-		option (google.api.http) = {
-			post : "/rules/{id}/stop"
-			body : "*"
-		};
-    };
-
-    rpc RuleDebug(RuleDebugReq) returns (RuleDebugResp) {
-		option (google.api.http) = {
-			post : "/rules/{rule_id}/debug"
-			body : "*"
-		};
-
-    };
-
-    rpc RuleDebugMessage (RuleDebugMsgReq) returns (RuleDebugMsgResp) {
-		option (google.api.http) = {
-			get : "/rules/{rule_id}/debug/messages"
-		};
-
-    };
-
-    rpc RuleError (RuleErrorReq) returns (RuleErrorResp) {
-		option (google.api.http) = {
-			get : "/rules/{rule_id}/errors"
-		};
-
-    };
-}   
- 
 
 
 message SelectField{
-    string expr = 1;
-    string type = 2;
-    string alias = 3;
+  string expr = 1;
+  string type = 2;
+  string alias = 3;
 }
 
 
 message ConfigStatus {
-    bool data_select_flag = 1;
-    bool data_dispatch_flag = 2;
-    bool data_error_flag = 3;
+  bool data_select_flag = 1;
+  bool data_dispatch_flag = 2;
+  bool data_error_flag = 3;
 }
 
 //rule
 message Rule {
-    string id  =1;
-    string user_id = 2; 
-    string name = 3;
-    string rule_desc = 4;
-    int32 data_type = 5;
-    string select_text = 6;
-    string topic_type = 7;
-    string short_topic = 8;
-    string where = 9;
-    string status = 10;
-    string ruleql = 11;
-    string raw = 12;
-    string topic = 13;
-    ConfigStatus config_status = 14;
-    //bytes debug_message = 15;
-    repeated SelectField select_fields = 16;
-    map<string, string> last_error = 17;
-    int64 create_time = 18;
-    int64 update_time = 19;
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string rule_desc = 4;
+  int32 data_type = 5;
+  string select_text = 6;
+  string topic_type = 7;
+  string short_topic = 8;
+  string where = 9;
+  string status = 10;
+  string ruleql = 11;
+  string raw = 12;
+  string topic = 13;
+  ConfigStatus config_status = 14;
+  //bytes debug_message = 15;
+  repeated SelectField select_fields = 16;
+  map<string, string> last_error = 17;
+  int64 create_time = 18;
+  int64 update_time = 19;
 }
 
 //Rule create.
 message RuleCreateReq {
-    string user_id = 2;
-    string name = 3;
-    string rule_desc = 4;
-    int32 data_type = 5;
-    string select_text = 6;
-    repeated SelectField select_fields = 7;
-    string topic_type = 8;
-    string short_topic = 9;
-    string where = 10;
-    string raw = 11;
+  string user_id = 2;
+  string name = 3;
+  string rule_desc = 4;
+  int32 data_type = 5;
+  string select_text = 6;
+  repeated SelectField select_fields = 7;
+  string topic_type = 8;
+  string short_topic = 9;
+  string where = 10;
+  string raw = 11;
 }
 
 message RuleCreateResp {
-    string id = 1;
+  string id = 1;
 }
 
 
 
 //rule update
 message RuleUpdateReq {
-    string id  =1;
-    string user_id = 2;
-    String name = 3;
-    String rule_desc = 4;
-    Int32 data_type = 5;
-    String select_text = 6;
-    repeated SelectField select_fields = 7;
-    String topic_type = 8;
-    String short_topic = 9;
-    String where = 10;
-    String raw = 11;
+  string id = 1;
+  string user_id = 2;
+  String name = 3;
+  String rule_desc = 4;
+  Int32 data_type = 5;
+  String select_text = 6;
+  repeated SelectField select_fields = 7;
+  String topic_type = 8;
+  String short_topic = 9;
+  String where = 10;
+  String raw = 11;
 }
 message RuleUpdateResp {
 }
@@ -170,8 +169,8 @@ message RuleUpdateResp {
 
 //rule delete.
 message RuleDeleteReq {
-    string id = 1;
-    string user_id =2;
+  string id = 1;
+  string user_id = 2;
 }
 
 message RuleDeleteResp {
@@ -179,131 +178,131 @@ message RuleDeleteResp {
 
 //rule delete.
 message RuleGetReq {
-    string id = 1;
-    string user_id =2;
+  string id = 1;
+  string user_id = 2;
 }
 
 
 
 //rule query
 message RuleQueryReq {
-    String id  =1;
-    repeated string ids = 2;
-    String name = 4;
-    //String rule_desc = 5;
-    Int32 data_type = 6;
-    //String select_text = 7;
-    String topic_type = 8;
-    String short_topic = 9;
-    //String where = 10;
-    String search_key = 11;
-    Pager page = 12;
-    String status = 13;
+  String id = 1;
+  repeated string ids = 2;
+  String name = 4;
+  //String rule_desc = 5;
+  Int32 data_type = 6;
+  //String select_text = 7;
+  String topic_type = 8;
+  String short_topic = 9;
+  //String where = 10;
+  String search_key = 11;
+  Pager page = 12;
+  String status = 13;
 
-    //user_id 作为一个condition，用户不能查看别人的rule
-    string user_id = 15;
-    
+  //user_id 作为一个condition，用户不能查看别人的rule
+  string user_id = 15;
+
 }
 
 
 
 
 message RuleQueryResp {
-    int32 total = 1;
-    repeated Rule rules = 2;
+  int32 total = 1;
+  repeated Rule rules = 2;
 }
 
 message RuleStatusReq {
-    string id = 1;
-    enum StatusOp {
-        STATUS_READ = 0;
-        STATUS_WRITE = 1;
-    }
-    StatusOp operator  = 2;    
-    string status = 3;
-    string user_id = 4;
+  string id = 1;
+  enum StatusOp {
+    STATUS_READ = 0;
+    STATUS_WRITE = 1;
+  }
+  StatusOp operator = 2;
+  string status = 3;
+  string user_id = 4;
 }
 
 
 message RuleStatusResp {
-    string id = 1;
-    string status = 2;
+  string id = 1;
+  string status = 2;
 }
 
 message RuleStartReq {
-    string id = 1;
-    enum StatusOp {
-        STATUS_READ = 0;
-        STATUS_WRITE = 1;
-    }
-    StatusOp operator  = 2;    
-    string status = 3;
-    string user_id = 4;
+  string id = 1;
+  enum StatusOp {
+    STATUS_READ = 0;
+    STATUS_WRITE = 1;
+  }
+  StatusOp operator = 2;
+  string status = 3;
+  string user_id = 4;
 }
 
 
 message RuleStartResp {
-    string id = 1;
-    string status = 2;
+  string id = 1;
+  string status = 2;
 }
 
 message RuleStopReq {
-    string id = 1;
-    enum StatusOp {
-        STATUS_READ = 0;
-        STATUS_WRITE = 1;
-    }
-    StatusOp operator  = 2;    
-    string status = 3;
-    string user_id = 4;
+  string id = 1;
+  enum StatusOp {
+    STATUS_READ = 0;
+    STATUS_WRITE = 1;
+  }
+  StatusOp operator = 2;
+  string status = 3;
+  string user_id = 4;
 }
 
 
 message RuleStopResp {
-    string id = 1;
-    string status = 2;
+  string id = 1;
+  string status = 2;
 }
 
 
 message RuleDebugReq {
-    string rule_id = 1;
-    string user_id = 2;
-    string thing_id = 3;
-    string device_id = 4;
-    //data type: event|property|+
-    string topic_type = 5;
-    //data: message.
-    bytes data = 6;
+  string rule_id = 1;
+  string user_id = 2;
+  string thing_id = 3;
+  string device_id = 4;
+  //data type: event|property|+
+  string topic_type = 5;
+  //data: message.
+  bytes data = 6;
 
 }
 
 message RuleDebugResp {
-    string rule_id = 1;
-    //data: message.
-    string topic = 2;
-    bytes data = 3;
+  string rule_id = 1;
+  //data: message.
+  string topic = 2;
+  bytes data = 3;
 }
 
 
 message RuleDebugMsgReq{
-    string rule_id = 1;
-    string user_id = 2;
-    string device_id = 3;
+  string rule_id = 1;
+  string user_id = 2;
+  string device_id = 3;
 }
 
 message RuleDebugMsgResp{
-    string rule_id =1;
-    bytes message = 2;
+  string rule_id = 1;
+  bytes message = 2;
 }
 
 
 
 message RuleErrorReq {
-    string user_id = 1;
-    string rule_id =2;
+  string user_id = 1;
+  string rule_id = 2;
 }
 
 message RuleErrorResp {
-    string rule_id = 1;
-    map<string, string> error = 2;
+  string rule_id = 1;
+  map<string, string> error = 2;
 }

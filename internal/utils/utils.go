@@ -11,11 +11,12 @@ import (
 	"strconv"
 	"strings"
 
+	uuid "github.com/satori/go.uuid"
 	dao "github.com/tkeel-io/rule-manager/internal/dao"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
-	daorequest "github.com/tkeel-io/rule-manager/internal/dao/utils"
-	uuid "github.com/satori/go.uuid"
 )
+
+type prefix string
 
 func DeepCopy(src, dst interface{}) error {
 	var buf bytes.Buffer
@@ -26,73 +27,72 @@ func DeepCopy(src, dst interface{}) error {
 }
 
 const (
-	RuleIdPrefix   = "rule"
-	ActionIdPrefix = "ac"
+	RuleID   prefix = "rule"
+	ActionID prefix = "ac"
 )
 
-var templateID = "iot-%s-%s"
+const _IDTemplate = "iot-%s-%s"
 
-// 将[]string定义为MyStringList类型
+// MyStringList 将[]string定义为MyStringList类型
 type MyStringList []string
 
-// 实现sort.Interface接口的获取元素数量方法
+// Len 实现sort.Interface接口的获取元素数量方法
 func (m MyStringList) Len() int {
 	return len(m)
 }
 
-// 实现sort.Interface接口的比较元素方法
+// Less 实现sort.Interface接口的比较元素方法
 func (m MyStringList) Less(i, j int) bool {
 	return m[i] < m[j]
 }
 
-// 实现sort.Interface接口的交换元素方法
+// Swap 实现sort.Interface接口的交换元素方法
 func (m MyStringList) Swap(i, j int) {
 	m[i], m[j] = m[j], m[i]
 }
 
-//sort slice.
+// SortStringSlice sort slice.
 func SortStringSlice(s []string) []string {
 	ss := MyStringList(s)
 	sort.Sort(ss)
 	return []string(ss)
 }
 
-func GenerateID(ctx context.Context, userId, prefix string) (string, error) {
+func GenerateID(ctx context.Context, userID string, s prefix) (string, error) {
 
 	baseLen := 14
 	for {
-		uuid := uuid.NewV4().String()
-		uuid = strings.ReplaceAll(uuid, "-", "")
+		uuid := strings.ReplaceAll(uuid.NewV4().String(), "-", "")
 		for i := 0; i < len(uuid)-baseLen; i++ {
-			subUuid := fmt.Sprintf(templateID, prefix, uuid[i:i+baseLen])
+			subUUID := fmt.Sprintf(_IDTemplate, string(s), uuid[i:i+baseLen])
 
-			//query.
-			switch prefix {
-			case RuleIdPrefix:
+			// query unique ID.
+			switch s {
+			case RuleID:
 				rule := &dao.Rule{}
-				rs, err := rule.Query(ctx, &daorequest.RuleQueryReq{
-					Id:           &subUuid,
-					UserId:       userId,
+				rs, err := rule.Query(ctx, dao.RuleQueryCondition{
+					ID:           subUUID,
+					UserID:       userID,
 					FlagQueryBan: true,
 				})
 				if nil != err {
 					return "", err
 				}
 				if len(rs) == 0 {
-					return subUuid, nil
+					return subUUID, nil
 				}
-			case ActionIdPrefix:
+			case ActionID:
 				action := &dao.Action{}
-				rs, err := action.Query(ctx, &daorequest.ActionQueryReq{
-					Id:           &subUuid,
-					UserId:       userId,
+				rs, err := action.Query(ctx, dao.ActionQueryCondition{
+					ID:           subUUID,
+					UserID:       userID,
 					FlagQueryBan: true,
 				})
 				if nil != err {
 					return "", err
 				}
 				if len(rs) == 0 {
-					return subUuid, nil
+					return subUUID, nil
 				}
 			default:
 				//never.

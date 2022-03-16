@@ -1,4 +1,4 @@
-package daoutils
+package daoutil
 
 import (
 	"context"
@@ -9,8 +9,7 @@ import (
 	"git.internal.yunify.com/manage/common/log"
 	"github.com/go-pg/pg"
 	"github.com/tkeel-io/rule-manager/constant"
-	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	daorequest "github.com/tkeel-io/rule-manager/internal/dao/utils"
+	"github.com/tkeel-io/rule-manager/internal/dao"
 )
 
 func QueryRule(ctx context.Context, ruleId, userId string) (*dao.Rule, error) {
@@ -37,8 +36,8 @@ func UpdateStatusPG(ctx context.Context, id, userId, status string) (err error) 
 			Status: status,
 		})
 
-		//commit transacation.
-		err = daorequest.CommitTransaction(tx, err, "[UpdateRuleStatus]", log.Fields{
+		//commit transaction.
+		err = CommitTransaction(tx, err, "[UpdateRuleStatus]", log.Fields{
 			"desc":    "update rule status sucessaful.",
 			"rule_id": id,
 			"status":  status,

@@ -1,4 +1,4 @@
-package daoutils
+package daoutil
 
 import (
 	"context"
@@ -92,7 +92,7 @@ func CheckRule(ctx context.Context, ruleId, userId string) (bool, error) {
 			return false, err
 		}
 		var actions []*dao.Action
-		if actions, err = QueryActions(ctx, &ruleId, nil, userId); nil != err {
+		if actions, err = QueryActions(ctx, ruleId, "", userId); nil != err {
 			log.ErrorWithFields("[ValidateRule]", log.Fields{
 				"error": err,
 			})

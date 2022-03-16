@@ -23,8 +23,8 @@ package action_sink
 // 	this.register(sink)
 // }
 // func (this *SinkManager) register(sink ISink) {
-// 	if _, ok := this.Sinks[sink.Id()]; !ok {
-// 		this.Sinks[sink.Id()] = sink
+// 	if _, ok := this.Sinks[sink.ID()]; !ok {
+// 		this.Sinks[sink.ID()] = sink
 // 	}
 // }
 

@@ -1,4 +1,4 @@
-package daoutils
+package daoutil
 
 import (
 	"fmt"

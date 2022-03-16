@@ -6,7 +6,6 @@ import (
 )
 
 func printInputDebug(title string, in interface{}) {
-
 	log.DebugWithFields(title, log.Fields{
 		"inputs:": xutils.Encode2String(in),
 	})

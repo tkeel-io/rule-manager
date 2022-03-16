@@ -12,7 +12,7 @@ sink:
 // type ISink interface {
 // 	Connect(context.Context) error
 // 	Type() string
-// 	Id() string
+// 	ID() string
 // 	Ready() bool
 // 	Close() error
 // }

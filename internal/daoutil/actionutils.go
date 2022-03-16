@@ -1,4 +1,4 @@
-package daoutils
+package daoutil
 
 import (
 	"context"
@@ -9,15 +9,14 @@ import (
 	"git.internal.yunify.com/manage/common/log"
 	"github.com/go-pg/pg"
 	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	daorequest "github.com/tkeel-io/rule-manager/internal/dao/utils"
 )
 
-func QueryActions(ctx context.Context, rid, aid *string, userId string) ([]*dao.Action, error) {
+func QueryActions(ctx context.Context, rid, aid string, userId string) ([]*dao.Action, error) {
 	action := dao.Action{}
-	return action.Query(ctx, &daorequest.ActionQueryCondition{
-		RuleId: rid,
-		Id:     aid,
-		UserId: userId,
+	return action.Query(ctx, dao.ActionQueryCondition{
+		RuleID: rid,
+		ID:     aid,
+		UserID: userId,
 	})
 }
 
@@ -37,7 +36,7 @@ func UpdateActionSink(ctx context.Context, actionId, sinkId, userId string) erro
 
 	defer func() {
 		//commit transacation.
-		err = daorequest.CommitTransaction(tx, err, "[UpdateRuleStaus]", log.Fields{
+		err = CommitTransaction(tx, err, "[UpdateRuleStatus]", log.Fields{
 			"desc":      "update Action-sink successful.",
 			"call":      "UpdateActionSink",
 			"action_id": actionId,
@@ -64,16 +63,16 @@ func UpdateActionSink(ctx context.Context, actionId, sinkId, userId string) erro
 		})
 	}
 
-	actionUpdateReq := daorequest.ActionUpdateCondition{
+	actionUpdateReq := dao.ActionUpdateCondition{
 		ID:     actionId,
 		UserID: userId,
-		SinkId: &sinkId,
+		SinkID: sinkId,
 		//update ConfigStatus.
 		ConfigStatus: &action.ConfigStatus,
 	}
 
 	//update table.
-	_, err = action.Update(ctx, tx, &actionUpdateReq)
+	_, err = action.Update(ctx, tx, actionUpdateReq)
 	if nil != err {
 		log.Error(err)
 	}
@@ -90,16 +89,16 @@ func UpdateStatusPGA(ctx context.Context, rid, aid, userId, status string) (err 
 	var tx *pg.Tx
 	action := dao.Action{}
 	if tx, err = db.GetTransaction(); nil == err {
-		_, err = action.UpdateByUser(ctx, tx, &daorequest.ActionUpdateCondition{
+		_, err = action.UpdateByUser(ctx, tx, dao.ActionUpdateCondition{
 			ID:     aid,
-			RuleId: &rid,
+			RuleID: rid,
 			UserID: userId,
-			Status: &status,
+			Status: status,
 		})
 
 		//commit transacation.
-		err = daorequest.CommitTransaction(tx, err, "[UpdateActionStatus]", log.Fields{
-			"desc":      "update action status sucessaful.",
+		err = CommitTransaction(tx, err, "[UpdateActionStatus]", log.Fields{
+			"desc":      "update action status successful.",
 			"action_id": aid,
 			"rule_id":   rid,
 			"user_id":   userId,
@@ -193,17 +192,16 @@ func UpdateSinkPGA(ctx context.Context, aid, userId string, sinkId string, confi
 		// 		"validate_error": warn,
 		// 	})
 		// }
-		_, err = action.Update(ctx, tx, &daorequest.ActionUpdateCondition{
+		_, err = action.Update(ctx, tx, dao.ActionUpdateCondition{
 			ID:            aid,
 			UserID:        userId,
-			SinkId:        &sinkId,
+			SinkID:        sinkId,
 			Configuration: configuration,
 			ConfigStatus:  &configStatus,
 		})
 
-		//commit transacation.
-		err = daorequest.CommitTransaction(tx, err, "[UpdateSinkPGA]", log.Fields{
-			"desc":      "update action SinkConfig(sinkId,configuration) sucessaful.",
+		err = CommitTransaction(tx, err, "[UpdateSinkPGA]", log.Fields{
+			"desc":      "update action SinkConfig(sinkId,configuration) successful.",
 			"action_id": aid,
 			"user_id":   userId,
 			"status":    configuration,

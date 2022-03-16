@@ -1,4 +1,4 @@
-package utils
+package pageutil
 
 import (
 	"github.com/go-pg/pg/orm"

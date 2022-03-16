@@ -7,7 +7,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-//config
 type Config struct {
 	Server struct {
 		Host      string `yaml:"host"`

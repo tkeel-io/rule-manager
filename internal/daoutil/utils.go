@@ -1,4 +1,4 @@
-package daoutils
+package daoutil
 
 import (
 	"git.internal.yunify.com/manage/common/log"

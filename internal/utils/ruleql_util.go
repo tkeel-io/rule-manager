@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/rule-manager/constant"
 	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	"git.internal.yunify.com/manage/common/log"
 )
 
 // topicTemp :="/sys/{ThingID}/{DeviceID}/thing/event/property/post"
@@ -29,9 +29,8 @@ func GenerateRuleql(rule *dao.Rule) string {
 }
 
 func getEventIdentifier(rule *dao.Rule) string {
-
 	var eventCount int
-	var ret string = "+"
+	ret := "+"
 	for _, field := range rule.SelectFields {
 		if !strings.HasSuffix(field.Expr, "()") {
 			if eventCount > 0 {
@@ -44,8 +43,8 @@ func getEventIdentifier(rule *dao.Rule) string {
 	}
 	if eventCount > 1 {
 		log.ErrorWithFields("too much event, must be one.", log.Fields{
-			"user_id":       rule.UserId,
-			"rule_id":       rule.Id,
+			"user_id":       rule.UserID,
+			"rule_id":       rule.ID,
 			"select_fields": rule.SelectFields,
 		})
 	}
