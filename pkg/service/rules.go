@@ -21,11 +21,11 @@ import (
 // Log prefix
 const (
 	CreatePrefixTag      = "[RuleCreate]"
-	ServiceLogRuleUpdate = "[RuleUpdate]"
-	ServiceLogRuleDelete = "[RuleDelete]"
+	UpdatePrefixTag      = "[RuleUpdate]"
+	DeletePrefixTag      = "[RuleDelete]"
 	ServiceLogRuleQuery  = "[RuleQuery]"
 	ServiceLogRuleStatus = "[RuleStatus]"
-	ServiceLogRuleDebug  = "[RuleDebug]"
+	DebugPrefixTag       = "[RuleDebug]"
 	ServiceLogRuleError  = "[RuleError]"
 )
 
@@ -104,7 +104,7 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 }
 func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*pb.RuleUpdateResp, error) {
 	//print request [debug]
-	printInputDebug(ServiceLogRuleUpdate, req)
+	printInputDebug(UpdatePrefixTag, req)
 
 	var rule = &dao.Rule{
 		ID:     req.Id,
@@ -114,14 +114,14 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 	defer cancelHandler()
 	tx, err := db.GetTransaction()
 	if nil != err {
-		log.InfoWithFields(ServiceLogRuleUpdate, log.Fields{
+		log.InfoWithFields(UpdatePrefixTag, log.Fields{
 			"desc":  "create trasaction failed.",
 			"error": err,
 		})
 		return nil, pb.ErrInternalError()
 	}
 	defer func() {
-		err = daoutil.CommitTransaction(tx, err, ServiceLogRuleUpdate, log.Fields{
+		err = daoutil.CommitTransaction(tx, err, UpdatePrefixTag, log.Fields{
 			"desc":    "update rule successful.",
 			"rule_id": rule.ID,
 		})
@@ -177,7 +177,7 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 			}
 			//generate select_text.
 			rule.SelectText = daoutil.GenerateSelectText(rule.TopicType, ruleUpdate.SelectFields)
-			log.DebugWithFields(ServiceLogRuleUpdate, log.Fields{
+			log.DebugWithFields(UpdatePrefixTag, log.Fields{
 				"rule_id":       ruleUpdate.ID,
 				"user_id":       ruleUpdate.UserID,
 				"select_fields": ruleUpdate.SelectFields,
@@ -198,7 +198,7 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 }
 func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*pb.RuleDeleteResp, error) {
 	//print request [debug]
-	printInputDebug(ServiceLogRuleDelete, req)
+	printInputDebug(DeletePrefixTag, req)
 
 	var (
 		tx     *pg.Tx
@@ -211,13 +211,13 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 	defer cancelHandler()
 	tx, err = db.GetTransaction()
 	if nil != err {
-		log.ErrorWithFields(ServiceLogRuleDelete, log.Fields{
+		log.ErrorWithFields(DeletePrefixTag, log.Fields{
 			"error": err,
 		})
 		return nil, pb.ErrInternalError()
 	}
 	defer func() {
-		err = daoutil.CommitTransaction(tx, err, ServiceLogRuleDelete, log.Fields{
+		err = daoutil.CommitTransaction(tx, err, DeletePrefixTag, log.Fields{
 			"desc":    "delete rule successful.",
 			"rule_id": rule.ID,
 		})
@@ -262,7 +262,7 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 	var err error
 	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
 	defer cancelHandler()
-	log.DebugWithFields(ServiceLogRuleDebug, log.Fields{
+	log.DebugWithFields(DebugPrefixTag, log.Fields{
 		"rule_id":    req.RuleId,
 		"user_id":    req.UserId,
 		"thing_id":   req.ThingId,
@@ -297,7 +297,7 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 		//		Data:   r.Message.Data(),
 		//	}, nil
 		//}
-		log.ErrorWithFields(ServiceLogRuleDebug, log.Fields{
+		log.ErrorWithFields(DebugPrefixTag, log.Fields{
 			"rule_id": req.RuleId,
 			"user_id": req.UserId,
 			"error":   err,
@@ -309,7 +309,7 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 	}
 	defer func(err error) {
 		if nil != err {
-			log.ErrorWithFields(ServiceLogRuleDebug, log.Fields{
+			log.ErrorWithFields(DebugPrefixTag, log.Fields{
 				"rule_id": req.RuleId,
 				"user_id": req.UserId,
 				"error":   err,
