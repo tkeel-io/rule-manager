@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"github.com/tkeel-io/core-broker/pkg/core"
 	"time"
 
 	metapb "git.internal.yunify.com/MDMP2/api/metadata/v1"
@@ -32,10 +33,17 @@ const (
 
 type RulesService struct {
 	pb.UnimplementedRulesServer
+	Core *core.Client
 }
 
 func NewRulesService() *RulesService {
-	return &RulesService{}
+	client, err := core.NewCoreClient()
+	if err != nil {
+		tkeelLog.Fatal("init core sdk failed", err)
+	}
+	return &RulesService{
+		Core: client,
+	}
 }
 
 func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (res *pb.RuleCreateResp, err error) {
@@ -404,16 +412,6 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 			DataDispatchFlag: checkAction,
 			DataErrorFlag:    checkActionErr,
 		}
-
-		//get last error.
-		lastErr, warnErr := GetLastError(ctx, ru.ID)
-		if nil != warnErr {
-			log.WarnWithFields(QueryPrefixTag, log.Fields{
-				"rule_id": ru.ID,
-				"error":   err,
-			})
-		}
-		r.LastError = lastErr
 		res.Rules = append(res.Rules, r)
 	}
 
@@ -453,34 +451,36 @@ func (s *RulesService) RuleStatus(ctx context.Context, req *pb.RuleStatusReq) (*
 		return nil, pb.ErrInternalError()
 
 	case pb.RuleStatusReq_STATUS_WRITE:
-		var ruleReq *endpointutil.Rule
-		if ruleReq, err = endpointutil.ConvertRule(ctx, req.Id, req.UserId); nil != err {
-			return nil, err
-		}
+		//var ruleReq *endpointutil.Rule
+		//if ruleReq, err = endpointutil.ConvertRule(ctx, req.Id, req.UserId); nil != err {
+		//	return nil, err
+		//}
 		switch req.Status {
 		case constant.CommandStatusRuleStart:
-			if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); nil == err {
-				//update rule status pg.
-				if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStarting); nil == err {
-					// update action status pg.
-					if err = daoutil.UpdateStatusPGA(ctx, req.Id, "", req.UserId, constant.RuleStatusStop); nil == err {
-						return &pb.RuleStatusResp{
-							Id:     req.Id,
-							Status: constant.RuleStatusStarting,
-						}, nil
-					}
-				}
-			}
-		case constant.CommandStatusRuleStop:
-			if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); nil == err {
-				//update pg.
-				if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStopping); nil == err {
+			//if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); nil != err {
+			//}
+			//update rule status pg.
+			if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStarting); nil == err {
+				// update action status pg.
+				if err = daoutil.UpdateStatusPGA(ctx, req.Id, "", req.UserId, constant.RuleStatusStop); nil == err {
 					return &pb.RuleStatusResp{
 						Id:     req.Id,
-						Status: constant.RuleStatusStopping,
+						Status: constant.RuleStatusStarting,
 					}, nil
 				}
 			}
+
+		case constant.CommandStatusRuleStop:
+			//if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); nil != err {
+			//}
+			//update pg.
+			if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStopping); nil == err {
+				return &pb.RuleStatusResp{
+					Id:     req.Id,
+					Status: constant.RuleStatusStopping,
+				}, nil
+			}
+
 		default:
 			err = errors.New("rule status invalid")
 		}
@@ -554,26 +554,26 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 		msg.SetDomain(req.UserId)
 		msg.SetEntity(req.DeviceId)
 		var r *metapb.RuleExecResponse
-		if r, err = endpoint.GetRuleNodeEndpointIns().ExecRule(ctx, req.RuleId, req.UserId, msg); nil == err {
-			if "" != r.ErrMsg {
-				return nil, errors.New(r.ErrMsg)
-			}
-			return &pb.RuleDebugResp{
-				RuleId: req.RuleId,
-				Topic:  r.Message.Topic(),
-				Data:   r.Message.Data(),
-			}, nil
+		//if r, err = endpoint.GetRuleNodeEndpointIns().ExecRule(ctx, req.RuleId, req.UserId, msg); nil != err {
+		//}
+		if "" != r.ErrMsg {
+			return nil, errors.New(r.ErrMsg)
 		}
 		log.ErrorWithFields(DebugPrefixTag, log.Fields{
 			"rule_id": req.RuleId,
 			"user_id": req.UserId,
 			"error":   err,
 		})
-	} else {
-		if nil == err {
-			err = errors.New("rule not exists")
-		}
+		return &pb.RuleDebugResp{
+			RuleId: req.RuleId,
+			Topic:  r.Message.Topic(),
+			Data:   r.Message.Data(),
+		}, nil
+
+	} else if nil == err {
+		return nil, pb.ErrRuleNotFound()
 	}
+
 	defer func(err error) {
 		if nil != err {
 			log.ErrorWithFields(DebugPrefixTag, log.Fields{
@@ -583,7 +583,7 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 			})
 		}
 	}(err)
-	return &pb.RuleDebugResp{}, nil
+	return nil, err
 }
 
 func (s *RulesService) RuleDebugMessage(ctx context.Context, req *pb.RuleDebugMsgReq) (*pb.RuleDebugMsgResp, error) {
@@ -606,7 +606,6 @@ func (s *RulesService) RuleDebugMessage(ctx context.Context, req *pb.RuleDebugMs
 				"user_id": req.UserId,
 				"error":   err.Error(),
 			})
-			res = &pb.RuleDebugMsgResp{}
 		}
 	}()
 
@@ -614,64 +613,34 @@ func (s *RulesService) RuleDebugMessage(ctx context.Context, req *pb.RuleDebugMs
 		return nil, pb.ErrInternalError()
 	}
 
-	var endp = endpoint.NewThingEndpoint()
-	var me *endpoint.EventPropertyInfo
-	thingId := utils.GetThingId(rule)
-	if me, err = endp.GetThingDetailsById(ctx, thingId, rule.UserID); nil != err {
+	//var endp = endpoint.NewThingEndpoint()
+	//var me *endpoint.EventPropertyInfo
+	thingID := utils.GetThingId(rule)
+	e, err := s.Core.GetDeviceEntity(req.DeviceId)
+	if err != nil {
 		log.ErrorWithFields(DebugPrefixTag, log.Fields{
 			"rule_id": req.RuleId,
 			"user_id": req.UserId,
+			"message": "call Core GET Entity ERR",
 			"error":   err,
 		})
-		return nil, err
-	} else if nil == me {
-		//自定义设备...
-		return &pb.RuleDebugMsgResp{
-			RuleId:  req.RuleId,
-			Message: []byte("{}"),
-		}, nil
+		return nil, pb.ErrInternalError()
 	}
-	fields := make(map[string]*utils.ThingTypeDesc)
-	if nil != me {
-		switch rule.TopicType {
-		case constant.TopicTypeProperty:
-			fallthrough
-		case constant.TopicTypeEvent:
-			fallthrough
-		case constant.TopicTypeAll:
-			fallthrough
-		default:
-			for _, prop := range me.Properties {
-
-				define := make(map[string]interface{})
-				if len(prop.Meta.Define) > 0 {
-					if err = json.Unmarshal(prop.Meta.Define, &define); nil != err {
-						return nil, err
-					}
-				}
-				fields[prop.Meta.Identifier] = &xutils.ThingTypeDesc{
-					Type:   xutils.GetType(prop.Meta.Type),
-					Define: define,
-				}
-			}
-		}
-	}
-	msg := utils.GenMessage(fields)
 	message := &utils.ThingMessage{
 		Id:      "模拟数据输入...",
 		Version: "0.0.0",
 		Type:    postTypes,
 		Metadata: utils.Metadata{
 			EntityId:  req.DeviceId,
-			ModelId:   thingId,
+			ModelId:   thingID,
 			SourceId:  []string{req.DeviceId},
 			EpochTime: time.Now().Unix(),
 		},
-		Params: msg,
+		Params: map[string]interface{}{"device_info": e},
 	}
 
 	if buf, err = json.Marshal(message); err != nil {
-		return nil, err
+		return nil, pb.ErrInternalError()
 	}
 
 	return &pb.RuleDebugMsgResp{
@@ -687,17 +656,10 @@ func (s *RulesService) RuleError(ctx context.Context, req *pb.RuleErrorReq) (*pb
 	log.ErrorWithFields(ErrorPrefixTag, log.Fields{
 		"rule_id": req.RuleId,
 	})
-	res, err := GetLastError(ctx, req.RuleId)
-	if nil != err {
-		log.ErrorWithFields(ErrorPrefixTag, log.Fields{
-			"rule_id": req.RuleId,
-			"error":   err,
-		})
-	}
 	return &pb.RuleErrorResp{
 		RuleId: req.RuleId,
-		Error:  res,
-	}, err
+		Error:  nil,
+	}, nil
 }
 
 func (s RulesService) Report(et constant.EventType, ruleID, userID string) {
@@ -741,38 +703,4 @@ func queryTotalRule(id string) (int32, error) {
 		UserID: id,
 	})
 	return int32(len(rules)), err
-}
-
-func GetLastError(ctx context.Context, ruleId string) (map[string]string, error) {
-
-	type Ret struct {
-		Res map[string]string
-		Err error
-	}
-
-	ch := make(chan *Ret, 0)
-	var ret *Ret
-	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
-	defer cancel()
-
-	go func() {
-		key := constant.ErrorPrefix + ruleId
-		res, err := endpoint.GetRedisEndpoint().HGetAll(key)
-		ch <- &Ret{
-			Res: res,
-			Err: err,
-		}
-		return
-	}()
-
-	select {
-	case <-ctx.Done():
-		log.ErrorWithFields(ErrorPrefixTag, log.Fields{
-			"rule_id": ruleId,
-			"error":   "context timeout.",
-		})
-		return nil, ctx.Err()
-	case ret = <-ch:
-		return ret.Res, ret.Err
-	}
 }

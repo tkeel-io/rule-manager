@@ -2,6 +2,7 @@ GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 INTERNAL_PROTO_FILES=$(shell find internal -name *.proto)
 API_PROTO_FILES=$(shell find api -name *.proto)
+DOCKERTAG?=tkeelio/rule-manager:v0.4.0
 
 .PHONY: init
 # init env
@@ -68,3 +69,8 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+docker-build:
+	docker build -t $(DOCKERTAG) .
+docker-push:
+	docker push $(DOCKERTAG)

@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	dao "github.com/tkeel-io/rule-manager/internal/dao"
 	types "git.internal.yunify.com/manage/common/constant"
 	"git.internal.yunify.com/manage/common/log"
 	thing "git.internal.yunify.com/manage/common/proto/thing"
+	dao "github.com/tkeel-io/rule-manager/internal/dao"
 )
 
 const SlimulateThingDataLogTitle = "[SimulateData]"
@@ -115,7 +115,6 @@ func genValue(field *ThingTypeDesc) interface{} {
 }
 
 func GetType(t thing.EnumMetaType) string {
-
 	var tp string
 	switch t {
 	case thing.EnumMetaType_INT32:
