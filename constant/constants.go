@@ -60,8 +60,7 @@ const (
 
 //rule status
 const (
-	//前端状态
-	//rule status
+	// rule status
 	RuleStatusBan       = "ban"
 	RuleStatusStop      = "stop"
 	RuleStatusRunning   = "running"
@@ -69,6 +68,7 @@ const (
 	RuleStatusError     = "error"
 	RuleStatusStarting  = "starting"
 	RuleStatusStopping  = "stopping"
+
 	//action status
 	ActionStatusBan       = "ban"
 	ActionStatusStop      = "stop"
@@ -101,8 +101,8 @@ const (
 
 //由用户发出的指令状态
 const (
-	COMMAND_STATUS_RULE_START = "start"
-	COMMAND_STATUS_RULE_STOP  = "stop"
+	CommandStatusRuleStart = "start"
+	CommandStatusRuleStop  = "stop"
 )
 
 const ErrorPrefix = "RuleErr-"

@@ -17,6 +17,7 @@ var errNotFound *errors.TError
 var errInvalidArgument *errors.TError
 var errInternalStore *errors.TError
 var errInternalError *errors.TError
+var errRuleNotFound *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -31,6 +32,8 @@ func init() {
 	errors.Register(errInternalStore)
 	errInternalError = errors.New(int(codes.Internal), "rule.v1.ERR_INTERNAL_ERROR", "内部错误")
 	errors.Register(errInternalError)
+	errRuleNotFound = errors.New(int(codes.NotFound), "rule.v1.ERR_RULE_NOT_FOUND", "未找到对应规则")
+	errors.Register(errRuleNotFound)
 }
 
 func ErrUnknown() errors.Error {
@@ -55,4 +58,8 @@ func ErrInternalStore() errors.Error {
 
 func ErrInternalError() errors.Error {
 	return errInternalError
+}
+
+func ErrRuleNotFound() errors.Error {
+	return errRuleNotFound
 }

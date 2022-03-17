@@ -163,6 +163,17 @@ message RuleUpdateReq {
   string raw = 11;
 }
 message RuleUpdateResp {
+  string id = 1;
+  string user_id = 2;
+  string name = 3;
+  string rule_desc = 4;
+  uint32 data_type = 5;
+  string select_text = 6;
+  repeated SelectField select_fields = 7;
+  string topic_type = 8;
+  string short_topic = 9;
+  string where = 10;
+  string raw = 11;
 }
 
 

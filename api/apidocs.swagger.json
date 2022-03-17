@@ -895,7 +895,46 @@
       }
     },
     "ruleRuleUpdateResp": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "user_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "rule_desc": {
+          "type": "string"
+        },
+        "data_type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "select_text": {
+          "type": "string"
+        },
+        "select_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleSelectField"
+          }
+        },
+        "topic_type": {
+          "type": "string"
+        },
+        "short_topic": {
+          "type": "string"
+        },
+        "where": {
+          "type": "string"
+        },
+        "raw": {
+          "type": "string"
+        }
+      }
     },
     "ruleSelectField": {
       "type": "object",

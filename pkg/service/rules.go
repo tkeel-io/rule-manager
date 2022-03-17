@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	metapb "git.internal.yunify.com/MDMP2/api/metadata/v1"
@@ -20,13 +21,13 @@ import (
 
 // Log prefix
 const (
-	CreatePrefixTag      = "[RuleCreate]"
-	UpdatePrefixTag      = "[RuleUpdate]"
-	DeletePrefixTag      = "[RuleDelete]"
-	ServiceLogRuleQuery  = "[RuleQuery]"
-	ServiceLogRuleStatus = "[RuleStatus]"
-	DebugPrefixTag       = "[RuleDebug]"
-	ServiceLogRuleError  = "[RuleError]"
+	CreatePrefixTag     = "[RuleCreate]"
+	UpdatePrefixTag     = "[RuleUpdate]"
+	DeletePrefixTag     = "[RuleDelete]"
+	QueryPrefixTag      = "[RuleQuery]"
+	RuleStatusPrefixTag = "[RuleStatus]"
+	DebugPrefixTag      = "[RuleDebug]"
+	ErrorPrefixTag      = "[RuleError]"
 )
 
 type RulesService struct {
@@ -102,6 +103,7 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 		Id: rule.ID,
 	}, nil
 }
+
 func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*pb.RuleUpdateResp, error) {
 	//print request [debug]
 	printInputDebug(UpdatePrefixTag, req)
@@ -194,8 +196,21 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 	}
 	s.Report(constant.EVENT_RULE_UPDATE, rule.ID, rule.UserID)
 
-	return &pb.RuleUpdateResp{}, nil
+	return &pb.RuleUpdateResp{
+		Id:           ruleUpdate.ID,
+		UserId:       ruleUpdate.UserID,
+		Name:         ruleUpdate.Name,
+		RuleDesc:     ruleUpdate.RuleDesc,
+		DataType:     uint32(ruleUpdate.DataType),
+		SelectText:   ruleUpdate.SelectText,
+		SelectFields: req.SelectFields,
+		TopicType:    ruleUpdate.TopicType,
+		ShortTopic:   ruleUpdate.ShortTopic,
+		Where:        ruleUpdate.WhereText,
+		Raw:          ruleUpdate.Raw,
+	}, nil
 }
+
 func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*pb.RuleDeleteResp, error) {
 	//print request [debug]
 	printInputDebug(DeletePrefixTag, req)
@@ -242,21 +257,273 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 	s.Report(constant.EVENT_RULE_DELETE, rule.ID, rule.UserID)
 	return &pb.RuleDeleteResp{}, nil
 }
+
 func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rule, error) {
-	return &pb.Rule{}, nil
+	r, err := s.RuleQuery(ctx, &pb.RuleQueryReq{
+		Id:     &pb.String{Value: req.Id},
+		UserId: req.UserId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if r.Rules == nil || len(r.Rules) == 0 {
+		return nil, pb.ErrRuleNotFound()
+	}
+	rule := r.Rules[0]
+	return &pb.Rule{
+		Id:           rule.Id,
+		UserId:       rule.UserId,
+		Name:         rule.Name,
+		RuleDesc:     rule.RuleDesc,
+		DataType:     rule.DataType,
+		SelectText:   rule.SelectText,
+		TopicType:    rule.TopicType,
+		ShortTopic:   rule.ShortTopic,
+		Where:        rule.Where,
+		Status:       rule.Status,
+		Ruleql:       rule.Ruleql,
+		Raw:          rule.Raw,
+		Topic:        rule.Topic,
+		ConfigStatus: rule.ConfigStatus,
+		SelectFields: rule.SelectFields,
+		LastError:    rule.LastError,
+		CreateTime:   rule.CreateTime,
+		UpdateTime:   rule.UpdateTime,
+	}, nil
 }
+
 func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb.RuleQueryResp, error) {
-	return &pb.RuleQueryResp{}, nil
+	//print request [debug]
+	printInputDebug(QueryPrefixTag, req)
+
+	var rule = &dao.Rule{}
+	var action = &dao.Action{}
+	var actions []*dao.Action
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	defer cancelHandler()
+
+	cond := dao.RuleQueryCondition{
+		IDs:    req.Ids,
+		UserID: req.UserId,
+	}
+	{
+		if nil != req.Id {
+			cond.ID = req.Id.Value
+		}
+		if nil != req.Name {
+			cond.Name = req.Name.Value
+		}
+		if nil != req.DataType {
+			value := uint8(req.DataType.Value)
+			cond.DataType = value
+		}
+		if nil != req.TopicType {
+			cond.TopicType = req.TopicType.Value
+		}
+		if nil != req.ShortTopic {
+			cond.ShortTopic = req.ShortTopic.Value
+		}
+		if nil != req.SearchKey {
+			cond.SearchKey = req.SearchKey.Value
+		}
+	}
+	//query.
+	rules, err := rule.Query(ctx, cond)
+	if nil != err {
+		log.ErrorWithFields(QueryPrefixTag, log.Fields{
+			"error": err,
+		})
+		return nil, pb.ErrInternalError()
+	}
+	total, err := queryTotalRule(cond.UserID)
+	if nil != err {
+		log.ErrorWithFields(QueryPrefixTag, log.Fields{
+			"error": err,
+		})
+		return nil, pb.ErrInternalError()
+	}
+	res := &pb.RuleQueryResp{
+		Total: total,
+		Rules: make([]*pb.Rule, 0),
+	}
+	for _, ru := range rules {
+		//过滤逻辑删除的rule。
+		if constant.RuleStatusBan == ru.Status {
+			continue
+		}
+		//field: SelectFeilds:
+		fields := make([]*pb.SelectField, 0)
+		for _, field := range ru.SelectFields {
+			fields = append(fields, &pb.SelectField{
+				Expr:  field.Expr,
+				Type:  field.Type,
+				Alias: field.Alias,
+			})
+		}
+		r := &pb.Rule{
+			Id:           ru.ID,
+			UserId:       ru.UserID,
+			Name:         ru.Name,
+			Status:       ru.Status,
+			RuleDesc:     ru.RuleDesc,
+			DataType:     int32(ru.DataType),
+			SelectText:   ru.SelectText,
+			SelectFields: fields,
+			TopicType:    ru.TopicType,
+			Topic:        utils.GenerateTopic(ru),
+			ShortTopic:   ru.ShortTopic,
+			Where:        ru.WhereText,
+			Ruleql:       ru.Ruleql,
+			Raw:          ru.RawRequest,
+			CreateTime:   ru.CreateTime,
+			UpdateTime:   ru.UpdateTime,
+		}
+		//check rule.
+		status, checkRule := true, false
+		checkRule, _ = daoutil.ValidateRule(ctx, ru)
+		//query action by rule.Id
+		checkAction, checkActionErr := false, false
+		actions, err = action.Query(ctx, dao.ActionQueryCondition{
+			RuleID:       r.Id,
+			UserID:       ru.UserID,
+			ConfigStatus: &status,
+		})
+		if nil != err {
+			log.Error(err)
+			return nil, pb.ErrInternalError()
+		}
+		for _, ac := range actions {
+			if ac.ErrorActionFlag {
+				checkActionErr = true
+			} else {
+				checkAction = true
+			}
+		}
+		r.ConfigStatus = &pb.ConfigStatus{
+			DataSelectFlag:   checkRule,
+			DataDispatchFlag: checkAction,
+			DataErrorFlag:    checkActionErr,
+		}
+
+		//get last error.
+		lastErr, warnErr := GetLastError(ctx, ru.ID)
+		if nil != warnErr {
+			log.WarnWithFields(QueryPrefixTag, log.Fields{
+				"rule_id": ru.ID,
+				"error":   err,
+			})
+		}
+		r.LastError = lastErr
+		res.Rules = append(res.Rules, r)
+	}
+
+	return res, nil
 }
+
 func (s *RulesService) RuleStatus(ctx context.Context, req *pb.RuleStatusReq) (*pb.RuleStatusResp, error) {
-	return &pb.RuleStatusResp{}, nil
+	// callback error.
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	var err error
+	defer cancelHandler()
+	defer func() {
+		fields := log.Fields{
+			"call":     "RuleStatus",
+			"rule_id":  req.Id,
+			"operator": req.Operator,
+			"status":   req.Status,
+			"userId":   req.UserId,
+			"error":    err,
+		}
+		if nil == err {
+			log.InfoWithFields(RuleStatusPrefixTag, fields)
+		} else {
+			log.ErrorWithFields(RuleStatusPrefixTag, fields)
+		}
+	}()
+
+	switch req.Operator {
+	case pb.RuleStatusReq_STATUS_READ:
+		var status string
+		if status, err = s.getRuleStatus(ctx, req.Id, req.UserId); nil == err {
+			return &pb.RuleStatusResp{
+				Id:     req.Id,
+				Status: status,
+			}, nil
+		}
+		return nil, pb.ErrInternalError()
+
+	case pb.RuleStatusReq_STATUS_WRITE:
+		var ruleReq *endpointutil.Rule
+		if ruleReq, err = endpointutil.ConvertRule(ctx, req.Id, req.UserId); nil != err {
+			return nil, err
+		}
+		switch req.Status {
+		case constant.CommandStatusRuleStart:
+			if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); nil == err {
+				//update rule status pg.
+				if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStarting); nil == err {
+					// update action status pg.
+					if err = daoutil.UpdateStatusPGA(ctx, req.Id, "", req.UserId, constant.RuleStatusStop); nil == err {
+						return &pb.RuleStatusResp{
+							Id:     req.Id,
+							Status: constant.RuleStatusStarting,
+						}, nil
+					}
+				}
+			}
+		case constant.CommandStatusRuleStop:
+			if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); nil == err {
+				//update pg.
+				if err = daoutil.UpdateStatusPG(ctx, req.Id, req.UserId, constant.RuleStatusStopping); nil == err {
+					return &pb.RuleStatusResp{
+						Id:     req.Id,
+						Status: constant.RuleStatusStopping,
+					}, nil
+				}
+			}
+		default:
+			err = errors.New("rule status invalid")
+		}
+	default:
+		err = errors.New("rule operator invalid")
+	}
+	return nil, err
 }
+
 func (s *RulesService) RuleStart(ctx context.Context, req *pb.RuleStartReq) (*pb.RuleStartResp, error) {
-	return &pb.RuleStartResp{}, nil
+	r, err := s.RuleStatus(ctx, &pb.RuleStatusReq{
+		Id:       req.Id,
+		UserId:   req.UserId,
+		Operator: pb.RuleStatusReq_STATUS_WRITE,
+		Status:   constant.CommandStatusRuleStart,
+	})
+	if err != nil {
+		tkeelLog.Error(err)
+		return nil, err
+	}
+	return &pb.RuleStartResp{
+		Id:     r.Id,
+		Status: r.Status,
+	}, nil
 }
+
 func (s *RulesService) RuleStop(ctx context.Context, req *pb.RuleStopReq) (*pb.RuleStopResp, error) {
-	return &pb.RuleStopResp{}, nil
+	r, err := s.RuleStatus(ctx, &pb.RuleStatusReq{
+		Id:       req.Id,
+		UserId:   req.UserId,
+		Operator: pb.RuleStatusReq_STATUS_WRITE,
+		Status:   constant.CommandStatusRuleStop,
+	})
+	if err != nil {
+		tkeelLog.Error(err)
+		return nil, err
+	}
+	return &pb.RuleStopResp{
+		Id:     r.Id,
+		Status: r.Status,
+	}, nil
 }
+
 func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb.RuleDebugResp, error) {
 	//print request [debug]
 	var err error
@@ -286,17 +553,17 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 		msg.SetTopic(utils.GenerateTopicMsg(req.ThingId, req.DeviceId, req.TopicType))
 		msg.SetDomain(req.UserId)
 		msg.SetEntity(req.DeviceId)
-		//var r *metapb.RuleExecResponse
-		//if r, err = endpoint.GetRuleNodeEndpointIns().ExecRule(ctx, req.RuleId, req.UserId, msg); nil == err {
-		//	if "" != r.ErrMsg {
-		//		return nil, errors.New(erro.RuleStatusMessage + r.ErrMsg)
-		//	}
-		//	return &dto.RuleDebugResp{
-		//		RuleId: in.RuleId,
-		//		Topic:  r.Message.Topic(),
-		//		Data:   r.Message.Data(),
-		//	}, nil
-		//}
+		var r *metapb.RuleExecResponse
+		if r, err = endpoint.GetRuleNodeEndpointIns().ExecRule(ctx, req.RuleId, req.UserId, msg); nil == err {
+			if "" != r.ErrMsg {
+				return nil, errors.New(r.ErrMsg)
+			}
+			return &pb.RuleDebugResp{
+				RuleId: req.RuleId,
+				Topic:  r.Message.Topic(),
+				Data:   r.Message.Data(),
+			}, nil
+		}
 		log.ErrorWithFields(DebugPrefixTag, log.Fields{
 			"rule_id": req.RuleId,
 			"user_id": req.UserId,
@@ -318,11 +585,119 @@ func (s *RulesService) RuleDebug(ctx context.Context, req *pb.RuleDebugReq) (*pb
 	}(err)
 	return &pb.RuleDebugResp{}, nil
 }
+
 func (s *RulesService) RuleDebugMessage(ctx context.Context, req *pb.RuleDebugMsgReq) (*pb.RuleDebugMsgResp, error) {
-	return &pb.RuleDebugMsgResp{}, nil
+	var (
+		buf       []byte
+		postTypes string
+		rule      = &dao.Rule{
+			ID:     req.RuleId,
+			UserID: req.UserId,
+		}
+
+		err error
+	)
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	defer cancelHandler()
+	defer func() {
+		if nil != err {
+			log.ErrorWithFields(DebugPrefixTag, log.Fields{
+				"rule_id": req.RuleId,
+				"user_id": req.UserId,
+				"error":   err.Error(),
+			})
+			res = &pb.RuleDebugMsgResp{}
+		}
+	}()
+
+	if err = rule.Select(ctx); nil != err {
+		return nil, pb.ErrInternalError()
+	}
+
+	var endp = endpoint.NewThingEndpoint()
+	var me *endpoint.EventPropertyInfo
+	thingId := utils.GetThingId(rule)
+	if me, err = endp.GetThingDetailsById(ctx, thingId, rule.UserID); nil != err {
+		log.ErrorWithFields(DebugPrefixTag, log.Fields{
+			"rule_id": req.RuleId,
+			"user_id": req.UserId,
+			"error":   err,
+		})
+		return nil, err
+	} else if nil == me {
+		//自定义设备...
+		return &pb.RuleDebugMsgResp{
+			RuleId:  req.RuleId,
+			Message: []byte("{}"),
+		}, nil
+	}
+	fields := make(map[string]*utils.ThingTypeDesc)
+	if nil != me {
+		switch rule.TopicType {
+		case constant.TopicTypeProperty:
+			fallthrough
+		case constant.TopicTypeEvent:
+			fallthrough
+		case constant.TopicTypeAll:
+			fallthrough
+		default:
+			for _, prop := range me.Properties {
+
+				define := make(map[string]interface{})
+				if len(prop.Meta.Define) > 0 {
+					if err = json.Unmarshal(prop.Meta.Define, &define); nil != err {
+						return nil, err
+					}
+				}
+				fields[prop.Meta.Identifier] = &xutils.ThingTypeDesc{
+					Type:   xutils.GetType(prop.Meta.Type),
+					Define: define,
+				}
+			}
+		}
+	}
+	msg := utils.GenMessage(fields)
+	message := &utils.ThingMessage{
+		Id:      "模拟数据输入...",
+		Version: "0.0.0",
+		Type:    postTypes,
+		Metadata: utils.Metadata{
+			EntityId:  req.DeviceId,
+			ModelId:   thingId,
+			SourceId:  []string{req.DeviceId},
+			EpochTime: time.Now().Unix(),
+		},
+		Params: msg,
+	}
+
+	if buf, err = json.Marshal(message); err != nil {
+		return nil, err
+	}
+
+	return &pb.RuleDebugMsgResp{
+		RuleId:  req.RuleId,
+		Message: buf,
+	}, nil
 }
+
 func (s *RulesService) RuleError(ctx context.Context, req *pb.RuleErrorReq) (*pb.RuleErrorResp, error) {
-	return &pb.RuleErrorResp{}, nil
+	/*
+		in.RuleId
+	*/
+	log.ErrorWithFields(ErrorPrefixTag, log.Fields{
+		"rule_id": req.RuleId,
+	})
+	res, err := GetLastError(ctx, req.RuleId)
+	if nil != err {
+		log.ErrorWithFields(ErrorPrefixTag, log.Fields{
+			"rule_id": req.RuleId,
+			"error":   err,
+		})
+	}
+	return &pb.RuleErrorResp{
+		RuleId: req.RuleId,
+		Error:  res,
+	}, err
 }
 
 func (s RulesService) Report(et constant.EventType, ruleID, userID string) {
@@ -335,4 +710,69 @@ func (s RulesService) Report(et constant.EventType, ruleID, userID string) {
 		Data: event.NewRuleActiveEvent(et, ruleID, userID, nil),
 	})
 
+}
+
+func (s RulesService) getRuleStatus(ctx context.Context, id, userID string) (status string, err error) {
+	//print request [debug]
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	defer cancelHandler()
+	rule := dao.Rule{}
+	res, err := rule.Query(ctx, dao.RuleQueryCondition{
+		ID:     id,
+		UserID: userID,
+	})
+	if nil != err || nil == res || len(res) != 1 {
+		log.ErrorWithFields("[RuleStatus]", log.Fields{
+			"query response": res,
+			"count":          len(res),
+			"error:":         err,
+		})
+		if len(res) == 0 {
+			err = errors.New("rule not existed")
+		}
+		return "", err
+	}
+	return res[0].Status, nil
+}
+
+func queryTotalRule(id string) (int32, error) {
+	rule := &dao.Rule{}
+	rules, err := rule.Query(context.TODO(), dao.RuleQueryCondition{
+		UserID: id,
+	})
+	return int32(len(rules)), err
+}
+
+func GetLastError(ctx context.Context, ruleId string) (map[string]string, error) {
+
+	type Ret struct {
+		Res map[string]string
+		Err error
+	}
+
+	ch := make(chan *Ret, 0)
+	var ret *Ret
+	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+
+	go func() {
+		key := constant.ErrorPrefix + ruleId
+		res, err := endpoint.GetRedisEndpoint().HGetAll(key)
+		ch <- &Ret{
+			Res: res,
+			Err: err,
+		}
+		return
+	}()
+
+	select {
+	case <-ctx.Done():
+		log.ErrorWithFields(ErrorPrefixTag, log.Fields{
+			"rule_id": ruleId,
+			"error":   "context timeout.",
+		})
+		return nil, ctx.Err()
+	case ret = <-ch:
+		return ret.Res, ret.Err
+	}
 }

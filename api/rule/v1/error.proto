@@ -32,4 +32,8 @@ enum Error {
   // @msg=内部错误
   // @code=INTERNAL
   ERR_INTERNAL_ERROR = 5;
+
+  // @msg=未找到对应规则
+  // @code=NOT_FOUND
+  ERR_RULE_NOT_FOUND = 6;
 }
