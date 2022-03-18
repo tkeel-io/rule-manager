@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
 	"fmt"
 	"net"
@@ -10,10 +9,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
-	uuid "github.com/satori/go.uuid"
-	dao "github.com/tkeel-io/rule-manager/internal/dao"
-	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 )
 
 type prefix string
@@ -56,69 +51,6 @@ func SortStringSlice(s []string) []string {
 	ss := MyStringList(s)
 	sort.Sort(ss)
 	return []string(ss)
-}
-
-func GenerateID(ctx context.Context, userID string, s prefix) (string, error) {
-
-	baseLen := 14
-	for {
-		uuid := strings.ReplaceAll(uuid.NewV4().String(), "-", "")
-		for i := 0; i < len(uuid)-baseLen; i++ {
-			subUUID := fmt.Sprintf(_IDTemplate, string(s), uuid[i:i+baseLen])
-
-			// query unique ID.
-			switch s {
-			case RuleID:
-				rule := &dao.Rule{}
-				rs, err := rule.Query(ctx, dao.RuleQueryCondition{
-					ID:           subUUID,
-					UserID:       userID,
-					FlagQueryBan: true,
-				})
-				if nil != err {
-					return "", err
-				}
-				if len(rs) == 0 {
-					return subUUID, nil
-				}
-			case ActionID:
-				action := &dao.Action{}
-				rs, err := action.Query(ctx, dao.ActionQueryCondition{
-					ID:           subUUID,
-					UserID:       userID,
-					FlagQueryBan: true,
-				})
-				if nil != err {
-					return "", err
-				}
-				if len(rs) == 0 {
-					return subUUID, nil
-				}
-			default:
-				//never.
-			}
-		}
-	}
-
-}
-
-func ContainString(slice []string, elem string) bool {
-	for _, e := range slice {
-		if strings.HasPrefix(elem, e) {
-			return true
-		}
-	}
-	return false
-}
-
-func ContainFieldType(fieldTypes []action_sink.BaseFieldType, ele string) bool {
-	lowerEle := strings.ToLower(ele)
-	for _, fieldType := range fieldTypes {
-		if strings.HasPrefix(lowerEle, strings.ToLower(fieldType.Name)) {
-			return true
-		}
-	}
-	return false
 }
 
 func GenerateUrlChronusDB(hosts []string, database string) []string {

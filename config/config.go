@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var DSN = "root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local"
+
 type Config struct {
 	Server struct {
 		Host      string `yaml:"host"`

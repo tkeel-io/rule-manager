@@ -18,6 +18,7 @@ var errInvalidArgument *errors.TError
 var errInternalStore *errors.TError
 var errInternalError *errors.TError
 var errRuleNotFound *errors.TError
+var errForbidden *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -34,6 +35,8 @@ func init() {
 	errors.Register(errInternalError)
 	errRuleNotFound = errors.New(int(codes.NotFound), "rule.v1.ERR_RULE_NOT_FOUND", "未找到对应规则")
 	errors.Register(errRuleNotFound)
+	errForbidden = errors.New(int(codes.PermissionDenied), "rule.v1.ERR_FORBIDDEN", "请确保用户对该资源拥有足够的权限")
+	errors.Register(errForbidden)
 }
 
 func ErrUnknown() errors.Error {
@@ -62,4 +65,8 @@ func ErrInternalError() errors.Error {
 
 func ErrRuleNotFound() errors.Error {
 	return errRuleNotFound
+}
+
+func ErrForbidden() errors.Error {
+	return errForbidden
 }

@@ -36,4 +36,8 @@ enum Error {
   // @msg=未找到对应规则
   // @code=NOT_FOUND
   ERR_RULE_NOT_FOUND = 6;
+
+  // @msg=请确保用户对该资源拥有足够的权限
+  // @code=PERMISSION_DENIED
+  ERR_FORBIDDEN = 7;
 }
