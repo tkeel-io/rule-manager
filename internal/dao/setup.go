@@ -2,7 +2,7 @@ package dao
 
 import (
 	"fmt"
-	"os"
+	"github.com/tkeel-io/rule-manager/config"
 	"strings"
 	"sync"
 
@@ -11,11 +11,6 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-)
-
-const (
-	// schema like: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
-	dsnFromOSEnvKey = "DSN"
 )
 
 var (
@@ -30,10 +25,8 @@ func SetCoreClientUp() (err error) {
 }
 
 func Setup() error {
-	dsn := os.Getenv(dsnFromOSEnvKey)
-
 	// Try to create DB first.
-	connectionInfo, dbName := parseConnectionAndDBName(dsn)
+	connectionInfo, dbName := parseConnectionAndDBName(config.DSN)
 	noDBConn, err := gorm.Open(mysql.Open(connectionInfo), nil)
 	if err != nil {
 		log.Fatal(err)
@@ -44,11 +37,13 @@ func Setup() error {
 	}
 
 	// Open the DB
-	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err = gorm.Open(mysql.Open(config.DSN), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db.AutoMigrate(&Rule{})
+	return db.AutoMigrate(
+		&Rule{},
+	)
 }
 
 func DB() *gorm.DB {

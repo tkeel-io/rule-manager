@@ -33,6 +33,7 @@ var (
 
 func main() {
 	parseFlags()
+	initEnv()
 	initDB()
 	initInternalLog()
 
@@ -81,7 +82,7 @@ func parseFlags() {
 	flag.StringVar(&HTTPAddr, "http_addr", ":31234", "http listen address.")
 	flag.StringVar(&GRPCAddr, "grpc_addr", ":31233", "grpc listen address.")
 
-	flag.StringVar(&config.DSN, "dsn", "root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local", "database dsn")
+	flag.StringVar(&config.DSN, "dsn", "root:root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local", "database dsn")
 
 	flag.Parse()
 }
@@ -89,6 +90,18 @@ func parseFlags() {
 func initDB() {
 	if err := dao.Setup(); err != nil {
 		log.Fatal("setup database failed", err)
+	}
+}
+
+const (
+	// DSN schema like: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	DSN = "DSN"
+)
+
+func initEnv() {
+	val := os.Getenv(DSN)
+	if val != "" {
+		config.DSN = val
 	}
 }
 
