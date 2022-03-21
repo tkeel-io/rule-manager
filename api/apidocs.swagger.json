@@ -120,7 +120,7 @@
           "Rules"
         ]
       },
-      "put": {
+      "post": {
         "operationId": "Rules_RuleCreate",
         "responses": {
           "200": {
@@ -272,14 +272,14 @@
         ]
       }
     },
-    "/rules/{id}/start": {
-      "post": {
-        "operationId": "Rules_RuleStart",
+    "/rules/{id}/running_status": {
+      "put": {
+        "operationId": "Rules_RuleStatusSwitch",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ruleRuleStartResp"
+              "$ref": "#/definitions/ruleRuleStatusSwitchResp"
             }
           },
           "default": {
@@ -304,254 +304,12 @@
             "schema": {
               "type": "object",
               "properties": {
-                "operator": {
-                  "$ref": "#/definitions/ruleRuleStartReqStatusOp"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "user_id": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Rules"
-        ]
-      }
-    },
-    "/rules/{id}/status": {
-      "post": {
-        "operationId": "Rules_RuleStatus",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ruleRuleStatusResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "operator": {
-                  "$ref": "#/definitions/ruleRuleStatusReqStatusOp"
-                },
                 "status": {
                   "type": "integer",
                   "format": "int64"
-                },
-                "user_id": {
-                  "type": "string"
                 }
               }
             }
-          }
-        ],
-        "tags": [
-          "Rules"
-        ]
-      }
-    },
-    "/rules/{id}/stop": {
-      "post": {
-        "operationId": "Rules_RuleStop",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ruleRuleStopResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "uint64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "operator": {
-                  "$ref": "#/definitions/ruleRuleStopReqStatusOp"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "user_id": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Rules"
-        ]
-      }
-    },
-    "/rules/{rule_id}/debug": {
-      "post": {
-        "operationId": "Rules_RuleDebug",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ruleRuleDebugResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "rule_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "user_id": {
-                  "type": "string"
-                },
-                "thing_id": {
-                  "type": "string"
-                },
-                "device_id": {
-                  "type": "string"
-                },
-                "topic_type": {
-                  "type": "string",
-                  "title": "data type: event|property|+"
-                },
-                "data": {
-                  "type": "string",
-                  "format": "byte",
-                  "description": "data: message."
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "Rules"
-        ]
-      }
-    },
-    "/rules/{rule_id}/debug/messages": {
-      "get": {
-        "operationId": "Rules_RuleDebugMessage",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ruleRuleDebugMsgResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "rule_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "device_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Rules"
-        ]
-      }
-    },
-    "/rules/{rule_id}/errors": {
-      "get": {
-        "operationId": "Rules_RuleError",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/ruleRuleErrorResp"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "rule_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "user_id",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -673,50 +431,8 @@
         }
       }
     },
-    "ruleRuleDebugMsgResp": {
-      "type": "object",
-      "properties": {
-        "rule_id": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
-    "ruleRuleDebugResp": {
-      "type": "object",
-      "properties": {
-        "rule_id": {
-          "type": "string"
-        },
-        "topic": {
-          "type": "string",
-          "description": "data: message."
-        },
-        "data": {
-          "type": "string",
-          "format": "byte"
-        }
-      }
-    },
     "ruleRuleDeleteResp": {
       "type": "object"
-    },
-    "ruleRuleErrorResp": {
-      "type": "object",
-      "properties": {
-        "rule_id": {
-          "type": "string"
-        },
-        "error": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
     },
     "ruleRuleQueryResp": {
       "type": "object",
@@ -767,57 +483,7 @@
         "page_size"
       ]
     },
-    "ruleRuleStartReqStatusOp": {
-      "type": "string",
-      "enum": [
-        "STATUS_READ",
-        "STATUS_WRITE"
-      ],
-      "default": "STATUS_READ"
-    },
-    "ruleRuleStartResp": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "status": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "ruleRuleStatusReqStatusOp": {
-      "type": "string",
-      "enum": [
-        "STATUS_READ",
-        "STATUS_WRITE"
-      ],
-      "default": "STATUS_READ"
-    },
-    "ruleRuleStatusResp": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "status": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "ruleRuleStopReqStatusOp": {
-      "type": "string",
-      "enum": [
-        "STATUS_READ",
-        "STATUS_WRITE"
-      ],
-      "default": "STATUS_READ"
-    },
-    "ruleRuleStopResp": {
+    "ruleRuleStatusSwitchResp": {
       "type": "object",
       "properties": {
         "id": {

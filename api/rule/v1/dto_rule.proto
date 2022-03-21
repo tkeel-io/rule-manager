@@ -15,7 +15,7 @@ option java_package = "api.rule";
 service Rules {
   rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp) {
     option (google.api.http) = {
-      put : "/rules"
+      post : "/rules"
       body : "*"
     };
   };
@@ -48,47 +48,12 @@ service Rules {
 
   };
 
-  rpc RuleStatus(RuleStatusReq) returns (RuleStatusResp) {
+
+  rpc RuleStatusSwitch(RuleStatusSwitchReq) returns (RuleStatusSwitchResp) {
     option (google.api.http) = {
-      post : "/rules/{id}/status"
+      put : "/rules/{id}/running_status"
       body : "*"
     };
-  };
-
-  rpc RuleStart(RuleStartReq) returns (RuleStartResp) {
-    option (google.api.http) = {
-      post : "/rules/{id}/start"
-      body : "*"
-    };
-  };
-
-  rpc RuleStop(RuleStopReq) returns (RuleStopResp) {
-    option (google.api.http) = {
-      post : "/rules/{id}/stop"
-      body : "*"
-    };
-  };
-
-  rpc RuleDebug(RuleDebugReq) returns (RuleDebugResp) {
-    option (google.api.http) = {
-      post : "/rules/{rule_id}/debug"
-      body : "*"
-    };
-
-  };
-
-  rpc RuleDebugMessage (RuleDebugMsgReq) returns (RuleDebugMsgResp) {
-    option (google.api.http) = {
-      get : "/rules/{rule_id}/debug/messages"
-    };
-
-  };
-
-  rpc RuleError (RuleErrorReq) returns (RuleErrorResp) {
-    option (google.api.http) = {
-      get : "/rules/{rule_id}/errors"
-    };
-
   };
 }
 
@@ -243,97 +208,13 @@ message RuleQueryResp {
   repeated Rule data = 5;
 }
 
-message RuleStatusReq {
-  uint64 id = 1;
-  enum StatusOp {
-    STATUS_READ = 0;
-    STATUS_WRITE = 1;
-  }
-  StatusOp operator = 2;
-  uint32 status = 3;
-  string user_id = 4;
-}
-
-
-message RuleStatusResp {
-  uint64 id = 1;
-  uint32 status = 2;
-}
-
-message RuleStartReq {
-  uint64 id = 1;
-  enum StatusOp {
-    STATUS_READ = 0;
-    STATUS_WRITE = 1;
-  }
-  StatusOp operator = 2;
-  string status = 3;
-  string user_id = 4;
-}
-
-
-message RuleStartResp {
-  uint64 id = 1;
-  uint32 status = 2;
-}
-
-message RuleStopReq {
-  uint64 id = 1;
-  enum StatusOp {
-    STATUS_READ = 0;
-    STATUS_WRITE = 1;
-  }
-  StatusOp operator = 2;
-  string status = 3;
-  string user_id = 4;
-}
-
-
-message RuleStopResp {
+message RuleStatusSwitchReq {
   uint64 id = 1;
   uint32 status = 2;
 }
 
 
-message RuleDebugReq {
-  string rule_id = 1;
-  string user_id = 2;
-  string thing_id = 3;
-  string device_id = 4;
-  //data type: event|property|+
-  string topic_type = 5;
-  //data: message.
-  bytes data = 6;
-
-}
-
-message RuleDebugResp {
-  string rule_id = 1;
-  //data: message.
-  string topic = 2;
-  bytes data = 3;
-}
-
-
-message RuleDebugMsgReq{
-  string rule_id = 1;
-  string user_id = 2;
-  string device_id = 3;
-}
-
-message RuleDebugMsgResp{
-  string rule_id = 1;
-  bytes message = 2;
-}
-
-
-
-message RuleErrorReq {
-  string user_id = 1;
-  string rule_id = 2;
-}
-
-message RuleErrorResp {
-  string rule_id = 1;
-  map<string, string> error = 2;
+message RuleStatusSwitchResp {
+  uint64 id = 1;
+  uint32 status = 2;
 }

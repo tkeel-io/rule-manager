@@ -39,7 +39,7 @@ func Setup() error {
 		log.Fatal(err)
 	}
 
-	if err = noDBConn.Exec(createDBSQL(dbName)).Error; err != nil {
+	if err = noDBConn.Exec(createDB(dbName)).Error; err != nil {
 		log.Fatal(err)
 	}
 
@@ -79,6 +79,6 @@ func parseConnectionAndDBName(dsn string) (connection, dbName string) {
 
 const createSQLTemplate = "CREATE DATABASE IF NOT EXISTS `%s` CHARACTER SET utf8mb4;"
 
-func createDBSQL(dbName string) string {
+func createDB(dbName string) string {
 	return fmt.Sprintf(createSQLTemplate, dbName)
 }
