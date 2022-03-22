@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rule-manager.name" . }}
+  labels:
+    app: {{ include "rule-manager.name" . }}
+spec:
+  ports:
+    - port: {{ .Values.appPort }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ include "rule-manager.name" . }}

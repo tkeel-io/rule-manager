@@ -2,7 +2,16 @@ GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 INTERNAL_PROTO_FILES=$(shell find internal -name *.proto)
 API_PROTO_FILES=$(shell find api -name *.proto)
+DOCKERTAG?=tkeelio/rule-manager:dev
+BINNAME = rule-manager
 
+GOCMD = GO111MODULE=on go
+
+GIT_BRANCH=$(shell git symbolic-ref --short -q HEAD)
+GIT_COMMIT=$(shell git rev-parse HEAD)
+GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
+BUILD_DATE=$(shell date '+%Y-%m-%d-%H:%M:%S')
+GOBUILD = $(GOCMD) build 
 .PHONY: init
 # init env
 init:
@@ -36,7 +45,16 @@ api:
 .PHONY: build
 # build
 build:
-	mkdir -p bin/ && go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
+	@rm -rf bin/
+	@mkdir bin/
+	@echo "---------------------------"
+	@echo "-        build...         -"
+	@$(GOBUILD)    -o bin/$(BINNAME) cmd/rule-manager/main.go
+	@echo "-     build(linux)...     -"
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64  $(GOBUILD) -o bin/linux/$(BINNAME) cmd/rule-manager/main.go
+	@echo "-    builds completed!    -"
+	@echo "---------------------------"
+	@bin/$(BINNAME) version
 
 .PHONY: generate
 # generate
@@ -68,3 +86,11 @@ help:
 	{ lastLine = $$0 }' $(MAKEFILE_LIST)
 
 .DEFAULT_GOAL := help
+
+docker-build:
+	docker build -t $(DOCKERTAG) .
+docker-push:
+	docker push $(DOCKERTAG)
+docker-auto:
+	docker build -t $(DOCKERTAG) .
+	docker push $(DOCKERTAG)
