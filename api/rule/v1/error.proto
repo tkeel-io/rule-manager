@@ -40,4 +40,8 @@ enum Error {
   // @msg=请确保用户对该资源拥有足够的权限
   // @code=PERMISSION_DENIED
   ERR_FORBIDDEN = 7;
+
+  // @msg=请确保用户权限
+  // @code=PERMISSION_DENIED
+  ERR_UNAUTHORIZED = 8;
 }

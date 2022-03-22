@@ -74,10 +74,9 @@ message ConfigStatus {
 
 //Rule create.
 message RuleCreateReq {
-  string user_id = 1;
-  string name = 2;
-  string desc = 3;
-  uint32 type = 4;
+  string name = 1;
+  string desc = 2;
+  uint32 type = 3;
 }
 
 message RuleCreateResp {
@@ -108,9 +107,8 @@ message Rule {
 //rule update
 message RuleUpdateReq {
   uint64 id = 1;
-  string user_id = 2;
-  string name = 3;
-  string desc = 4;
+  string name = 2;
+  string desc = 3;
 }
 message RuleUpdateResp {
   uint64 id = 1;
@@ -129,7 +127,6 @@ message RuleUpdateResp {
 //rule delete.
 message RuleDeleteReq {
   uint64 id = 1;
-  string user_id = 2;
 }
 
 message RuleDeleteResp {
@@ -138,7 +135,6 @@ message RuleDeleteResp {
 //rule delete.
 message RuleGetReq {
   uint64 id = 1;
-  string user_id = 2;
 }
 
 

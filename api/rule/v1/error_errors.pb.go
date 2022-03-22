@@ -19,6 +19,7 @@ var errInternalStore *errors.TError
 var errInternalError *errors.TError
 var errRuleNotFound *errors.TError
 var errForbidden *errors.TError
+var errUnauthorized *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -37,6 +38,8 @@ func init() {
 	errors.Register(errRuleNotFound)
 	errForbidden = errors.New(int(codes.PermissionDenied), "rule.v1.ERR_FORBIDDEN", "请确保用户对该资源拥有足够的权限")
 	errors.Register(errForbidden)
+	errUnauthorized = errors.New(int(codes.PermissionDenied), "rule.v1.ERR_UNAUTHORIZED", "请确保用户权限")
+	errors.Register(errUnauthorized)
 }
 
 func ErrUnknown() errors.Error {
@@ -69,4 +72,8 @@ func ErrRuleNotFound() errors.Error {
 
 func ErrForbidden() errors.Error {
 	return errForbidden
+}
+
+func ErrUnauthorized() errors.Error {
+	return errUnauthorized
 }

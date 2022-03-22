@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/core-broker/pkg/auth"
 	"github.com/tkeel-io/core-broker/pkg/core"
 	"github.com/tkeel-io/core-broker/pkg/pagination"
 	tkeelLog "github.com/tkeel-io/kit/log"
@@ -18,13 +19,10 @@ import (
 
 // Log prefix
 const (
-	CreatePrefixTag     = "[RuleCreate]"
-	UpdatePrefixTag     = "[RuleUpdate]"
-	DeletePrefixTag     = "[RuleDelete]"
-	QueryPrefixTag      = "[RuleQuery]"
-	RuleStatusPrefixTag = "[RuleStatus]"
-	DebugPrefixTag      = "[RuleDebug]"
-	ErrorPrefixTag      = "[RuleError]"
+	CreatePrefixTag = "[RuleCreate]"
+	UpdatePrefixTag = "[RuleUpdate]"
+	DeletePrefixTag = "[RuleDelete]"
+	QueryPrefixTag  = "[RuleQuery]"
 )
 
 type RulesService struct {
@@ -45,14 +43,18 @@ func NewRulesService() *RulesService {
 
 func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (res *pb.RuleCreateResp, err error) {
 	printInputDebug(CreatePrefixTag, req)
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
 	rule := dao.Rule{
-		UserID: req.UserId,
+		UserID: user.ID,
 		Name:   req.Name,
 		Status: constant.RuleStatusStop,
 		Desc:   req.Desc,
 	}
 
-	result := dao.DB().Model(&rule).FirstOrCreate(&rule)
+	result := dao.DB().Model(&rule).Create(&rule)
 	if result.Error != nil {
 		log.ErrorWithFields(CreatePrefixTag, log.Fields{
 			"error": result.Error,
@@ -72,10 +74,13 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 
 func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*pb.RuleUpdateResp, error) {
 	printInputDebug(UpdatePrefixTag, req)
-
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
 	rule := &dao.Rule{
 		Model:  gorm.Model{ID: uint(req.Id)},
-		UserID: req.UserId,
+		UserID: user.ID,
 	}
 
 	var c int
@@ -117,10 +122,13 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*pb.RuleDeleteResp, error) {
 	//print request [debug]
 	printInputDebug(DeletePrefixTag, req)
-
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
 	rule := &dao.Rule{
 		Model:  gorm.Model{ID: uint(req.Id)},
-		UserID: req.UserId,
+		UserID: user.ID,
 	}
 	result := dao.DB().Model(&rule).Where(&rule).First(&rule)
 	if result.Error != nil {
@@ -138,9 +146,13 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 }
 
 func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rule, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
 	rule := &dao.Rule{
 		Model:  gorm.Model{ID: uint(req.Id)},
-		UserID: req.UserId,
+		UserID: user.ID,
 	}
 	if result := rule.Select(); result.Error != nil {
 		tkeelLog.Error(QueryPrefixTag, result.Error)
@@ -160,6 +172,10 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb.RuleQueryResp, error) {
 	//print request [debug]
 	printInputDebug(QueryPrefixTag, req)
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
 
 	page, err := pagination.Parse(req)
 	if err != nil {
@@ -167,8 +183,8 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		return nil, pb.ErrInternalError()
 	}
 
-	rule := &dao.Rule{}
-	tx := dao.DB().Model(&rule)
+	rule := &dao.Rule{UserID: user.ID}
+	tx := dao.DB().Model(&rule).Where(&rule)
 
 	fillPagination(tx, page)
 
