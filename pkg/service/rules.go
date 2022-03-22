@@ -177,6 +177,7 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		return nil, pb.ErrUnauthorized()
 	}
 
+	tkeelLog.Debug("query rule", req)
 	page, err := pagination.Parse(req)
 	if err != nil {
 		tkeelLog.Error(QueryPrefixTag, err)
@@ -232,21 +233,41 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		tkeelLog.Error(QueryPrefixTag, err)
 		return nil, err
 	}
-	resp.Data = make([]*pb.Rule, len(rules))
-	for i, r := range rules {
-		resp.Data[i].Id = uint64(r.ID)
-		resp.Data[i].Name = r.Name
-		resp.Data[i].Desc = r.Desc
-		resp.Data[i].Status = uint32(r.Status)
-		resp.Data[i].Type = uint32(r.Type)
-		resp.Data[i].CreatedAt = r.CreatedAt.Unix()
-		resp.Data[i].UpdatedAt = r.UpdatedAt.Unix()
+	resp.Data = make([]*pb.Rule, 0, len(rules))
+	for _, r := range rules {
+		resp.Data = append(resp.Data, &pb.Rule{
+			Id:        uint64(r.ID),
+			Name:      r.Name,
+			Desc:      r.Desc,
+			Status:    uint32(r.Status),
+			Type:      uint32(r.Type),
+			CreatedAt: r.CreatedAt.Unix(),
+			UpdatedAt: r.UpdatedAt.Unix(),
+		})
 	}
 	return resp, nil
 }
 
 func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusSwitchReq) (*pb.RuleStatusSwitchResp, error) {
-	return nil, errors.New("impl me")
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	result := dao.DB().Model(&rule).Where(&rule).First(&rule)
+	if result.Error != nil || result.Error == gorm.ErrRecordNotFound {
+		tkeelLog.Error(QueryPrefixTag, result.Error)
+		return nil, pb.ErrForbidden()
+	}
+	rule.Status = uint8(req.Status)
+	result = dao.DB().Save(&rule)
+	if result.Error != nil {
+		return nil, pb.ErrInternalError()
+	}
+	return &pb.RuleStatusSwitchResp{Status: uint32(rule.Status), Id: uint64(rule.ID)}, nil
 }
 
 func fillPagination(tx *gorm.DB, p pagination.Page) {

@@ -40,7 +40,7 @@
             "in": "query",
             "required": true,
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           {
             "name": "page_size",
@@ -48,7 +48,7 @@
             "in": "query",
             "required": true,
             "type": "integer",
-            "format": "int32"
+            "format": "int64"
           },
           {
             "name": "order_by",
@@ -428,8 +428,8 @@
           ]
         },
         "page_num": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uint64",
           "description": "Page number",
           "required": [
             "page_num"
@@ -444,8 +444,8 @@
           ]
         },
         "page_size": {
-          "type": "integer",
-          "format": "int32",
+          "type": "string",
+          "format": "uint64",
           "description": "Page size",
           "required": [
             "page_size"

@@ -5,13 +5,25 @@ import (
 	"gorm.io/gorm"
 )
 
+// Const for Rule's Type
+const (
+	MessageRule uint8 = iota + 1
+	TimeseriesRule
+)
+
+// Const for Rule's Status
+const (
+	NotRunningStatus uint8 = iota
+	RunningStatus
+)
+
 type Rule struct {
 	gorm.Model
 	UserID string `gorm:"index"`
 	Name   string `gorm:"not null;size:255"`
-	Status uint8
+	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc   string
-	Type   uint8 `gorm:"index"`
+	Type   uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {

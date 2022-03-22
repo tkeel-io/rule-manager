@@ -31,11 +31,10 @@ func (s *OpenapiService) AddonsIdentify(ctx context.Context, in *openapi_v1.Addo
 // Identify implements Identify.OpenapiServer.
 func (s *OpenapiService) Identify(ctx context.Context, in *emptypb.Empty) (*openapi_v1.IdentifyResponse, error) {
 	return &openapi_v1.IdentifyResponse{
-		Res:                     util.GetV1ResultOK(),
-		PluginId:                "rule-manager",
-		Version:                 "0.4.1",
-		TkeelVersion:            "v0.4.0",
-		DisableManualActivation: true,
+		Res:          util.GetV1ResultOK(),
+		PluginId:     "rule-manager",
+		Version:      "0.4.1",
+		TkeelVersion: "v0.4.0",
 	}, nil
 }
 

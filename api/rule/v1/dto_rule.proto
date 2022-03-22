@@ -140,12 +140,12 @@ message RuleGetReq {
 
 //rule query
 message RuleQueryReq {
-  int32 page_num = 1
+  uint32 page_num = 1
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page number",
     }];
-  int32 page_size = 2
+  uint32 page_size = 2
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page size",
@@ -186,7 +186,7 @@ message RuleQueryResp {
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Total",
     }];
-  int32 page_num = 2
+  uint64 page_num = 2
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page number",
@@ -196,7 +196,7 @@ message RuleQueryResp {
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Last page",
     }];
-  int32 page_size = 4
+  uint64 page_size = 4
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page size",
