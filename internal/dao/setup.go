@@ -26,6 +26,7 @@ func SetCoreClientUp() (err error) {
 
 func Setup() error {
 	// Try to create DB first.
+	log.Debug("parse dsn", config.DSN)
 	connectionInfo, dbName := parseConnectionAndDBName(config.DSN)
 	noDBConn, err := gorm.Open(mysql.Open(connectionInfo), nil)
 	if err != nil {
