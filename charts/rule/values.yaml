@@ -16,8 +16,8 @@ rulex:
   repository: tkeelio/rulex
   pullPolicy: Always
 
-nameOverride: "rule"
-fullnameOverride: "rule"
+nameOverride: "rule-manager"
+fullnameOverride: "rule-manager"
 
 daprConfig: rule
 appPort: 31234
@@ -39,6 +39,8 @@ middleware:
   search: elasticsearch://admin:admin@tkeel-middleware-elasticsearch-master:9200
   service_registry: etcd://tkeel-middleware-etcd:2379
   queue: kafka://tkeel-middleware-kafka-headless:9092
+env:
+  dsn: root:a3fks=ixmeb82a@tcp(tkeel-core-broker-mysql:3306)/rule_manager?charset=utf8mb4&parseTime=True&loc=Local
 
 autoscaling:
   enabled: false
