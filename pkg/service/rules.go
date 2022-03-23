@@ -338,9 +338,9 @@ func (s *RulesService) RemoveDevicesFromRule(ctx context.Context, req *pb.Remove
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
-
+	ids := strings.Split(req.DevicesIds, ",")
 	tx := dao.DB().Begin()
-	if err := removeDevicesFromRule(tx, rule, req.DevicesIds); err != nil {
+	if err = removeDevicesFromRule(tx, rule, ids); err != nil {
 		defer func() {
 			tx.Rollback()
 		}()

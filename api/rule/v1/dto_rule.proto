@@ -316,7 +316,7 @@ message AddDevicesToRuleReq {
 
 message RemoveDevicesFromRuleReq {
   uint64 id = 1;
-  repeated string devices_ids = 2;
+  string devices_ids = 2;
 }
 
 message Device {
