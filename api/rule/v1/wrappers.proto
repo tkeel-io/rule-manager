@@ -11,6 +11,14 @@ message String {
     string value = 1;
 }
 
+message Uint64 {
+    uint64 value = 1;
+}
+
+message Uint32 {
+    uint32 value = 1;
+}
+
 message Int32 {
     int32 value = 1;
 }

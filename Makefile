@@ -11,7 +11,7 @@ GIT_BRANCH=$(shell git symbolic-ref --short -q HEAD)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_DIRTY=$(shell test -n "`git status --porcelain`" && echo "+CHANGES" || true)
 BUILD_DATE=$(shell date '+%Y-%m-%d-%H:%M:%S')
-GOBUILD = $(GOCMD) build 
+GOBUILD = $(GOCMD) build
 .PHONY: init
 # init env
 init:
@@ -54,7 +54,6 @@ build:
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64  $(GOBUILD) -o bin/linux/$(BINNAME) cmd/rule-manager/main.go
 	@echo "-    builds completed!    -"
 	@echo "---------------------------"
-	@bin/$(BINNAME) version
 
 .PHONY: generate
 # generate
@@ -94,3 +93,6 @@ docker-push:
 docker-auto:
 	docker build -t $(DOCKERTAG) .
 	docker push $(DOCKERTAG)
+pretest:
+	make build
+	make docker-auto

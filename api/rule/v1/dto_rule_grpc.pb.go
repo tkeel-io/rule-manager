@@ -23,12 +23,7 @@ type RulesClient interface {
 	RuleDelete(ctx context.Context, in *RuleDeleteReq, opts ...grpc.CallOption) (*RuleDeleteResp, error)
 	RuleGet(ctx context.Context, in *RuleGetReq, opts ...grpc.CallOption) (*Rule, error)
 	RuleQuery(ctx context.Context, in *RuleQueryReq, opts ...grpc.CallOption) (*RuleQueryResp, error)
-	RuleStatus(ctx context.Context, in *RuleStatusReq, opts ...grpc.CallOption) (*RuleStatusResp, error)
-	RuleStart(ctx context.Context, in *RuleStartReq, opts ...grpc.CallOption) (*RuleStartResp, error)
-	RuleStop(ctx context.Context, in *RuleStopReq, opts ...grpc.CallOption) (*RuleStopResp, error)
-	RuleDebug(ctx context.Context, in *RuleDebugReq, opts ...grpc.CallOption) (*RuleDebugResp, error)
-	RuleDebugMessage(ctx context.Context, in *RuleDebugMsgReq, opts ...grpc.CallOption) (*RuleDebugMsgResp, error)
-	RuleError(ctx context.Context, in *RuleErrorReq, opts ...grpc.CallOption) (*RuleErrorResp, error)
+	RuleStatusSwitch(ctx context.Context, in *RuleStatusSwitchReq, opts ...grpc.CallOption) (*RuleStatusSwitchResp, error)
 }
 
 type rulesClient struct {
@@ -84,54 +79,9 @@ func (c *rulesClient) RuleQuery(ctx context.Context, in *RuleQueryReq, opts ...g
 	return out, nil
 }
 
-func (c *rulesClient) RuleStatus(ctx context.Context, in *RuleStatusReq, opts ...grpc.CallOption) (*RuleStatusResp, error) {
-	out := new(RuleStatusResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleStatus", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rulesClient) RuleStart(ctx context.Context, in *RuleStartReq, opts ...grpc.CallOption) (*RuleStartResp, error) {
-	out := new(RuleStartResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleStart", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rulesClient) RuleStop(ctx context.Context, in *RuleStopReq, opts ...grpc.CallOption) (*RuleStopResp, error) {
-	out := new(RuleStopResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleStop", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rulesClient) RuleDebug(ctx context.Context, in *RuleDebugReq, opts ...grpc.CallOption) (*RuleDebugResp, error) {
-	out := new(RuleDebugResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleDebug", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rulesClient) RuleDebugMessage(ctx context.Context, in *RuleDebugMsgReq, opts ...grpc.CallOption) (*RuleDebugMsgResp, error) {
-	out := new(RuleDebugMsgResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleDebugMessage", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *rulesClient) RuleError(ctx context.Context, in *RuleErrorReq, opts ...grpc.CallOption) (*RuleErrorResp, error) {
-	out := new(RuleErrorResp)
-	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleError", in, out, opts...)
+func (c *rulesClient) RuleStatusSwitch(ctx context.Context, in *RuleStatusSwitchReq, opts ...grpc.CallOption) (*RuleStatusSwitchResp, error) {
+	out := new(RuleStatusSwitchResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleStatusSwitch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,12 +97,7 @@ type RulesServer interface {
 	RuleDelete(context.Context, *RuleDeleteReq) (*RuleDeleteResp, error)
 	RuleGet(context.Context, *RuleGetReq) (*Rule, error)
 	RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error)
-	RuleStatus(context.Context, *RuleStatusReq) (*RuleStatusResp, error)
-	RuleStart(context.Context, *RuleStartReq) (*RuleStartResp, error)
-	RuleStop(context.Context, *RuleStopReq) (*RuleStopResp, error)
-	RuleDebug(context.Context, *RuleDebugReq) (*RuleDebugResp, error)
-	RuleDebugMessage(context.Context, *RuleDebugMsgReq) (*RuleDebugMsgResp, error)
-	RuleError(context.Context, *RuleErrorReq) (*RuleErrorResp, error)
+	RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -175,23 +120,8 @@ func (UnimplementedRulesServer) RuleGet(context.Context, *RuleGetReq) (*Rule, er
 func (UnimplementedRulesServer) RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RuleQuery not implemented")
 }
-func (UnimplementedRulesServer) RuleStatus(context.Context, *RuleStatusReq) (*RuleStatusResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleStatus not implemented")
-}
-func (UnimplementedRulesServer) RuleStart(context.Context, *RuleStartReq) (*RuleStartResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleStart not implemented")
-}
-func (UnimplementedRulesServer) RuleStop(context.Context, *RuleStopReq) (*RuleStopResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleStop not implemented")
-}
-func (UnimplementedRulesServer) RuleDebug(context.Context, *RuleDebugReq) (*RuleDebugResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleDebug not implemented")
-}
-func (UnimplementedRulesServer) RuleDebugMessage(context.Context, *RuleDebugMsgReq) (*RuleDebugMsgResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleDebugMessage not implemented")
-}
-func (UnimplementedRulesServer) RuleError(context.Context, *RuleErrorReq) (*RuleErrorResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RuleError not implemented")
+func (UnimplementedRulesServer) RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RuleStatusSwitch not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -296,110 +226,20 @@ func _Rules_RuleQuery_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Rules_RuleStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleStatusReq)
+func _Rules_RuleStatusSwitch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RuleStatusSwitchReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RulesServer).RuleStatus(ctx, in)
+		return srv.(RulesServer).RuleStatusSwitch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleStatus",
+		FullMethod: "/api.rule.Rules/RuleStatusSwitch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleStatus(ctx, req.(*RuleStatusReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Rules_RuleStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleStartReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RulesServer).RuleStart(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleStart",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleStart(ctx, req.(*RuleStartReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Rules_RuleStop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleStopReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RulesServer).RuleStop(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleStop",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleStop(ctx, req.(*RuleStopReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Rules_RuleDebug_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleDebugReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RulesServer).RuleDebug(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleDebug",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleDebug(ctx, req.(*RuleDebugReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Rules_RuleDebugMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleDebugMsgReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RulesServer).RuleDebugMessage(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleDebugMessage",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleDebugMessage(ctx, req.(*RuleDebugMsgReq))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Rules_RuleError_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RuleErrorReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RulesServer).RuleError(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/api.rule.Rules/RuleError",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RulesServer).RuleError(ctx, req.(*RuleErrorReq))
+		return srv.(RulesServer).RuleStatusSwitch(ctx, req.(*RuleStatusSwitchReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -432,28 +272,8 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Rules_RuleQuery_Handler,
 		},
 		{
-			MethodName: "RuleStatus",
-			Handler:    _Rules_RuleStatus_Handler,
-		},
-		{
-			MethodName: "RuleStart",
-			Handler:    _Rules_RuleStart_Handler,
-		},
-		{
-			MethodName: "RuleStop",
-			Handler:    _Rules_RuleStop_Handler,
-		},
-		{
-			MethodName: "RuleDebug",
-			Handler:    _Rules_RuleDebug_Handler,
-		},
-		{
-			MethodName: "RuleDebugMessage",
-			Handler:    _Rules_RuleDebugMessage_Handler,
-		},
-		{
-			MethodName: "RuleError",
-			Handler:    _Rules_RuleError_Handler,
+			MethodName: "RuleStatusSwitch",
+			Handler:    _Rules_RuleStatusSwitch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
