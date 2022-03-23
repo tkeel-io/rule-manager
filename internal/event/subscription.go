@@ -3,7 +3,7 @@ package event
 import (
 	"sync"
 
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 )
 
 const eventSubscriptionLogTitle = "[EventSub]"

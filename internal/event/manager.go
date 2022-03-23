@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 )
 
 const asyncName = "asyncer"

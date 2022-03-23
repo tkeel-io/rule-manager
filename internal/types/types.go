@@ -1,6 +1,6 @@
 package types
 
-import pb "git.internal.yunify.com/MDMP2/api/metadata/v1"
+import pb "github.com/tkeel-io/rule-util/metadata/v1"
 
 type GrpcClient interface {
 	Rule() pb.RuleActionClient

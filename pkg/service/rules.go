@@ -4,10 +4,10 @@ import (
 	"context"
 	"strings"
 
-	"git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/core-broker/pkg/auth"
 	"github.com/tkeel-io/core-broker/pkg/core"
 	"github.com/tkeel-io/core-broker/pkg/pagination"
+	"github.com/tkeel-io/kit/log"
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"github.com/tkeel-io/rule-manager/constant"
@@ -56,9 +56,7 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 
 	result := dao.DB().Model(&rule).Create(&rule)
 	if result.Error != nil {
-		log.ErrorWithFields(CreatePrefixTag, log.Fields{
-			"error": result.Error,
-		})
+		log.Error(CreatePrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
 	return &pb.RuleCreateResp{

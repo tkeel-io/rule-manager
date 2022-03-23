@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/rule-manager/constant"
 )
 

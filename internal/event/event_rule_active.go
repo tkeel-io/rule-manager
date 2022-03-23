@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/tkeel-io/rule-manager/constant"
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 )
 
 type RuleActiveEvent struct {

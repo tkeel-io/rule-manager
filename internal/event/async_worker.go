@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 )
 
 const eventAsyncerLogTitle = "[EventAsyncer]"

@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	interLog "git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/kit/app"
 	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/kit/transport"
@@ -106,6 +105,6 @@ func initEnv() {
 }
 
 func initInternalLog() {
-	interLog.Init(nil)
-	interLog.SetLogLevelFromStr("debug")
+	// interLog.Init(nil)
+	// interLog.SetLogLevelFromStr("debug")
 }

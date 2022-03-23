@@ -6,7 +6,7 @@ import (
 
 	"github.com/tkeel-io/rule-manager/constant"
 
-	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/kit/log"
 )
 
 const eventDispatchLogTitle = "[EventDispatch]"
