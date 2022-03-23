@@ -82,7 +82,7 @@ func (s *Subscription) Send(e IEvent, asyncer *AsyncWorker) {
 	// log.InfoWithFields(eventSubscriptionLogTitle, log.Fields{
 	// 	"desc":  "send message",
 	// 	"name:": e.Name(),
-	// 	"id:":   e.Id(),
+	// 	"id:":   e.ID(),
 	// })
 	subscribers := s.getSubscribers(e.Name(), e.Id())
 	for _, subscriber := range subscribers {

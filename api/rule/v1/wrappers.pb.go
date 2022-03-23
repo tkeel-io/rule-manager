@@ -67,6 +67,100 @@ func (x *String) GetValue() string {
 	return ""
 }
 
+type Uint64 struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value uint64 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Uint64) Reset() {
+	*x = Uint64{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Uint64) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Uint64) ProtoMessage() {}
+
+func (x *Uint64) ProtoReflect() protoreflect.Message {
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Uint64.ProtoReflect.Descriptor instead.
+func (*Uint64) Descriptor() ([]byte, []int) {
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Uint64) GetValue() uint64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+type Uint32 struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Value uint32 `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (x *Uint32) Reset() {
+	*x = Uint32{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Uint32) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Uint32) ProtoMessage() {}
+
+func (x *Uint32) ProtoReflect() protoreflect.Message {
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Uint32.ProtoReflect.Descriptor instead.
+func (*Uint32) Descriptor() ([]byte, []int) {
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Uint32) GetValue() uint32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
 type Int32 struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -78,7 +172,7 @@ type Int32 struct {
 func (x *Int32) Reset() {
 	*x = Int32{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_rule_v1_wrappers_proto_msgTypes[1]
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -91,7 +185,7 @@ func (x *Int32) String() string {
 func (*Int32) ProtoMessage() {}
 
 func (x *Int32) ProtoReflect() protoreflect.Message {
-	mi := &file_api_rule_v1_wrappers_proto_msgTypes[1]
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -104,7 +198,7 @@ func (x *Int32) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Int32.ProtoReflect.Descriptor instead.
 func (*Int32) Descriptor() ([]byte, []int) {
-	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{1}
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Int32) GetValue() int32 {
@@ -125,7 +219,7 @@ type Float struct {
 func (x *Float) Reset() {
 	*x = Float{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_rule_v1_wrappers_proto_msgTypes[2]
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -138,7 +232,7 @@ func (x *Float) String() string {
 func (*Float) ProtoMessage() {}
 
 func (x *Float) ProtoReflect() protoreflect.Message {
-	mi := &file_api_rule_v1_wrappers_proto_msgTypes[2]
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -151,7 +245,7 @@ func (x *Float) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Float.ProtoReflect.Descriptor instead.
 func (*Float) Descriptor() ([]byte, []int) {
-	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{2}
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Float) GetValue() float32 {
@@ -172,7 +266,7 @@ type Bool struct {
 func (x *Bool) Reset() {
 	*x = Bool{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_rule_v1_wrappers_proto_msgTypes[3]
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -185,7 +279,7 @@ func (x *Bool) String() string {
 func (*Bool) ProtoMessage() {}
 
 func (x *Bool) ProtoReflect() protoreflect.Message {
-	mi := &file_api_rule_v1_wrappers_proto_msgTypes[3]
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -198,7 +292,7 @@ func (x *Bool) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Bool.ProtoReflect.Descriptor instead.
 func (*Bool) Descriptor() ([]byte, []int) {
-	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{3}
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *Bool) GetValue() bool {
@@ -222,7 +316,7 @@ type Pager struct {
 func (x *Pager) Reset() {
 	*x = Pager{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_rule_v1_wrappers_proto_msgTypes[4]
+		mi := &file_api_rule_v1_wrappers_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -235,7 +329,7 @@ func (x *Pager) String() string {
 func (*Pager) ProtoMessage() {}
 
 func (x *Pager) ProtoReflect() protoreflect.Message {
-	mi := &file_api_rule_v1_wrappers_proto_msgTypes[4]
+	mi := &file_api_rule_v1_wrappers_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +342,7 @@ func (x *Pager) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Pager.ProtoReflect.Descriptor instead.
 func (*Pager) Descriptor() ([]byte, []int) {
-	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{4}
+	return file_api_rule_v1_wrappers_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Pager) GetLimit() *Int32 {
@@ -286,6 +380,10 @@ var file_api_rule_v1_wrappers_proto_rawDesc = []byte{
 	0x61, 0x70, 0x70, 0x65, 0x72, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x08, 0x61, 0x70,
 	0x69, 0x2e, 0x72, 0x75, 0x6c, 0x65, 0x22, 0x1e, 0x0a, 0x06, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
 	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1e, 0x0a, 0x06, 0x55, 0x69, 0x6e, 0x74, 0x36, 0x34,
+	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1e, 0x0a, 0x06, 0x55, 0x69, 0x6e, 0x74, 0x33, 0x32,
+	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52,
 	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1d, 0x0a, 0x05, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x12,
 	0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05,
 	0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x1d, 0x0a, 0x05, 0x46, 0x6c, 0x6f, 0x61, 0x74, 0x12, 0x14,
@@ -322,19 +420,21 @@ func file_api_rule_v1_wrappers_proto_rawDescGZIP() []byte {
 	return file_api_rule_v1_wrappers_proto_rawDescData
 }
 
-var file_api_rule_v1_wrappers_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_api_rule_v1_wrappers_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_api_rule_v1_wrappers_proto_goTypes = []interface{}{
 	(*String)(nil), // 0: api.rule.String
-	(*Int32)(nil),  // 1: api.rule.Int32
-	(*Float)(nil),  // 2: api.rule.Float
-	(*Bool)(nil),   // 3: api.rule.Bool
-	(*Pager)(nil),  // 4: api.rule.Pager
+	(*Uint64)(nil), // 1: api.rule.Uint64
+	(*Uint32)(nil), // 2: api.rule.Uint32
+	(*Int32)(nil),  // 3: api.rule.Int32
+	(*Float)(nil),  // 4: api.rule.Float
+	(*Bool)(nil),   // 5: api.rule.Bool
+	(*Pager)(nil),  // 6: api.rule.Pager
 }
 var file_api_rule_v1_wrappers_proto_depIdxs = []int32{
-	1, // 0: api.rule.Pager.limit:type_name -> api.rule.Int32
-	1, // 1: api.rule.Pager.offset:type_name -> api.rule.Int32
+	3, // 0: api.rule.Pager.limit:type_name -> api.rule.Int32
+	3, // 1: api.rule.Pager.offset:type_name -> api.rule.Int32
 	0, // 2: api.rule.Pager.sort_key:type_name -> api.rule.String
-	3, // 3: api.rule.Pager.Reverse:type_name -> api.rule.Bool
+	5, // 3: api.rule.Pager.Reverse:type_name -> api.rule.Bool
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -361,7 +461,7 @@ func file_api_rule_v1_wrappers_proto_init() {
 			}
 		}
 		file_api_rule_v1_wrappers_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Int32); i {
+			switch v := v.(*Uint64); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -373,7 +473,7 @@ func file_api_rule_v1_wrappers_proto_init() {
 			}
 		}
 		file_api_rule_v1_wrappers_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Float); i {
+			switch v := v.(*Uint32); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -385,7 +485,7 @@ func file_api_rule_v1_wrappers_proto_init() {
 			}
 		}
 		file_api_rule_v1_wrappers_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Bool); i {
+			switch v := v.(*Int32); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -397,6 +497,30 @@ func file_api_rule_v1_wrappers_proto_init() {
 			}
 		}
 		file_api_rule_v1_wrappers_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Float); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_rule_v1_wrappers_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Bool); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_rule_v1_wrappers_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Pager); i {
 			case 0:
 				return &v.state
@@ -415,7 +539,7 @@ func file_api_rule_v1_wrappers_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_rule_v1_wrappers_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

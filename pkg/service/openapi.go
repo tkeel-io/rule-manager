@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
-	openapi_v1 "github.com/tkeel-io/tkeel-interface/openapi/v1"
 	v1 "github.com/tkeel-io/rule-manager/api/openapi/v1"
 	"github.com/tkeel-io/rule-manager/pkg/util"
+	openapi_v1 "github.com/tkeel-io/tkeel-interface/openapi/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -32,9 +32,9 @@ func (s *OpenapiService) AddonsIdentify(ctx context.Context, in *openapi_v1.Addo
 func (s *OpenapiService) Identify(ctx context.Context, in *emptypb.Empty) (*openapi_v1.IdentifyResponse, error) {
 	return &openapi_v1.IdentifyResponse{
 		Res:          util.GetV1ResultOK(),
-		PluginId:     "tkeel-hello",
-		Version:      "v0.3.0",
-		TkeelVersion: "v0.3.0",
+		PluginId:     "rule-manager",
+		Version:      "0.4.1",
+		TkeelVersion: "v0.4.0",
 	}, nil
 }
 

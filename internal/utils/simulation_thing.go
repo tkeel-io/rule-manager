@@ -2,26 +2,14 @@ package utils
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
-	dao "github.com/tkeel-io/rule-manager/internal/dao"
 	types "git.internal.yunify.com/manage/common/constant"
 	"git.internal.yunify.com/manage/common/log"
 	thing "git.internal.yunify.com/manage/common/proto/thing"
 )
 
 const SlimulateThingDataLogTitle = "[SimulateData]"
-
-func GetThingId(rule *dao.Rule) string {
-	slice := strings.Split(rule.ShortTopic, "/")
-	if len(slice) == 2 {
-		return slice[0]
-	} else if len(slice) == 6 {
-		return slice[4]
-	}
-	return ""
-}
 
 func GenMessage(fields map[string]*ThingTypeDesc) (res map[string]interface{}) {
 	res = genMessage(fields)
@@ -115,7 +103,6 @@ func genValue(field *ThingTypeDesc) interface{} {
 }
 
 func GetType(t thing.EnumMetaType) string {
-
 	var tp string
 	switch t {
 	case thing.EnumMetaType_INT32:

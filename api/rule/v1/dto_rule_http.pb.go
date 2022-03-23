@@ -29,15 +29,10 @@ var (
 
 type RulesHTTPServer interface {
 	RuleCreate(context.Context, *RuleCreateReq) (*RuleCreateResp, error)
-	RuleDebug(context.Context, *RuleDebugReq) (*RuleDebugResp, error)
-	RuleDebugMessage(context.Context, *RuleDebugMsgReq) (*RuleDebugMsgResp, error)
 	RuleDelete(context.Context, *RuleDeleteReq) (*RuleDeleteResp, error)
-	RuleError(context.Context, *RuleErrorReq) (*RuleErrorResp, error)
 	RuleGet(context.Context, *RuleGetReq) (*Rule, error)
 	RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error)
-	RuleStart(context.Context, *RuleStartReq) (*RuleStartResp, error)
-	RuleStatus(context.Context, *RuleStatusReq) (*RuleStatusResp, error)
-	RuleStop(context.Context, *RuleStopReq) (*RuleStopResp, error)
+	RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error)
 	RuleUpdate(context.Context, *RuleUpdateReq) (*RuleUpdateResp, error)
 }
 
@@ -63,122 +58,9 @@ func (h *RulesHTTPHandler) RuleCreate(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		resp.WriteHeaderAndJson(httpCode,
-			result.Set(tErr.Reason, tErr.Message, out), "application/json")
-		return
-	}
-	anyOut, err := anypb.New(out)
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	outB, err := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		EmitUnpopulated: true,
-	}.Marshal(&result.Http{
-		Code: errors.Success.Reason,
-		Msg:  "",
-		Data: anyOut,
-	})
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
-
-	var remain int
-	for {
-		outB = outB[remain:]
-		remain, err = resp.Write(outB)
-		if err != nil {
-			return
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
 		}
-		if remain == 0 {
-			break
-		}
-	}
-}
-
-func (h *RulesHTTPHandler) RuleDebug(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleDebugReq{}
-	if err := transportHTTP.GetBody(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	if err := transportHTTP.GetPathValue(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
-
-	out, err := h.srv.RuleDebug(ctx, &in)
-	if err != nil {
-		tErr := errors.FromError(err)
-		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		resp.WriteHeaderAndJson(httpCode,
-			result.Set(tErr.Reason, tErr.Message, out), "application/json")
-		return
-	}
-	anyOut, err := anypb.New(out)
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	outB, err := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		EmitUnpopulated: true,
-	}.Marshal(&result.Http{
-		Code: errors.Success.Reason,
-		Msg:  "",
-		Data: anyOut,
-	})
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
-
-	var remain int
-	for {
-		outB = outB[remain:]
-		remain, err = resp.Write(outB)
-		if err != nil {
-			return
-		}
-		if remain == 0 {
-			break
-		}
-	}
-}
-
-func (h *RulesHTTPHandler) RuleDebugMessage(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleDebugMsgReq{}
-	if err := transportHTTP.GetQuery(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	if err := transportHTTP.GetPathValue(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
-
-	out, err := h.srv.RuleDebugMessage(ctx, &in)
-	if err != nil {
-		tErr := errors.FromError(err)
-		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -237,64 +119,9 @@ func (h *RulesHTTPHandler) RuleDelete(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		resp.WriteHeaderAndJson(httpCode,
-			result.Set(tErr.Reason, tErr.Message, out), "application/json")
-		return
-	}
-	anyOut, err := anypb.New(out)
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	outB, err := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		EmitUnpopulated: true,
-	}.Marshal(&result.Http{
-		Code: errors.Success.Reason,
-		Msg:  "",
-		Data: anyOut,
-	})
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
-
-	var remain int
-	for {
-		outB = outB[remain:]
-		remain, err = resp.Write(outB)
-		if err != nil {
-			return
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
 		}
-		if remain == 0 {
-			break
-		}
-	}
-}
-
-func (h *RulesHTTPHandler) RuleError(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleErrorReq{}
-	if err := transportHTTP.GetQuery(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	if err := transportHTTP.GetPathValue(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
-
-	out, err := h.srv.RuleError(ctx, &in)
-	if err != nil {
-		tErr := errors.FromError(err)
-		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -353,6 +180,9 @@ func (h *RulesHTTPHandler) RuleGet(req *go_restful.Request, resp *go_restful.Res
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
+		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -406,6 +236,9 @@ func (h *RulesHTTPHandler) RuleQuery(req *go_restful.Request, resp *go_restful.R
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
+		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -445,8 +278,8 @@ func (h *RulesHTTPHandler) RuleQuery(req *go_restful.Request, resp *go_restful.R
 	}
 }
 
-func (h *RulesHTTPHandler) RuleStart(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleStartReq{}
+func (h *RulesHTTPHandler) RuleStatusSwitch(req *go_restful.Request, resp *go_restful.Response) {
+	in := RuleStatusSwitchReq{}
 	if err := transportHTTP.GetBody(req, &in); err != nil {
 		resp.WriteHeaderAndJson(http.StatusBadRequest,
 			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
@@ -460,126 +293,13 @@ func (h *RulesHTTPHandler) RuleStart(req *go_restful.Request, resp *go_restful.R
 
 	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
 
-	out, err := h.srv.RuleStart(ctx, &in)
+	out, err := h.srv.RuleStatusSwitch(ctx, &in)
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		resp.WriteHeaderAndJson(httpCode,
-			result.Set(tErr.Reason, tErr.Message, out), "application/json")
-		return
-	}
-	anyOut, err := anypb.New(out)
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	outB, err := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		EmitUnpopulated: true,
-	}.Marshal(&result.Http{
-		Code: errors.Success.Reason,
-		Msg:  "",
-		Data: anyOut,
-	})
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
-
-	var remain int
-	for {
-		outB = outB[remain:]
-		remain, err = resp.Write(outB)
-		if err != nil {
-			return
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
 		}
-		if remain == 0 {
-			break
-		}
-	}
-}
-
-func (h *RulesHTTPHandler) RuleStatus(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleStatusReq{}
-	if err := transportHTTP.GetBody(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	if err := transportHTTP.GetPathValue(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
-
-	out, err := h.srv.RuleStatus(ctx, &in)
-	if err != nil {
-		tErr := errors.FromError(err)
-		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		resp.WriteHeaderAndJson(httpCode,
-			result.Set(tErr.Reason, tErr.Message, out), "application/json")
-		return
-	}
-	anyOut, err := anypb.New(out)
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	outB, err := protojson.MarshalOptions{
-		UseProtoNames:   true,
-		EmitUnpopulated: true,
-	}.Marshal(&result.Http{
-		Code: errors.Success.Reason,
-		Msg:  "",
-		Data: anyOut,
-	})
-	if err != nil {
-		resp.WriteHeaderAndJson(http.StatusInternalServerError,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
-
-	var remain int
-	for {
-		outB = outB[remain:]
-		remain, err = resp.Write(outB)
-		if err != nil {
-			return
-		}
-		if remain == 0 {
-			break
-		}
-	}
-}
-
-func (h *RulesHTTPHandler) RuleStop(req *go_restful.Request, resp *go_restful.Response) {
-	in := RuleStopReq{}
-	if err := transportHTTP.GetBody(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-	if err := transportHTTP.GetPathValue(req, &in); err != nil {
-		resp.WriteHeaderAndJson(http.StatusBadRequest,
-			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
-		return
-	}
-
-	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
-
-	out, err := h.srv.RuleStop(ctx, &in)
-	if err != nil {
-		tErr := errors.FromError(err)
-		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -638,6 +358,9 @@ func (h *RulesHTTPHandler) RuleUpdate(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
+		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -693,7 +416,7 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 	}
 
 	handler := newRulesHTTPHandler(srv)
-	ws.Route(ws.PUT("/rules").
+	ws.Route(ws.POST("/rules").
 		To(handler.RuleCreate))
 	ws.Route(ws.PUT("/rules/{id}").
 		To(handler.RuleUpdate))
@@ -703,16 +426,6 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 		To(handler.RuleGet))
 	ws.Route(ws.GET("/rules").
 		To(handler.RuleQuery))
-	ws.Route(ws.POST("/rules/{id}/status").
-		To(handler.RuleStatus))
-	ws.Route(ws.POST("/rules/{id}/start").
-		To(handler.RuleStart))
-	ws.Route(ws.POST("/rules/{id}/stop").
-		To(handler.RuleStop))
-	ws.Route(ws.POST("/rules/{rule_id}/debug").
-		To(handler.RuleDebug))
-	ws.Route(ws.GET("/rules/{rule_id}/debug/messages").
-		To(handler.RuleDebugMessage))
-	ws.Route(ws.GET("/rules/{rule_id}/errors").
-		To(handler.RuleError))
+	ws.Route(ws.PUT("/rules/{id}/running_status").
+		To(handler.RuleStatusSwitch))
 }

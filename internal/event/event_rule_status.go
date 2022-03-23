@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/tkeel-io/rule-manager/constant"
 	"git.internal.yunify.com/manage/common/log"
+	"github.com/tkeel-io/rule-manager/constant"
 )
 
 /*
@@ -16,10 +16,10 @@ import (
 		status的其他字段存储在RawData中：
 
 				type RulexStatus struct {
-					UserId    string `json:"user_id"`
+					UserID    string `json:"user_id"`
 					RulexId   string `json:"rulex_id"`
 					Status    Status `json:"status"`
-					RuleId    string `json:"rule_id"`
+					RuleID    string `json:"rule_id"`
 					ActionId  string `json:"action_id"`
 					Desc      string `json:"desc"`
 					Error     string `json:"error"`
@@ -38,7 +38,7 @@ import (
 // }
 
 // metadata.ProtoMessage {
-//     Id:	65589,
+//     ID:	65589,
 //     RawData: msg.Marshal(),
 //     Metadata: map[string]string {
 // 		"type":"rule-status",

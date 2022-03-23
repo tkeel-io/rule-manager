@@ -7,17 +7,19 @@ import (
 	"os/signal"
 	"syscall"
 
+	interLog "git.internal.yunify.com/manage/common/log"
 	"github.com/tkeel-io/kit/app"
 	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/kit/transport"
+	"github.com/tkeel-io/kit/transport/grpc"
+	transportHTTP "github.com/tkeel-io/kit/transport/http"
+	"github.com/tkeel-io/rule-manager/config"
+	"github.com/tkeel-io/rule-manager/internal/dao"
 	"github.com/tkeel-io/rule-manager/pkg/server"
 	"github.com/tkeel-io/rule-manager/pkg/service"
 
-	// User import.
-	helloworld "github.com/tkeel-io/rule-manager/api/helloworld/v1"
-
 	openapi "github.com/tkeel-io/rule-manager/api/openapi/v1"
-	Rules_v1 "github.com/tkeel-io/rule-manager/api/rule/v1"
+	rule "github.com/tkeel-io/rule-manager/api/rule/v1"
 )
 
 var (
@@ -29,43 +31,28 @@ var (
 	GRPCAddr string
 )
 
-func init() {
-	flag.StringVar(&Name, "name", "hello", "app name.")
-	flag.StringVar(&HTTPAddr, "http_addr", ":31234", "http listen address.")
-	flag.StringVar(&GRPCAddr, "grpc_addr", ":31233", "grpc listen address.")
-}
-
 func main() {
-	flag.Parse()
+	parseFlags()
+	initEnv()
+	initDB()
+	initInternalLog()
 
 	httpSrv := server.NewHTTPServer(HTTPAddr)
 	grpcSrv := server.NewGRPCServer(GRPCAddr)
-	serverList := []transport.Server{httpSrv, grpcSrv}
+	servers := []transport.Server{httpSrv, grpcSrv}
 
-	app := app.New(Name,
+	s := app.New(Name,
 		&log.Conf{
 			App:   Name,
 			Level: "debug",
 			Dev:   true,
 		},
-		serverList...,
+		servers...,
 	)
 
-	{ // User service
-		GreeterSrv := service.NewGreeterService()
-		helloworld.RegisterGreeterHTTPServer(httpSrv.Container, GreeterSrv)
-		helloworld.RegisterGreeterServer(grpcSrv.GetServe(), GreeterSrv)
+	register(httpSrv, grpcSrv)
 
-		OpenapiSrv := service.NewOpenapiService()
-		openapi.RegisterOpenapiHTTPServer(httpSrv.Container, OpenapiSrv)
-		openapi.RegisterOpenapiServer(grpcSrv.GetServe(), OpenapiSrv)
-
-		RulesSrv := service.NewRulesService()
-		Rules_v1.RegisterRulesHTTPServer(httpSrv.Container, RulesSrv)
-		Rules_v1.RegisterRulesServer(grpcSrv.GetServe(), RulesSrv)
-	}
-
-	if err := app.Run(context.TODO()); err != nil {
+	if err := s.Run(context.TODO()); err != nil {
 		panic(err)
 	}
 
@@ -73,7 +60,52 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)
 	<-stop
 
-	if err := app.Stop(context.TODO()); err != nil {
+	if err := s.Stop(context.TODO()); err != nil {
 		panic(err)
 	}
+}
+
+func register(httpSrv *transportHTTP.Server, grpcSrv *grpc.Server) {
+	{
+		OpenapiSrv := service.NewOpenapiService()
+		openapi.RegisterOpenapiHTTPServer(httpSrv.Container, OpenapiSrv)
+		openapi.RegisterOpenapiServer(grpcSrv.GetServe(), OpenapiSrv)
+
+		RulesSrv := service.NewRulesService()
+		rule.RegisterRulesHTTPServer(httpSrv.Container, RulesSrv)
+		rule.RegisterRulesServer(grpcSrv.GetServe(), RulesSrv)
+	}
+}
+
+func parseFlags() {
+	flag.StringVar(&Name, "name", "rule-manager", "app name.")
+	flag.StringVar(&HTTPAddr, "http_addr", ":31234", "http listen address.")
+	flag.StringVar(&GRPCAddr, "grpc_addr", ":31233", "grpc listen address.")
+
+	flag.StringVar(&config.DSN, "dsn", "root:root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local", "database dsn")
+
+	flag.Parse()
+}
+
+func initDB() {
+	if err := dao.Setup(); err != nil {
+		log.Fatal("setup database failed", err)
+	}
+}
+
+const (
+	// DSN schema like: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	DSN = "DSN"
+)
+
+func initEnv() {
+	val := os.Getenv(DSN)
+	if val != "" {
+		config.DSN = val
+	}
+}
+
+func initInternalLog() {
+	interLog.Init(nil)
+	interLog.SetLogLevelFromStr("debug")
 }

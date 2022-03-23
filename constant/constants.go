@@ -1,11 +1,9 @@
 package constant
 
-//-------------evevt type
-
 type EventType = uint8
 
 const (
-	EVENT_RULE_CREATE EventType = iota
+	EVENT_RULE_CREATE EventType = iota + 1
 	EVENT_RULE_DELETE
 	EVENT_RULE_UPDATE
 	EVENT_ACTION_CREATE
@@ -62,15 +60,6 @@ const (
 
 //rule status
 const (
-	//前端状态
-	//rule status
-	RuleStatusBan       = "ban"
-	RuleStatusStop      = "stop"
-	RuleStatusRunning   = "running"
-	RuleStatusException = "exception"
-	RuleStatusError     = "error"
-	RuleStatusStarting  = "starting"
-	RuleStatusStopping  = "stopping"
 	//action status
 	ActionStatusBan       = "ban"
 	ActionStatusStop      = "stop"
@@ -101,10 +90,20 @@ const (
 	RuleActionStarted    = "RuleActionStarted"
 )
 
+const (
+	RuleStatusBan = iota + 1
+	RuleStatusStop
+	RuleStatusRunning
+	RuleStatusException
+	RuleStatusError
+	RuleStatusStating
+	RuleStatusStopping
+)
+
 //由用户发出的指令状态
 const (
-	COMMAND_STATUS_RULE_START = "start"
-	COMMAND_STATUS_RULE_STOP  = "stop"
+	CommandStatusRuleStart = RuleStatusStating
+	CommandStatusRuleStop  = RuleStatusStop
 )
 
 const ErrorPrefix = "RuleErr-"
