@@ -6,6 +6,7 @@ import (
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
 	"github.com/tkeel-io/core-broker/pkg/core"
+	"github.com/tkeel-io/core-broker/pkg/deviceutil"
 	"github.com/tkeel-io/core-broker/pkg/pagination"
 	"github.com/tkeel-io/kit/log"
 	tkeelLog "github.com/tkeel-io/kit/log"
@@ -14,6 +15,7 @@ import (
 	"github.com/tkeel-io/rule-manager/internal/dao"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"gorm.io/gorm"
 )
 
@@ -23,6 +25,11 @@ const (
 	UpdatePrefixTag = "[RuleUpdate]"
 	DeletePrefixTag = "[RuleDelete]"
 	QueryPrefixTag  = "[RuleQuery]"
+)
+
+var (
+	ErrUnmatched      = errors.New("delete records are not matched whit user")
+	ErrDeviceNotFound = errors.New("device not found")
 )
 
 type RulesService struct {
@@ -266,6 +273,205 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		return nil, pb.ErrInternalError()
 	}
 	return &pb.RuleStatusSwitchResp{Status: uint32(rule.Status), Id: uint64(rule.ID)}, nil
+}
+
+func (s *RulesService) GetRuleDevicesID(ctx context.Context, req *pb.RuleDevicesIDReq) (*pb.RuleDevicesIDResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	resp := &pb.RuleDevicesIDResp{}
+	reModel := dao.RuleEntities{RuleID: uint(req.Id)}
+	ids := reModel.FindEntityIDS()
+	resp.DevicesIds = ids
+
+	return resp, nil
+}
+
+func (s *RulesService) AddDevicesToRule(ctx context.Context, req *pb.AddDevicesToRuleReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	if len(req.DevicesIds) == 0 {
+		return &emptypb.Empty{}, nil
+	}
+	if err := saveDevicesToRule(rule, req.DevicesIds); err != nil {
+		tkeelLog.Error("save rule_entities records err", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RulesService) RemoveDevicesFromRule(ctx context.Context, req *pb.RemoveDevicesFromRuleReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	tx := dao.DB().Begin()
+	if err := removeDevicesFromRule(tx, rule, req.DevicesIds); err != nil {
+		defer func() {
+			tx.Rollback()
+		}()
+		if errors.Is(err, ErrUnmatched) {
+			return nil, pb.ErrForbidden()
+		}
+		return nil, pb.ErrInternalError()
+	}
+	defer func() {
+		tx.Commit()
+	}()
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesReq) (*pb.RuleDevicesResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	page, err := pagination.Parse(req)
+	if err != nil {
+		tkeelLog.Error("parse pagination error", err)
+		return nil, pb.ErrInvalidArgument()
+	}
+
+	resp := &pb.RuleDevicesResp{}
+
+	ruleEntitiesCondition := dao.RuleEntities{
+		RuleID: uint(req.Id),
+	}
+	total, err := ruleEntitiesCondition.Count(nil)
+	if err != nil {
+		tkeelLog.Error("query total error", err)
+		return nil, pb.ErrInternalError()
+	}
+	page.SetTotal(uint(total))
+
+	tx := dao.DB().Model(&ruleEntitiesCondition)
+	if page.Required() {
+		tx = tx.Limit(int(page.Limit())).Offset(int(page.Offset()))
+	}
+	ress := ruleEntitiesCondition.Find(tx)
+	if len(ress) == 0 {
+		return resp, nil
+	}
+
+	resp.Data, err = s.getDevicesFromCore(user.Token, ress)
+	if err != nil {
+		tkeelLog.Error("get devices from core error", err)
+		return nil, pb.ErrInternalError()
+	}
+	return resp, nil
+}
+
+func (s *RulesService) getDevicesFromCore(token string, ress []dao.RuleEntities) ([]*pb.Device, error) {
+	dc := deviceutil.NewClient(token)
+	devices := make([]*pb.Device, 0, len(ress))
+	for _, re := range ress {
+		bytes, err := dc.Search(deviceutil.EntitySearch, deviceutil.Conditions{deviceutil.DeviceQuery(re.EntityID)})
+		if err != nil {
+			log.Error("query device by device id err:", err)
+			return nil, err
+		}
+		resp, err := deviceutil.ParseSearchEntityResponse(bytes)
+		if err != nil {
+			log.Error("parse device search response err:", err)
+			return nil, err
+		}
+		if len(resp.Data.Items) == 0 {
+			log.Error("device not found:", re.EntityID)
+			return nil, ErrDeviceNotFound
+		}
+		d := &pb.Device{
+			Id:        re.EntityID,
+			Name:      resp.Data.Items[0].Properties.BasicInfo.Name,
+			Template:  resp.Data.Items[0].Properties.BasicInfo.TemplateName,
+			GroupName: resp.Data.Items[0].Properties.BasicInfo.ParentName,
+			Status:    "offline",
+		}
+		if resp.Data.Items[0].Properties.ConnectionInfo.IsOnline {
+			d.Status = "online"
+		}
+		devices = append(devices, d)
+	}
+	return devices, nil
+}
+
+func removeDevicesFromRule(tx *gorm.DB, rule *dao.Rule, ids []string) error {
+	ress := make([]dao.RuleEntities, 0, len(ids))
+	for _, id := range ids {
+		ress = append(ress, dao.RuleEntities{RuleID: rule.ID, EntityID: id, UniqueKey: dao.GenUniqueKey(rule.ID, id)})
+	}
+	result := tx.Delete(&ress)
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected != int64(len(ids)) {
+		return ErrUnmatched
+	}
+	return nil
+}
+
+func saveDevicesToRule(rule *dao.Rule, ids []string) error {
+	if rule == nil || rule.ID == 0 {
+		return errors.New("rule is nil or unusable")
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+
+	ress := make([]dao.RuleEntities, 0, len(ids))
+	for _, id := range ids {
+		ress = append(ress, dao.RuleEntities{
+			RuleID:   rule.ID,
+			EntityID: id,
+			Rule:     *rule,
+		})
+	}
+
+	return dao.DB().Create(&ress).Error
 }
 
 func fillPagination(tx *gorm.DB, p pagination.Page) {

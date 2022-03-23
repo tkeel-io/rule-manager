@@ -7,13 +7,13 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/tkeel-io/core-broker v0.4.2
+	github.com/tkeel-io/core-broker v0.4.3
 	github.com/tkeel-io/kit v0.0.0-20220318074455-2c14ff2895e8
 	github.com/tkeel-io/rule-util v0.0.0-20220323061256-074504b94f0c
 	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220311032517-6775df80b836
 	google.golang.org/genproto v0.0.0-20220310185008-1973136f34c6
 	google.golang.org/grpc v1.44.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.28.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.2.3
 	gorm.io/gorm v1.22.5
