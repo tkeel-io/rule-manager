@@ -1,0 +1,15 @@
+annotations:
+  tkeel.io/deployment-name: rule-manager
+  tkeel.io/enable: "true"
+  tkeel.io/plugin-port: "31234"
+  tkeel.io/tag: manager
+  tkeel.io/version: v0.4.0
+apiVersion: v2
+appVersion: 0.4.1
+description: A Helm chart for Kubernetes
+name: rule-manager
+type: application
+version: 0.4.1
+maintainers:
+  - email: tkeel@yunify.com
+    name: tkeel

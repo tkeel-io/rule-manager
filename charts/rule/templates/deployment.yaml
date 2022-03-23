@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rule-manager.name" . }}
+  labels:
+    app: {{ include "rule-manager.name" . }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app: {{ include "rule-manager.name" . }}
+  template:
+    metadata:
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: {{ include "rule-manager.name" . }}
+        dapr.io/app-port: {{ .Values.appPort | quote }}
+        dapr.io/app-protocol: "http"
+        dapr.io/log-level: "debug"
+      labels:
+        app: {{ include "rule-manager.name" . }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: rule-manager
+          image: "{{ .Values.rulemanager.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.rulemanager.pullPolicy }}
+          env:
+            - name: DSN
+              value: {{ .Values.env.dsn }}
+          ports:
+            - name: http
+              containerPort: {{.Values.appPort}}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        - name: metadata
+          image: "{{ .Values.metadata.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.metadata.pullPolicy }}
+        - name: rulex
+          image: "{{ .Values.rulex.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.rulex.pullPolicy }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
