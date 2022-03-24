@@ -619,8 +619,9 @@
         "parameters": [
           {
             "name": "host",
+            "description": "Try to connect to kafka server address, split by ','",
             "in": "query",
-            "required": false,
+            "required": true,
             "type": "string"
           },
           {
@@ -806,32 +807,32 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Total",
           "required": [
             "total"
           ]
         },
         "page_num": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page number",
           "required": [
             "page_num"
           ]
         },
         "last_page": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Last page",
           "required": [
             "last_page"
           ]
         },
         "page_size": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page size",
           "required": [
             "page_size"
@@ -855,32 +856,32 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Total",
           "required": [
             "total"
           ]
         },
         "page_num": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page number",
           "required": [
             "page_num"
           ]
         },
         "last_page": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Last page",
           "required": [
             "last_page"
           ]
         },
         "page_size": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page size",
           "required": [
             "page_size"

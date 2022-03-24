@@ -228,22 +228,22 @@ message RuleQueryReq {
 
 
 message RuleQueryResp {
-  uint64 total = 1
+  uint32 total = 1
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Total",
     }];
-  uint64 page_num = 2
+  uint32 page_num = 2
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page number",
     }];
-  uint64 last_page = 3
+  uint32 last_page = 3
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Last page",
     }];
-  uint64 page_size = 4
+  uint32 page_size = 4
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page size",
@@ -305,22 +305,22 @@ message RuleDevicesReq {
 }
 
 message RuleDevicesResp {
-  uint64 total = 1
+  uint32 total = 1
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Total",
     }];
-  uint64 page_num = 2
+  uint32 page_num = 2
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page number",
     }];
-  uint64 last_page = 3
+  uint32 last_page = 3
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Last page",
     }];
-  uint64 page_size = 4
+  uint32 page_size = 4
   [(google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "Page size",

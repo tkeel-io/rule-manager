@@ -404,6 +404,10 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 		tkeelLog.Error("get devices from core error", err)
 		return nil, pb.ErrInternalError()
 	}
+	if err = page.FillResponse(resp); err != nil {
+		tkeelLog.Error("fill response error", err)
+		return nil, pb.ErrInternalError()
+	}
 	return resp, nil
 }
 
@@ -545,16 +549,14 @@ func (s *RulesService) getDevicesFromCore(token string, ress []dao.RuleEntities)
 }
 
 func removeDevicesFromRule(tx *gorm.DB, rule *dao.Rule, ids []string) error {
-	ress := make([]dao.RuleEntities, 0, len(ids))
 	for _, id := range ids {
-		ress = append(ress, dao.RuleEntities{RuleID: rule.ID, EntityID: id, UniqueKey: dao.GenUniqueKey(rule.ID, id)})
-	}
-	result := tx.Delete(&ress)
-	if result.Error != nil {
-		return result.Error
-	}
-	if result.RowsAffected != int64(len(ids)) {
-		return ErrUnmatched
+		e := dao.RuleEntities{RuleID: rule.ID, EntityID: id, UniqueKey: dao.GenUniqueKey(rule.ID, id)}
+		result := tx.
+			Where(&e).
+			Delete(&e)
+		if result.Error != nil {
+			return result.Error
+		}
 	}
 	return nil
 }
