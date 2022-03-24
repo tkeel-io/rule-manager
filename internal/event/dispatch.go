@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 
 	"github.com/tkeel-io/rule-manager/constant"
-
-	"github.com/tkeel-io/kit/log"
 )
 
 const eventDispatchLogTitle = "[EventDispatch]"

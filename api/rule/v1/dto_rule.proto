@@ -6,6 +6,7 @@ import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/api/field_behavior.proto";
 import "api/rule/v1/wrappers.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "github.com/tkeel-io/rule-manager/api/rule/v1;v1";
 option java_multiple_files = true;
@@ -55,6 +56,52 @@ service Rules {
       body : "*"
     };
   };
+
+  rpc GetRuleDevicesID(RuleDevicesIDReq) returns (RuleDevicesIDResp) {
+    option (google.api.http) = {
+      get : "/rules/{id}/devices_id_array"
+    };
+  };
+
+  rpc AddDevicesToRule(AddDevicesToRuleReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/rules/{id}/devices"
+      body : "*"
+    };
+  };
+
+  rpc RemoveDevicesFromRule(RemoveDevicesFromRuleReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/rules/{id}/devices"
+    };
+  };
+
+  rpc GetRuleDevices(RuleDevicesReq) returns (RuleDevicesResp) {
+    option (google.api.http) = {
+      get : "/rules/{id}/devices"
+    };
+  };
+
+  rpc CreateRuleTarget(CreateRuleTargetReq) returns (CreateRuleTargetResp) {
+    option (google.api.http) = {
+      post : "/rules/{id}/target"
+      body : "*"
+    };
+  };
+
+  rpc UpdateRuleTarget(UpdateRuleTargetReq) returns (UpdateRuleTargetResp) {
+    option (google.api.http) = {
+      put: "/rules/{id}/target/{target_id}"
+      body : "*"
+    };
+  };
+
+  rpc TestConnectToKafka(TestConnectToKafkaReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get : "/testing/kafka"
+    };
+  };
+
 }
 
 
@@ -213,4 +260,130 @@ message RuleStatusSwitchReq {
 message RuleStatusSwitchResp {
   uint64 id = 1;
   uint32 status = 2;
+}
+
+message RuleDevicesIDReq {
+  uint64 id = 1;
+}
+
+message RuleDevicesIDResp {
+  repeated string devices_ids = 1;
+}
+
+message RuleDevicesReq {
+  uint32 page_num = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page number",
+    }];
+  uint32 page_size = 2
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page size",
+    }];
+  string order_by = 3
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Order by",
+    }];
+  bool is_descending = 4
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Is descending",
+    }];
+  string key_words = 5
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Key words",
+    }];
+  string search_key = 6
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Search Key"
+    }];
+  uint64 id = 7;
+}
+
+message RuleDevicesResp {
+  uint64 total = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Total",
+    }];
+  uint64 page_num = 2
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page number",
+    }];
+  uint64 last_page = 3
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Last page",
+    }];
+  uint64 page_size = 4
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page size",
+    }];
+  repeated Device data = 5;
+}
+
+
+message AddDevicesToRuleReq {
+  uint64 id = 1;
+  repeated string devices_ids = 2;
+}
+
+message RemoveDevicesFromRuleReq {
+  uint64 id = 1;
+  string devices_ids = 2;
+}
+
+message Device {
+  string id = 1;
+  string name = 2;
+  string template = 3;
+  string group_name = 4;
+  string status = 5;
+}
+
+message CreateRuleTargetReq {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message CreateRuleTargetResp {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message UpdateRuleTargetReq {
+  uint64 id = 1;
+  uint64 target_id = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message UpdateRuleTargetResp {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message TestConnectToKafkaReq {
+  string host = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Try to connect to kafka server address, split by ','",
+    }];
+  string topic = 2;
 }

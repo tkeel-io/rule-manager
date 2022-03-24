@@ -7,6 +7,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -24,6 +25,13 @@ type RulesClient interface {
 	RuleGet(ctx context.Context, in *RuleGetReq, opts ...grpc.CallOption) (*Rule, error)
 	RuleQuery(ctx context.Context, in *RuleQueryReq, opts ...grpc.CallOption) (*RuleQueryResp, error)
 	RuleStatusSwitch(ctx context.Context, in *RuleStatusSwitchReq, opts ...grpc.CallOption) (*RuleStatusSwitchResp, error)
+	GetRuleDevicesID(ctx context.Context, in *RuleDevicesIDReq, opts ...grpc.CallOption) (*RuleDevicesIDResp, error)
+	AddDevicesToRule(ctx context.Context, in *AddDevicesToRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RemoveDevicesFromRule(ctx context.Context, in *RemoveDevicesFromRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetRuleDevices(ctx context.Context, in *RuleDevicesReq, opts ...grpc.CallOption) (*RuleDevicesResp, error)
+	CreateRuleTarget(ctx context.Context, in *CreateRuleTargetReq, opts ...grpc.CallOption) (*CreateRuleTargetResp, error)
+	UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error)
+	TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rulesClient struct {
@@ -88,6 +96,69 @@ func (c *rulesClient) RuleStatusSwitch(ctx context.Context, in *RuleStatusSwitch
 	return out, nil
 }
 
+func (c *rulesClient) GetRuleDevicesID(ctx context.Context, in *RuleDevicesIDReq, opts ...grpc.CallOption) (*RuleDevicesIDResp, error) {
+	out := new(RuleDevicesIDResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/GetRuleDevicesID", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) AddDevicesToRule(ctx context.Context, in *AddDevicesToRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/AddDevicesToRule", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) RemoveDevicesFromRule(ctx context.Context, in *RemoveDevicesFromRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/RemoveDevicesFromRule", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) GetRuleDevices(ctx context.Context, in *RuleDevicesReq, opts ...grpc.CallOption) (*RuleDevicesResp, error) {
+	out := new(RuleDevicesResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/GetRuleDevices", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) CreateRuleTarget(ctx context.Context, in *CreateRuleTargetReq, opts ...grpc.CallOption) (*CreateRuleTargetResp, error) {
+	out := new(CreateRuleTargetResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/CreateRuleTarget", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error) {
+	out := new(UpdateRuleTargetResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/UpdateRuleTarget", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/TestConnectToKafka", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility
@@ -98,6 +169,13 @@ type RulesServer interface {
 	RuleGet(context.Context, *RuleGetReq) (*Rule, error)
 	RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error)
 	RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error)
+	GetRuleDevicesID(context.Context, *RuleDevicesIDReq) (*RuleDevicesIDResp, error)
+	AddDevicesToRule(context.Context, *AddDevicesToRuleReq) (*emptypb.Empty, error)
+	RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error)
+	GetRuleDevices(context.Context, *RuleDevicesReq) (*RuleDevicesResp, error)
+	CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error)
+	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
+	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -122,6 +200,27 @@ func (UnimplementedRulesServer) RuleQuery(context.Context, *RuleQueryReq) (*Rule
 }
 func (UnimplementedRulesServer) RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RuleStatusSwitch not implemented")
+}
+func (UnimplementedRulesServer) GetRuleDevicesID(context.Context, *RuleDevicesIDReq) (*RuleDevicesIDResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRuleDevicesID not implemented")
+}
+func (UnimplementedRulesServer) AddDevicesToRule(context.Context, *AddDevicesToRuleReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddDevicesToRule not implemented")
+}
+func (UnimplementedRulesServer) RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDevicesFromRule not implemented")
+}
+func (UnimplementedRulesServer) GetRuleDevices(context.Context, *RuleDevicesReq) (*RuleDevicesResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRuleDevices not implemented")
+}
+func (UnimplementedRulesServer) CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRuleTarget not implemented")
+}
+func (UnimplementedRulesServer) UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRuleTarget not implemented")
+}
+func (UnimplementedRulesServer) TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TestConnectToKafka not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -244,6 +343,132 @@ func _Rules_RuleStatusSwitch_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_GetRuleDevicesID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RuleDevicesIDReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).GetRuleDevicesID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/GetRuleDevicesID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).GetRuleDevicesID(ctx, req.(*RuleDevicesIDReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_AddDevicesToRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddDevicesToRuleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).AddDevicesToRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/AddDevicesToRule",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).AddDevicesToRule(ctx, req.(*AddDevicesToRuleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_RemoveDevicesFromRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveDevicesFromRuleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).RemoveDevicesFromRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/RemoveDevicesFromRule",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).RemoveDevicesFromRule(ctx, req.(*RemoveDevicesFromRuleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_GetRuleDevices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RuleDevicesReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).GetRuleDevices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/GetRuleDevices",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).GetRuleDevices(ctx, req.(*RuleDevicesReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_CreateRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRuleTargetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).CreateRuleTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/CreateRuleTarget",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).CreateRuleTarget(ctx, req.(*CreateRuleTargetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_UpdateRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRuleTargetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).UpdateRuleTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/UpdateRuleTarget",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).UpdateRuleTarget(ctx, req.(*UpdateRuleTargetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_TestConnectToKafka_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TestConnectToKafkaReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).TestConnectToKafka(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/TestConnectToKafka",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).TestConnectToKafka(ctx, req.(*TestConnectToKafkaReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -274,6 +499,34 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RuleStatusSwitch",
 			Handler:    _Rules_RuleStatusSwitch_Handler,
+		},
+		{
+			MethodName: "GetRuleDevicesID",
+			Handler:    _Rules_GetRuleDevicesID_Handler,
+		},
+		{
+			MethodName: "AddDevicesToRule",
+			Handler:    _Rules_AddDevicesToRule_Handler,
+		},
+		{
+			MethodName: "RemoveDevicesFromRule",
+			Handler:    _Rules_RemoveDevicesFromRule_Handler,
+		},
+		{
+			MethodName: "GetRuleDevices",
+			Handler:    _Rules_GetRuleDevices_Handler,
+		},
+		{
+			MethodName: "CreateRuleTarget",
+			Handler:    _Rules_CreateRuleTarget_Handler,
+		},
+		{
+			MethodName: "UpdateRuleTarget",
+			Handler:    _Rules_UpdateRuleTarget_Handler,
+		},
+		{
+			MethodName: "TestConnectToKafka",
+			Handler:    _Rules_TestConnectToKafka_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

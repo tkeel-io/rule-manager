@@ -43,7 +43,7 @@ func Setup() error {
 		log.Fatal(err)
 	}
 	return db.AutoMigrate(
-		&Rule{},
+		&Rule{}, &Target{}, &RuleEntities{},
 	)
 }
 
