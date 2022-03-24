@@ -2,7 +2,6 @@ package dao
 
 import (
 	"fmt"
-	"github.com/tkeel-io/rule-manager/constant"
 	"gorm.io/gorm"
 )
 
@@ -20,21 +19,24 @@ const (
 
 type Rule struct {
 	gorm.Model
-	UserID string `gorm:"index"`
-	Name   string `gorm:"not null;size:255"`
-	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
-	Desc   string
-	Type   uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+	UserID   string `gorm:"index"`
+	TargetID uint   `gorm:"index"`
+	Name     string `gorm:"not null;size:255"`
+	Status   uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
+	Desc     string
+	Type     uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+
+	Target Target
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
-	if r.Status == 0 {
-		r.Status = constant.RuleStatusStop
-	}
 	return
 }
 
 func (r *Rule) Select() *gorm.DB {
+	if r.TargetID != 0 {
+		DB().Model(r).Where(r).Preload("Target").First(r)
+	}
 	return DB().Model(r).Where(r).First(r)
 }
 
@@ -95,7 +97,7 @@ func (e *RuleEntities) FindEntityIDS() []string {
 		EntityID string
 	}
 	var records []record
-	DB().Model(e).Where(e).Select("entities_id").Find(&records)
+	DB().Model(e).Where(e).Select("entity_id").Find(&records)
 	var ids []string
 	for _, r := range records {
 		ids = append(ids, r.EntityID)
@@ -109,6 +111,14 @@ func (e *RuleEntities) Count(tx *gorm.DB) (c int64, err error) {
 	}
 	err = tx.Where(e).Count(&c).Error
 	return
+}
+
+type Target struct {
+	ID    uint  `gorm:"primaryKey"`
+	Type  uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
+	Host  string
+	Value string
+	Ext   string `gorm:"type:json"`
 }
 
 const separator = "-"

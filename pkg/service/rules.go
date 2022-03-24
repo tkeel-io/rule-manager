@@ -11,7 +11,6 @@ import (
 	"github.com/tkeel-io/kit/log"
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
-	"github.com/tkeel-io/rule-manager/constant"
 	"github.com/tkeel-io/rule-manager/internal/dao"
 
 	"github.com/pkg/errors"
@@ -57,8 +56,9 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 	rule := dao.Rule{
 		UserID: user.ID,
 		Name:   req.Name,
-		Status: constant.RuleStatusStop,
+		Status: dao.NotRunningStatus,
 		Desc:   req.Desc,
+		Type:   uint8(req.Type),
 	}
 
 	result := dao.DB().Model(&rule).Create(&rule)
