@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"github.com/Shopify/sarama"
 	"strings"
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
@@ -404,6 +405,110 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 		return nil, pb.ErrInternalError()
 	}
 	return resp, nil
+}
+
+func (s RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleTargetReq) (*pb.CreateRuleTargetResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	if req.Type == 0 || req.Host == "" || req.Value == "" {
+		return nil, pb.ErrInvalidArgument()
+	}
+
+	ruleTarget := &dao.Target{
+		RuleID: uint(req.Id),
+		Type:   uint8(req.Type),
+		Host:   req.Host,
+		Value:  req.Value,
+		Ext:    req.Ext,
+	}
+	if err = ruleTarget.Create(); err != nil {
+		tkeelLog.Error("save target record error", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &pb.CreateRuleTargetResp{
+		Id:    uint64(ruleTarget.ID),
+		Type:  uint32(ruleTarget.Type),
+		Host:  ruleTarget.Host,
+		Value: ruleTarget.Value,
+		Ext:   ruleTarget.Ext,
+	}, nil
+}
+
+func (s RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleTargetReq) (*pb.UpdateRuleTargetResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+	target := &dao.Target{RuleID: rule.ID, ID: uint(req.TargetId)}
+	err = target.Find()
+	if err != nil {
+		tkeelLog.Error("target not found", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	target.Ext = req.Ext
+	target.Value = req.Value
+	target.Host = req.Host
+
+	if err = dao.DB().Save(target).Error; err != nil {
+		tkeelLog.Error("save target record error", err)
+		return nil, pb.ErrInternalError()
+	}
+	return &pb.UpdateRuleTargetResp{
+		Id:    uint64(target.ID),
+		Type:  uint32(target.Type),
+		Host:  target.Host,
+		Value: target.Value,
+		Ext:   target.Ext,
+	}, nil
+}
+
+func (s RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConnectToKafkaReq) (*emptypb.Empty, error) {
+
+	endpoints := strings.Split(req.Host, ",")
+
+	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll          // 发送完数据需要leader和follow都确认
+	config.Producer.Partitioner = sarama.NewRandomPartitioner // 新选出一个partition
+	config.Producer.Return.Successes = true                   // 成功交付的消息将在success channel返回
+
+	client, err := sarama.NewSyncProducer(endpoints, config)
+	if err != nil {
+		//log.Error(err)
+		log.Errorf(`
+			"call":      "KafkaVerify",
+			"desc":      "failed open consumer.",
+			"endpoints": endpoints,
+			"sinkType":  "kafka",
+			"error":     %s,
+		`, err)
+		return nil, pb.ErrInvalidArgument()
+	}
+	client.Close()
+
+	return &emptypb.Empty{}, nil
 }
 
 func (s *RulesService) getDevicesFromCore(token string, ress []dao.RuleEntities) ([]*pb.Device, error) {

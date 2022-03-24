@@ -19,14 +19,11 @@ const (
 
 type Rule struct {
 	gorm.Model
-	UserID   string `gorm:"index"`
-	TargetID uint   `gorm:"index"`
-	Name     string `gorm:"not null;size:255"`
-	Status   uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
-	Desc     string
-	Type     uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
-
-	Target Target
+	UserID string `gorm:"index"`
+	Name   string `gorm:"not null;size:255"`
+	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
+	Desc   string
+	Type   uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
@@ -34,9 +31,6 @@ func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (r *Rule) Select() *gorm.DB {
-	if r.TargetID != 0 {
-		DB().Model(r).Where(r).Preload("Target").First(r)
-	}
 	return DB().Model(r).Where(r).First(r)
 }
 
@@ -65,7 +59,7 @@ func (r *Rule) SwitchStatus() error {
 }
 
 type RuleEntities struct {
-	UniqueKey string `gorm:"uniqueIndex;not null"`
+	UniqueKey string `gorm:"uniqueIndex;size:255"`
 	RuleID    uint
 	EntityID  string
 
@@ -114,11 +108,26 @@ func (e *RuleEntities) Count(tx *gorm.DB) (c int64, err error) {
 }
 
 type Target struct {
-	ID    uint  `gorm:"primaryKey"`
-	Type  uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
-	Host  string
-	Value string
-	Ext   string `gorm:"type:json"`
+	ID     uint  `gorm:"primaryKey"`
+	Type   uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
+	Host   string
+	Value  string
+	Ext    string `gorm:"type:json"`
+	RuleID uint
+
+	Rule Rule
+}
+
+func (t *Target) AfterCreate(tx *gorm.DB) (err error) {
+	return DB().Model(&Rule{}).Where("id=?", t.RuleID).Update("target_id", t.ID).Error
+}
+
+func (t *Target) Create() error {
+	return DB().Model(t).Create(t).Error
+}
+
+func (t *Target) Find() error {
+	return DB().Model(t).Where(t).First(t).Error
 }
 
 const separator = "-"

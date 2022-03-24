@@ -82,6 +82,26 @@ service Rules {
     };
   };
 
+  rpc CreateRuleTarget(CreateRuleTargetReq) returns (CreateRuleTargetResp) {
+    option (google.api.http) = {
+      post : "/rules/{id}/target"
+      body : "*"
+    };
+  };
+
+  rpc UpdateRuleTarget(UpdateRuleTargetReq) returns (UpdateRuleTargetResp) {
+    option (google.api.http) = {
+      put: "/rules/{id}/target/{target_id}"
+      body : "*"
+    };
+  };
+
+  rpc TestConnectToKafka(TestConnectToKafkaReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      get : "/testing/kafka"
+    };
+  };
+
 }
 
 
@@ -325,4 +345,45 @@ message Device {
   string template = 3;
   string group_name = 4;
   string status = 5;
+}
+
+message CreateRuleTargetReq {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message CreateRuleTargetResp {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message UpdateRuleTargetReq {
+  uint64 id = 1;
+  uint64 target_id = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message UpdateRuleTargetResp {
+  uint64 id = 1;
+  uint32 type = 2;
+  string host = 3;
+  string value = 4;
+  string ext = 5;
+}
+
+message TestConnectToKafkaReq {
+  string host = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Try to connect to kafka server address, split by ','",
+    }];
+  string topic = 2;
 }
