@@ -164,14 +164,26 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
+
+	var ds, ts int64
+	if err = dao.DB().Model(&dao.RuleEntities{}).Where("rule_id = ?", rule.ID).Limit(1).Count(&ds).Error; err != nil {
+		log.Error("query rule entities count error", err)
+	}
+	if err = dao.DB().Model(&dao.Target{}).Where("rule_id = ?", rule.ID).Limit(1).Count(&ts).Error; err != nil {
+		log.Error("query rule target count error", err)
+	}
+
 	return &pb.Rule{
-		Id:        uint64(rule.ID),
-		Name:      rule.Name,
-		Desc:      rule.Desc,
-		Status:    uint32(rule.Status),
-		Type:      uint32(rule.Type),
-		CreatedAt: rule.CreatedAt.Unix(),
-		UpdatedAt: rule.UpdatedAt.Unix(),
+		Id:            uint64(rule.ID),
+		Name:          rule.Name,
+		Desc:          rule.Desc,
+		Status:        uint32(rule.Status),
+		Type:          uint32(rule.Type),
+		CreatedAt:     rule.CreatedAt.Unix(),
+		UpdatedAt:     rule.UpdatedAt.Unix(),
+		SubId:         uint32(rule.SubID),
+		DevicesStatus: uint32(ds),
+		TargetsStatus: uint32(ts),
 	}, nil
 }
 
@@ -240,15 +252,26 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		return nil, err
 	}
 	resp.Data = make([]*pb.Rule, 0, len(rules))
+
 	for _, r := range rules {
+		var ds, ts int64
+		if err = dao.DB().Model(&dao.RuleEntities{}).Where("rule_id = ?", r.ID).Limit(1).Count(&ds).Error; err != nil {
+			log.Error("query rule entities count error", err)
+		}
+		if err = dao.DB().Model(&dao.Target{}).Where("rule_id = ?", r.ID).Limit(1).Count(&ds).Error; err != nil {
+			log.Error("query rule target count error", err)
+		}
 		resp.Data = append(resp.Data, &pb.Rule{
-			Id:        uint64(r.ID),
-			Name:      r.Name,
-			Desc:      r.Desc,
-			Status:    uint32(r.Status),
-			Type:      uint32(r.Type),
-			CreatedAt: r.CreatedAt.Unix(),
-			UpdatedAt: r.UpdatedAt.Unix(),
+			Id:            uint64(r.ID),
+			Name:          r.Name,
+			Desc:          r.Desc,
+			Status:        uint32(r.Status),
+			Type:          uint32(r.Type),
+			CreatedAt:     r.CreatedAt.Unix(),
+			UpdatedAt:     r.UpdatedAt.Unix(),
+			DevicesStatus: uint32(ds),
+			TargetsStatus: uint32(ts),
+			SubId:         uint32(r.SubID),
 		})
 	}
 	return resp, nil

@@ -148,6 +148,9 @@ message Rule {
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
   int64 updated_at = 7
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+  uint32 devices_status = 8;
+  uint32 targets_status = 9;
+  uint32 sub_id = 10;
 }
 
 

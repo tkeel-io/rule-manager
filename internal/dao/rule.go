@@ -20,6 +20,7 @@ const (
 type Rule struct {
 	gorm.Model
 	UserID string `gorm:"index"`
+	SubID  uint
 	Name   string `gorm:"not null;size:255"`
 	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc   string

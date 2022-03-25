@@ -737,6 +737,18 @@
           "type": "string",
           "format": "int64",
           "description": "更新时间"
+        },
+        "devices_status": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "targets_status": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sub_id": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
