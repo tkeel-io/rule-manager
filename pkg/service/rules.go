@@ -623,7 +623,7 @@ func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConne
 			"sinkType":  "kafka",
 			"error":     %s,
 		`, err)
-		return nil, pb.ErrInvalidArgument()
+		return nil, pb.ErrFailedKafkaConnection()
 	}
 	client.Close()
 
