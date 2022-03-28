@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 // Const for Rule's Type
@@ -37,7 +38,7 @@ func (r *Rule) Select() *gorm.DB {
 
 func (r *Rule) Exists() (bool, error) {
 	var c string
-	result := DB().Model(r).Select("1").Where(r).First(&c)
+	result := DB().Model(r).Select("1").Where(r).Limit(1).First(&c)
 	if result.Error != nil || result.RowsAffected == 0 {
 		return false, result.Error
 	}
@@ -128,7 +129,33 @@ func (t *Target) Create() error {
 }
 
 func (t *Target) Find() error {
-	return DB().Model(t).Where(t).First(t).Error
+	return DB().Model(t).Preload("Rule").Where(t).First(t).Error
+}
+
+func (t *Target) FindAndAuth(userID string) error {
+	if err := DB().Model(t).Preload("Rule").Where(t).First(t).Error; err != nil {
+		return err
+	}
+
+	if reflect.DeepEqual(t.Rule, Rule{}) && t.RuleID != 0 {
+		var rule Rule
+		if DB().Model(&Rule{}).
+			Where("id=?", t.RuleID).
+			Where("user_id=?", userID).
+			First(&rule).Error != nil {
+			return fmt.Errorf("rule not found")
+		}
+		t.Rule = rule
+	}
+
+	if t.Rule.UserID != userID {
+		return fmt.Errorf("rule %d is not yours", t.RuleID)
+	}
+	return nil
+}
+
+func (t *Target) Delete() error {
+	return DB().Model(t).Where(t).Delete(t).Error
 }
 
 const separator = "-"

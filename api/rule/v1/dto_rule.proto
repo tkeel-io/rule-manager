@@ -102,6 +102,18 @@ service Rules {
     };
   };
 
+  rpc ListRuleTarget(ListRuleTargetReq) returns (ListRuleTargetResp) {
+    option (google.api.http) = {
+      get : "/rules/{id}/target"
+    };
+  };
+
+  rpc DeleteRuleTarget(DeleteRuleTargetReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/rules/{id}/target/{target_id}"
+    };
+  };
+
 }
 
 
@@ -390,3 +402,67 @@ message TestConnectToKafkaReq {
     }];
   string topic = 2;
 }
+
+message ListRuleTargetReq {
+  uint32 page_num = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page number",
+    }];
+  uint32 page_size = 2
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page size",
+    }];
+  string order_by = 3
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Order by",
+    }];
+  bool is_descending = 4
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Is descending",
+    }];
+  string key_words = 5
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Key words",
+    }];
+  string search_key = 6
+  [(google.api.field_behavior) = OPTIONAL,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Search Key"
+    }];
+  uint64 id = 7;
+}
+
+message ListRuleTargetResp {
+  uint32 total = 1
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Total",
+    }];
+  uint32 page_num = 2
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page number",
+    }];
+  uint32 last_page = 3
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Last page",
+    }];
+  uint32 page_size = 4
+  [(google.api.field_behavior) = REQUIRED,
+    (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "Page size",
+    }];
+  repeated CreateRuleTargetResp data = 5;
+}
+
+message DeleteRuleTargetReq {
+  uint64 id = 1;
+  uint64 target_id = 2;
+}
+

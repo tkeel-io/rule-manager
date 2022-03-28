@@ -434,7 +434,7 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 	return resp, nil
 }
 
-func (s RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleTargetReq) (*pb.CreateRuleTargetResp, error) {
+func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleTargetReq) (*pb.CreateRuleTargetResp, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
@@ -474,7 +474,7 @@ func (s RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleTa
 	}, nil
 }
 
-func (s RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleTargetReq) (*pb.UpdateRuleTargetResp, error) {
+func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleTargetReq) (*pb.UpdateRuleTargetResp, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
@@ -512,7 +512,99 @@ func (s RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleTa
 	}, nil
 }
 
-func (s RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConnectToKafkaReq) (*emptypb.Empty, error) {
+func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTargetReq) (*pb.ListRuleTargetResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	page, err := pagination.Parse(req)
+	if err != nil {
+		tkeelLog.Error(QueryPrefixTag, err)
+		return nil, pb.ErrInternalError()
+	}
+
+	targetConnd := &dao.Target{RuleID: rule.ID}
+	var total int64
+
+	targets := make([]*dao.Target, 0)
+	tx := dao.DB().Model(targetConnd).Where(targetConnd)
+	result := tx.Count(&total)
+	if result.Error != nil {
+		tkeelLog.Error(QueryPrefixTag, result.Error)
+		return nil, pb.ErrInternalError()
+	}
+	page.SetTotal(uint(total))
+
+	if page.Required() {
+		fillPagination(tx, page)
+	}
+	result = tx.Find(&targets)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		tkeelLog.Error(QueryPrefixTag, result.Error)
+		return nil, pb.ErrInternalError()
+	}
+
+	data := make([]*pb.CreateRuleTargetResp, 0, len(targets))
+	for _, target := range targets {
+		t := &pb.CreateRuleTargetResp{
+			Id:    uint64(target.ID),
+			Type:  uint32(target.Type),
+			Host:  target.Host,
+			Value: target.Value,
+			Ext:   target.Ext,
+		}
+		data = append(data, t)
+	}
+
+	resp := &pb.ListRuleTargetResp{Data: data}
+	if err = page.FillResponse(resp); err != nil {
+		tkeelLog.Error("fill response error", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return resp, nil
+}
+
+func (s RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleTargetReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+	_, err = rule.Exists()
+	if err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	target := &dao.Target{RuleID: rule.ID, ID: uint(req.TargetId)}
+	err = target.FindAndAuth(user.ID)
+	if err != nil {
+		tkeelLog.Error("target not found", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	if err = target.Delete(); err != nil {
+		tkeelLog.Error("delete target record error", err)
+		return nil, pb.ErrInternalError()
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConnectToKafkaReq) (*emptypb.Empty, error) {
 
 	endpoints := strings.Split(req.Host, ",")
 

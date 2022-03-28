@@ -32,6 +32,8 @@ type RulesClient interface {
 	CreateRuleTarget(ctx context.Context, in *CreateRuleTargetReq, opts ...grpc.CallOption) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error)
+	DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rulesClient struct {
@@ -159,6 +161,24 @@ func (c *rulesClient) TestConnectToKafka(ctx context.Context, in *TestConnectToK
 	return out, nil
 }
 
+func (c *rulesClient) ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error) {
+	out := new(ListRuleTargetResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/ListRuleTarget", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/DeleteRuleTarget", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility
@@ -176,6 +196,8 @@ type RulesServer interface {
 	CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
+	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
+	DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -221,6 +243,12 @@ func (UnimplementedRulesServer) UpdateRuleTarget(context.Context, *UpdateRuleTar
 }
 func (UnimplementedRulesServer) TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestConnectToKafka not implemented")
+}
+func (UnimplementedRulesServer) ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRuleTarget not implemented")
+}
+func (UnimplementedRulesServer) DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRuleTarget not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -469,6 +497,42 @@ func _Rules_TestConnectToKafka_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_ListRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRuleTargetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).ListRuleTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/ListRuleTarget",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).ListRuleTarget(ctx, req.(*ListRuleTargetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_DeleteRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRuleTargetReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).DeleteRuleTarget(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/DeleteRuleTarget",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).DeleteRuleTarget(ctx, req.(*DeleteRuleTargetReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -527,6 +591,14 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestConnectToKafka",
 			Handler:    _Rules_TestConnectToKafka_Handler,
+		},
+		{
+			MethodName: "ListRuleTarget",
+			Handler:    _Rules_ListRuleTarget_Handler,
+		},
+		{
+			MethodName: "DeleteRuleTarget",
+			Handler:    _Rules_DeleteRuleTarget_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
