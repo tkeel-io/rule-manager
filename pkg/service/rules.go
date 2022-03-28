@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/Shopify/sarama"
 	"strings"
 
@@ -125,7 +126,7 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 	}, nil
 }
 
-func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*pb.RuleDeleteResp, error) {
+func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*emptypb.Empty, error) {
 	//print request [debug]
 	printInputDebug(DeletePrefixTag, req)
 	user, err := auth.GetUser(ctx)
@@ -142,13 +143,16 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 		return nil, pb.ErrForbidden()
 	}
 
-	result = dao.DB().Delete(&rule)
+	tx := dao.DB().Begin()
+	result = tx.Delete(&rule)
 	if result.Error != nil {
+		tx.Rollback()
 		tkeelLog.Error(DeletePrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
+	tx.Commit()
 
-	return &pb.RuleDeleteResp{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rule, error) {
@@ -403,34 +407,25 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 
 	resp := &pb.RuleDevicesResp{}
 
-	ruleEntitiesCondition := dao.RuleEntities{
-		RuleID: uint(req.Id),
-	}
-	total, err := ruleEntitiesCondition.Count(nil)
+	conditions := make(deviceutil.Conditions, 0)
+	conditions = append(conditions, deviceutil.EqQuery("owner", user.ID))
+	conditions = append(conditions, deviceutil.WildcardQuery("sysField._ruleInfo", fmt.Sprintf("%d-", rule.ID)))
+	data, err := s.getEntitiesByConditions(conditions, user.Token, &page)
 	if err != nil {
-		tkeelLog.Error("query total error", err)
+		log.Error("err:", err)
+		if errors.Is(err, ErrDeviceNotFound) {
+			return nil, pb.ErrNotFound()
+		}
 		return nil, pb.ErrInternalError()
-	}
-	page.SetTotal(uint(total))
-
-	tx := dao.DB().Model(&ruleEntitiesCondition)
-	if page.Required() {
-		tx = tx.Limit(int(page.Limit())).Offset(int(page.Offset()))
-	}
-	ress := ruleEntitiesCondition.Find(tx)
-	if len(ress) == 0 {
-		return resp, nil
 	}
 
-	resp.Data, err = s.getDevicesFromCore(user.Token, ress)
+	err = page.FillResponse(resp)
 	if err != nil {
-		tkeelLog.Error("get devices from core error", err)
+		log.Error("page fill error:", err)
 		return nil, pb.ErrInternalError()
 	}
-	if err = page.FillResponse(resp); err != nil {
-		tkeelLog.Error("fill response error", err)
-		return nil, pb.ErrInternalError()
-	}
+	resp.Data = data
+
 	return resp, nil
 }
 
@@ -458,20 +453,27 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		Type:   uint8(req.Type),
 		Host:   req.Host,
 		Value:  req.Value,
-		Ext:    req.Ext,
+	}
+	if req.Ext != "" {
+		ruleTarget.Ext = &req.Ext
 	}
 	if err = ruleTarget.Create(); err != nil {
 		tkeelLog.Error("save target record error", err)
 		return nil, pb.ErrInternalError()
 	}
 
-	return &pb.CreateRuleTargetResp{
+	resp := &pb.CreateRuleTargetResp{
 		Id:    uint64(ruleTarget.ID),
 		Type:  uint32(ruleTarget.Type),
 		Host:  ruleTarget.Host,
 		Value: ruleTarget.Value,
-		Ext:   ruleTarget.Ext,
-	}, nil
+	}
+
+	if ruleTarget.Ext != nil {
+		resp.Ext = *ruleTarget.Ext
+	}
+
+	return resp, nil
 }
 
 func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleTargetReq) (*pb.UpdateRuleTargetResp, error) {
@@ -495,7 +497,9 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		return nil, pb.ErrForbidden()
 	}
 
-	target.Ext = req.Ext
+	if req.Ext != "" {
+		target.Ext = &req.Ext
+	}
 	target.Value = req.Value
 	target.Host = req.Host
 
@@ -503,13 +507,17 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		tkeelLog.Error("save target record error", err)
 		return nil, pb.ErrInternalError()
 	}
-	return &pb.UpdateRuleTargetResp{
+
+	resp := &pb.UpdateRuleTargetResp{
 		Id:    uint64(target.ID),
 		Type:  uint32(target.Type),
 		Host:  target.Host,
 		Value: target.Value,
-		Ext:   target.Ext,
-	}, nil
+	}
+	if target.Ext != nil {
+		resp.Ext = *target.Ext
+	}
+	return resp, nil
 }
 
 func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTargetReq) (*pb.ListRuleTargetResp, error) {
@@ -561,7 +569,9 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 			Type:  uint32(target.Type),
 			Host:  target.Host,
 			Value: target.Value,
-			Ext:   target.Ext,
+		}
+		if target.Ext != nil {
+			t.Ext = *target.Ext
 		}
 		data = append(data, t)
 	}
@@ -626,6 +636,33 @@ func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConne
 		return nil, pb.ErrFailedKafkaConnection()
 	}
 	client.Close()
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+
+	if _, err = rule.Exists(); err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+	if err = rule.Select().Error; err != nil {
+		tkeelLog.Error("select failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	if err = rule.Subscribe(uint(req.SubscribeId)); err != nil {
+		tkeelLog.Error("save rule failed", err)
+		return nil, pb.ErrInternalError()
+	}
 
 	return &emptypb.Empty{}, nil
 }
@@ -705,4 +742,41 @@ func fillPagination(tx *gorm.DB, p pagination.Page) {
 			tx.Order(p.SearchKey + " desc")
 		}
 	}
+}
+
+func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, token string, page *pagination.Page) ([]*pb.Device, error) {
+	client := deviceutil.NewClient(token)
+	entities := make([]*pb.Device, 0)
+
+	bytes, err := client.Search(deviceutil.EntitySearch, conditions,
+		deviceutil.WithQuery(page.SearchKey), deviceutil.WithPagination(int32(page.Num), int32(page.Size)))
+	if err != nil {
+		log.Error("query device by device id err:", err)
+		return nil, err
+	}
+	resp, err := deviceutil.ParseSearchEntityResponse(bytes)
+	if err != nil {
+		log.Error("parse device search response err:", err)
+		return nil, err
+	}
+	if len(resp.Data.Items) == 0 {
+		log.Error("device not found:", conditions)
+		return nil, ErrDeviceNotFound
+	}
+	page.SetTotal(uint(resp.Data.Total))
+
+	for _, item := range resp.Data.Items {
+		entity := &pb.Device{
+			Id:        item.Id,
+			Name:      item.Properties.BasicInfo.Name,
+			Template:  item.Properties.BasicInfo.TemplateName,
+			GroupName: item.Properties.BasicInfo.ParentName,
+			Status:    "offline",
+		}
+		if item.Properties.ConnectionInfo.IsOnline {
+			entity.Status = "online"
+		}
+		entities = append(entities, entity)
+	}
+	return entities, nil
 }

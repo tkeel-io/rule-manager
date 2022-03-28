@@ -21,7 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type RulesClient interface {
 	RuleCreate(ctx context.Context, in *RuleCreateReq, opts ...grpc.CallOption) (*RuleCreateResp, error)
 	RuleUpdate(ctx context.Context, in *RuleUpdateReq, opts ...grpc.CallOption) (*RuleUpdateResp, error)
-	RuleDelete(ctx context.Context, in *RuleDeleteReq, opts ...grpc.CallOption) (*RuleDeleteResp, error)
+	RuleDelete(ctx context.Context, in *RuleDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RuleGet(ctx context.Context, in *RuleGetReq, opts ...grpc.CallOption) (*Rule, error)
 	RuleQuery(ctx context.Context, in *RuleQueryReq, opts ...grpc.CallOption) (*RuleQueryResp, error)
 	RuleStatusSwitch(ctx context.Context, in *RuleStatusSwitchReq, opts ...grpc.CallOption) (*RuleStatusSwitchResp, error)
@@ -34,6 +34,7 @@ type RulesClient interface {
 	TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rulesClient struct {
@@ -62,8 +63,8 @@ func (c *rulesClient) RuleUpdate(ctx context.Context, in *RuleUpdateReq, opts ..
 	return out, nil
 }
 
-func (c *rulesClient) RuleDelete(ctx context.Context, in *RuleDeleteReq, opts ...grpc.CallOption) (*RuleDeleteResp, error) {
-	out := new(RuleDeleteResp)
+func (c *rulesClient) RuleDelete(ctx context.Context, in *RuleDeleteReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleDelete", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -179,13 +180,22 @@ func (c *rulesClient) DeleteRuleTarget(ctx context.Context, in *DeleteRuleTarget
 	return out, nil
 }
 
+func (c *rulesClient) ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/ErrSubscribe", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility
 type RulesServer interface {
 	RuleCreate(context.Context, *RuleCreateReq) (*RuleCreateResp, error)
 	RuleUpdate(context.Context, *RuleUpdateReq) (*RuleUpdateResp, error)
-	RuleDelete(context.Context, *RuleDeleteReq) (*RuleDeleteResp, error)
+	RuleDelete(context.Context, *RuleDeleteReq) (*emptypb.Empty, error)
 	RuleGet(context.Context, *RuleGetReq) (*Rule, error)
 	RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error)
 	RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error)
@@ -198,6 +208,7 @@ type RulesServer interface {
 	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error)
+	ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -211,7 +222,7 @@ func (UnimplementedRulesServer) RuleCreate(context.Context, *RuleCreateReq) (*Ru
 func (UnimplementedRulesServer) RuleUpdate(context.Context, *RuleUpdateReq) (*RuleUpdateResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RuleUpdate not implemented")
 }
-func (UnimplementedRulesServer) RuleDelete(context.Context, *RuleDeleteReq) (*RuleDeleteResp, error) {
+func (UnimplementedRulesServer) RuleDelete(context.Context, *RuleDeleteReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RuleDelete not implemented")
 }
 func (UnimplementedRulesServer) RuleGet(context.Context, *RuleGetReq) (*Rule, error) {
@@ -249,6 +260,9 @@ func (UnimplementedRulesServer) ListRuleTarget(context.Context, *ListRuleTargetR
 }
 func (UnimplementedRulesServer) DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteRuleTarget not implemented")
+}
+func (UnimplementedRulesServer) ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ErrSubscribe not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -533,6 +547,24 @@ func _Rules_DeleteRuleTarget_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_ErrSubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ErrSubscribeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).ErrSubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/ErrSubscribe",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).ErrSubscribe(ctx, req.(*ErrSubscribeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -599,6 +631,10 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteRuleTarget",
 			Handler:    _Rules_DeleteRuleTarget_Handler,
+		},
+		{
+			MethodName: "ErrSubscribe",
+			Handler:    _Rules_ErrSubscribe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -29,7 +29,7 @@ service Rules {
 
   };
 
-  rpc RuleDelete(RuleDeleteReq) returns (RuleDeleteResp) {
+  rpc RuleDelete(RuleDeleteReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete : "/rules/{id}"
     };
@@ -114,6 +114,12 @@ service Rules {
     };
   };
 
+  rpc ErrSubscribe(ErrSubscribeReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post : "/rules/{id}/subscribe/error"
+      body : "*"
+    };
+  };
 }
 
 
@@ -135,15 +141,24 @@ message ConfigStatus {
 message RuleCreateReq {
   string name = 1;
   string desc = 2;
-  uint32 type = 3;
+  uint32 type = 3
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Type 1 for Message Data, 2 for Timeseries Data",
+  }];
 }
 
 message RuleCreateResp {
   uint64 id = 1;
   string name = 2;
   string desc = 3;
-  uint32 type = 4;
-  uint32 status = 5;
+  uint32 type = 4
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  description: "Type 1 for Message Data, 2 for Timeseries Data",
+      }];
+  uint32 status = 5
+    [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  description: "Status 1 for Running, 0 for Stopped",
+      }];
   int64 created_at = 6
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
   int64 updated_at = 7
@@ -154,7 +169,10 @@ message Rule {
   uint64 id = 1;
   string name = 2;
   string desc = 3;
-  uint32 type = 4;
+  uint32 type = 4
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Type 1 for Message Data, 2 for Timeseries Data",
+  }];
   uint32 status = 5;
   int64 created_at = 6
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
@@ -176,7 +194,10 @@ message RuleUpdateResp {
   uint64 id = 1;
   string name = 2;
   string desc = 3;
-  uint32 type = 4;
+  uint32 type = 4
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Type 1 for Message Data, 2 for Timeseries Data",
+  }];
   uint32 status = 5;
   int64 created_at = 6
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
@@ -189,9 +210,6 @@ message RuleUpdateResp {
 //rule delete.
 message RuleDeleteReq {
   uint64 id = 1;
-}
-
-message RuleDeleteResp {
 }
 
 //rule delete.
@@ -235,7 +253,10 @@ message RuleQueryReq {
   Uint64 id = 7;
   repeated string ids = 8;
   String name = 9;
-  Uint32 type = 10;
+  Uint32 type = 10
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Type 1 for Message Data, 2 for Timeseries Data",
+  }];
   Uint32 status = 11;
 
 }
@@ -268,13 +289,19 @@ message RuleQueryResp {
 
 message RuleStatusSwitchReq {
   uint64 id = 1;
-  uint32 status = 2;
+  uint32 status = 2
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Status 1 for Running, 0 for Stopped",
+  }];
 }
 
 
 message RuleStatusSwitchResp {
   uint64 id = 1;
-  uint32 status = 2;
+  uint32 status = 2
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "Status 1 for Running, 0 for Stopped",
+  }];
 }
 
 message RuleDevicesIDReq {
@@ -364,7 +391,10 @@ message Device {
 
 message CreateRuleTargetReq {
   uint64 id = 1;
-  uint32 type = 2;
+  uint32 type = 2
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "type 1 for Kafka, 2 for Object-Storage",
+  }];
   string host = 3;
   string value = 4;
   string ext = 5;
@@ -372,7 +402,10 @@ message CreateRuleTargetReq {
 
 message CreateRuleTargetResp {
   uint64 id = 1;
-  uint32 type = 2;
+  uint32 type = 2
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "type 1 for Kafka, 2 for Object-Storage",
+  }];
   string host = 3;
   string value = 4;
   string ext = 5;
@@ -466,3 +499,7 @@ message DeleteRuleTargetReq {
   uint64 target_id = 2;
 }
 
+message ErrSubscribeReq {
+  uint64 id = 1;
+  uint64 subscribe_id = 2;
+}

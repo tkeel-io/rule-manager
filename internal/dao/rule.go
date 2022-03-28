@@ -1,9 +1,15 @@
 package dao
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	dapr "github.com/dapr/go-sdk/client"
+	"github.com/pkg/errors"
+	"github.com/tkeel-io/kit/log"
 	"gorm.io/gorm"
 	"reflect"
+	"strings"
 )
 
 // Const for Rule's Type
@@ -18,6 +24,12 @@ const (
 	RunningStatus
 )
 
+// The field for Target type
+const (
+	TargetTypeKafka = iota + 1
+	TargetTypeObjectStorage
+)
+
 type Rule struct {
 	gorm.Model
 	UserID      string `gorm:"index"`
@@ -26,11 +38,29 @@ type Rule struct {
 	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc        string
 	Type        uint8  `gorm:"not null;index;comment:'1:message;2:timeseries'"`
-	ErrEntityID string `gorm:"size:255"`
+	ErrEntityID string `gorm:"size:255;null"`
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
+	if r.ErrEntityID == "" {
+		r.ErrEntityID = fmt.Sprintf("ERROR-Rule-%d", r.SubID)
+	}
+	_, err = CoreClient.CreateEntity(r.ErrEntityID, r.UserID, "RULE-MANAGER")
 	return
+}
+
+func (r *Rule) BeforeDelete(tx *gorm.DB) (err error) {
+	// 清理相关的数据
+	if err = tx.Session(&gorm.Session{NewDB: true}).Model(&RuleEntities{}).
+		Where("rule_id = ?", r.ID).Delete(&RuleEntities{}).Error; err != nil {
+		return err
+	}
+
+	if err = tx.Session(&gorm.Session{NewDB: true}).Model(&Target{}).
+		Where("rule_id = ?", r.ID).Delete(&Target{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *Rule) Select() *gorm.DB {
@@ -61,6 +91,30 @@ func (r *Rule) SwitchStatus() error {
 	return DB().Model(r).Save(r).Error
 }
 
+func (r *Rule) Subscribe(id uint) error {
+	r.SubID = id
+	methodName := fmt.Sprintf("v1/core-broker/subscribe/%d/entities", id)
+	type request struct {
+		entities []string
+	}
+	contentData, err := json.Marshal(request{entities: []string{r.ErrEntityID}})
+	if err != nil {
+		return errors.Wrap(err, "subscriptionRequestData marshal error")
+	}
+
+	content := &dapr.DataContent{
+		Data:        contentData,
+		ContentType: "application/json",
+	}
+	_, err = d.InvokeMethodWithContent(context.Background(), "core-broker", "POST", methodName, content)
+	if err != nil {
+		log.Error("subscribe error", err)
+		return errors.Wrap(err, "subscribe error")
+	}
+
+	return DB().Model(r).Save(r).Error
+}
+
 type RuleEntities struct {
 	UniqueKey string `gorm:"uniqueIndex;size:255"`
 	RuleID    uint
@@ -74,6 +128,19 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 
+	if err := UpdateEntityRuleInfo(e.EntityID, e.UniqueKey, add); err != nil {
+		log.Error("call update entity error", err)
+		return err
+	}
+
+	return nil
+}
+
+func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
+	if err := UpdateEntityRuleInfo(e.EntityID, e.UniqueKey, reduce); err != nil {
+		log.Error("call update entity error", err)
+		return err
+	}
 	return nil
 }
 
@@ -115,14 +182,14 @@ type Target struct {
 	Type   uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
 	Host   string
 	Value  string
-	Ext    string `gorm:"type:json"`
+	Ext    *string `gorm:"type:json,null"`
 	RuleID uint
 
 	Rule Rule
 }
 
 func (t *Target) AfterCreate(tx *gorm.DB) (err error) {
-	return DB().Model(&Rule{}).Where("id=?", t.RuleID).Update("target_id", t.ID).Error
+	return nil
 }
 
 func (t *Target) Create() error {
@@ -163,4 +230,63 @@ const separator = "-"
 
 func GenUniqueKey(ruleID uint, entityID string) string {
 	return fmt.Sprintf("%d%s%s", ruleID, separator, entityID)
+}
+
+type choice uint8
+
+const (
+	add choice = iota + 1
+	reduce
+)
+
+func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
+	separator := ","
+	patchData := make([]map[string]interface{}, 0)
+
+	device, err := CoreClient.GetDeviceEntity(entityID)
+	log.Debug("get device entity:", device)
+	if err != nil {
+		log.Error("get entity err:", err)
+		return err
+	}
+	val := ruleinfo
+	switch c {
+	case add:
+		if strings.Contains(device.Properties.SysField.RuleInfo, ruleinfo) {
+			return nil
+		}
+		if device.Properties.SysField.RuleInfo != "" {
+			val = strings.Join([]string{device.Properties.SysField.RuleInfo, ruleinfo}, separator)
+		}
+	case reduce:
+		info := strings.Split(device.Properties.SysField.RuleInfo, separator)
+		validAddresses := make([]string, 0, len(info))
+		for i := range info {
+			if info[i] != ruleinfo {
+				validAddresses = append(validAddresses, info[i])
+			}
+		}
+		if len(validAddresses) != 0 {
+			val = strings.Join(validAddresses, separator)
+		} else {
+			val = ""
+		}
+		log.Debugf("generated val: %s", val)
+	}
+
+	patchData = append(patchData, map[string]interface{}{
+		"operator": "replace",
+		"path":     "sysField._ruleInfo",
+		"value":    val,
+	})
+
+	log.Debug("patchData:", patchData)
+	log.Debug("call patch on choice (add 1, reduce 2):", c)
+
+	if err = CoreClient.PatchEntity(entityID, patchData); err != nil {
+		err = errors.Wrap(err, "patch entity err")
+		return err
+	}
+
+	return nil
 }
