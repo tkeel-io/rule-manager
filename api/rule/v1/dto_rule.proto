@@ -120,6 +120,19 @@ service Rules {
       body : "*"
     };
   };
+
+  rpc ChangeErrSubscribe(ChangeErrSubscribeReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      put : "/rules/{id}/subscribe/error"
+      body : "*"
+    };
+  };
+
+  rpc ErrUnsubscribe(ErrUnsubscribeReq) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete : "/rules/{id}/subscribe/error"
+    };
+  };
 }
 
 
@@ -501,5 +514,14 @@ message DeleteRuleTargetReq {
 
 message ErrSubscribeReq {
   uint64 id = 1;
-  uint64 subscribe_id = 2;
+  string subscribe_id = 2;
+}
+
+message ChangeErrSubscribeReq {
+  uint64 id = 1;
+  string subscribe_id = 2;
+}
+
+message ErrUnsubscribeReq {
+  uint64 id = 1;
 }

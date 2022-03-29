@@ -35,6 +35,8 @@ type RulesClient interface {
 	ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ChangeErrSubscribe(ctx context.Context, in *ChangeErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ErrUnsubscribe(ctx context.Context, in *ErrUnsubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rulesClient struct {
@@ -189,6 +191,24 @@ func (c *rulesClient) ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opt
 	return out, nil
 }
 
+func (c *rulesClient) ChangeErrSubscribe(ctx context.Context, in *ChangeErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/ChangeErrSubscribe", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) ErrUnsubscribe(ctx context.Context, in *ErrUnsubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/ErrUnsubscribe", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility
@@ -209,6 +229,8 @@ type RulesServer interface {
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error)
 	ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error)
+	ChangeErrSubscribe(context.Context, *ChangeErrSubscribeReq) (*emptypb.Empty, error)
+	ErrUnsubscribe(context.Context, *ErrUnsubscribeReq) (*emptypb.Empty, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -263,6 +285,12 @@ func (UnimplementedRulesServer) DeleteRuleTarget(context.Context, *DeleteRuleTar
 }
 func (UnimplementedRulesServer) ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ErrSubscribe not implemented")
+}
+func (UnimplementedRulesServer) ChangeErrSubscribe(context.Context, *ChangeErrSubscribeReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ChangeErrSubscribe not implemented")
+}
+func (UnimplementedRulesServer) ErrUnsubscribe(context.Context, *ErrUnsubscribeReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ErrUnsubscribe not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -565,6 +593,42 @@ func _Rules_ErrSubscribe_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_ChangeErrSubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeErrSubscribeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).ChangeErrSubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/ChangeErrSubscribe",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).ChangeErrSubscribe(ctx, req.(*ChangeErrSubscribeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_ErrUnsubscribe_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ErrUnsubscribeReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).ErrUnsubscribe(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/ErrUnsubscribe",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).ErrUnsubscribe(ctx, req.(*ErrUnsubscribeReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -635,6 +699,14 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ErrSubscribe",
 			Handler:    _Rules_ErrSubscribe_Handler,
+		},
+		{
+			MethodName: "ChangeErrSubscribe",
+			Handler:    _Rules_ChangeErrSubscribe_Handler,
+		},
+		{
+			MethodName: "ErrUnsubscribe",
+			Handler:    _Rules_ErrUnsubscribe_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -97,13 +97,19 @@ func initDB() {
 
 const (
 	// DSN schema like: "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
-	DSN = "DSN"
+	DSN       = "DSN"
+	RuleTopic = "RuleTopic"
 )
 
 func initEnv() {
 	val := os.Getenv(DSN)
 	if val != "" {
 		config.DSN = val
+	}
+
+	val = os.Getenv(RuleTopic)
+	if val != "" {
+		config.RuleTopic = val
 	}
 }
 
