@@ -1132,8 +1132,8 @@ github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhV
 github.com/tidwall/pretty v1.1.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
 github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhsoaGGjNU=
 github.com/tjfoc/gmsm v1.3.2/go.mod h1:HaUcFuY0auTiaHB9MHFGCPx5IaLhTUd2atbCFBQXn9w=
-github.com/tkeel-io/core-broker v0.4.4-0.20220328111332-19765085a132 h1:VGFEM3aL0ZJ1LTtoA6hwvU3ns29D0ekOcD7DluvTMY8=
-github.com/tkeel-io/core-broker v0.4.4-0.20220328111332-19765085a132/go.mod h1:khFmvZZFVQKdMBf2CNdGgND0LVlI6Vd69grjhIe0deA=
+github.com/tkeel-io/core-broker v0.4.4 h1:g0vHr1AcWJWFJvIYDQHCohrFYxOS98hUFRDuGNM2Qx0=
+github.com/tkeel-io/core-broker v0.4.4/go.mod h1:khFmvZZFVQKdMBf2CNdGgND0LVlI6Vd69grjhIe0deA=
 github.com/tkeel-io/kit v0.0.0-20220311032953-c8bf1e0f86cb/go.mod h1:ki+q/zN0N2eSfjUnpkx8g3UlVps5waO2bkiIvO85ZCg=
 github.com/tkeel-io/kit v0.0.0-20220318074455-2c14ff2895e8 h1:i5zbvcYh1aE3a/rzvbe5zBCV1WHINPEil0RvfcQ0KQ4=
 github.com/tkeel-io/kit v0.0.0-20220318074455-2c14ff2895e8/go.mod h1:ki+q/zN0N2eSfjUnpkx8g3UlVps5waO2bkiIvO85ZCg=

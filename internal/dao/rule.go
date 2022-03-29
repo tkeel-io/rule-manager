@@ -6,6 +6,7 @@ import (
 	"fmt"
 	dapr "github.com/dapr/go-sdk/client"
 	"github.com/pkg/errors"
+	"github.com/tkeel-io/core-broker/pkg/util"
 	"github.com/tkeel-io/kit/log"
 	"gorm.io/gorm"
 	"reflect"
@@ -43,7 +44,8 @@ type Rule struct {
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
 	if r.ErrEntityID == "" {
-		r.ErrEntityID = fmt.Sprintf("ERROR-Rule-%d", r.SubID)
+		randomStr := util.GenerateRandString(8)
+		r.ErrEntityID = fmt.Sprintf("ERROR-%s", randomStr)
 	}
 	_, err = CoreClient.CreateEntity(r.ErrEntityID, r.UserID, "RULE-MANAGER")
 	return
