@@ -259,6 +259,7 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 		}
 		if device.Properties.SysField.RuleInfo != "" {
 			val = strings.Join([]string{device.Properties.SysField.RuleInfo, ruleinfo}, separator)
+			val = strings.Join([]string{device.Properties.SysField.RuleInfo, ruleinfo}, separator)
 		}
 	case reduce:
 		info := strings.Split(device.Properties.SysField.RuleInfo, separator)
