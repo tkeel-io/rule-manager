@@ -2,13 +2,15 @@ package dao
 
 import (
 	"fmt"
-	"github.com/tkeel-io/rule-manager/config"
 	"strings"
 	"sync"
 
 	"github.com/tkeel-io/core-broker/pkg/core"
 	"github.com/tkeel-io/kit/log"
+	"github.com/tkeel-io/rule-manager/config"
 
+	dapr "github.com/dapr/go-sdk/client"
+	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -17,10 +19,19 @@ var (
 	_once      sync.Once
 	db         *gorm.DB
 	CoreClient *core.Client
+	d          dapr.Client
 )
 
 func SetCoreClientUp() (err error) {
 	CoreClient, err = core.NewCoreClient()
+	if err != nil {
+		return errors.Wrap(err, "failed to create core client")
+	}
+
+	d, err = dapr.NewClient()
+	if err != nil {
+		return errors.Wrap(err, "init dapr client error")
+	}
 	return
 }
 

@@ -44,4 +44,12 @@ enum Error {
   // @msg=请确保用户权限
   // @code=PERMISSION_DENIED
   ERR_UNAUTHORIZED = 8;
+
+  // @msg=建立连接失败
+  // @code=OK
+  ERR_FAILED_KAFKA_CONNECTION = 9;
+
+  // @msg=成功
+  // @code=OK
+  ERR_OK_KAFKA_CONNECTION = 10;
 }

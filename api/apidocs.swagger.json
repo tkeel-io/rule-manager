@@ -187,7 +187,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/ruleRuleDeleteResp"
+              "properties": {}
             }
           },
           "default": {
@@ -477,7 +477,53 @@
               "properties": {
                 "status": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "description": "Status 1 for Running, 0 for Stopped"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    },
+    "/rules/{id}/subscribe/error": {
+      "post": {
+        "operationId": "Rules_ErrSubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "subscribe_id": {
+                  "type": "string",
+                  "format": "uint64"
                 }
               }
             }
@@ -489,6 +535,79 @@
       }
     },
     "/rules/{id}/target": {
+      "get": {
+        "operationId": "Rules_ListRuleTarget",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ruleListRuleTargetResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_num",
+            "description": "Page number",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "page_size",
+            "description": "Page size",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "order_by",
+            "description": "Order by",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "is_descending",
+            "description": "Is descending",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "key_words",
+            "description": "Key words",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "search_key",
+            "description": "Search Key",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
       "post": {
         "operationId": "Rules_CreateRuleTarget",
         "responses": {
@@ -522,7 +641,8 @@
               "properties": {
                 "type": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "description": "type 1 for Kafka, 2 for Object-Storage"
                 },
                 "host": {
                   "type": "string"
@@ -543,6 +663,42 @@
       }
     },
     "/rules/{id}/target/{target_id}": {
+      "delete": {
+        "operationId": "Rules_DeleteRuleTarget",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
       "put": {
         "operationId": "Rules_UpdateRuleTarget",
         "responses": {
@@ -619,8 +775,9 @@
         "parameters": [
           {
             "name": "host",
+            "description": "Try to connect to kafka server address, split by ','",
             "in": "query",
-            "required": false,
+            "required": true,
             "type": "string"
           },
           {
@@ -673,7 +830,8 @@
         },
         "type": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "type 1 for Kafka, 2 for Object-Storage"
         },
         "host": {
           "type": "string"
@@ -706,6 +864,55 @@
         }
       }
     },
+    "ruleListRuleTargetResp": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Total",
+          "required": [
+            "total"
+          ]
+        },
+        "page_num": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Page number",
+          "required": [
+            "page_num"
+          ]
+        },
+        "last_page": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Last page",
+          "required": [
+            "last_page"
+          ]
+        },
+        "page_size": {
+          "type": "integer",
+          "format": "int64",
+          "description": "Page size",
+          "required": [
+            "page_size"
+          ]
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleCreateRuleTargetResp"
+          }
+        }
+      },
+      "required": [
+        "total",
+        "page_num",
+        "last_page",
+        "page_size"
+      ]
+    },
     "ruleRule": {
       "type": "object",
       "properties": {
@@ -721,7 +928,8 @@
         },
         "type": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Type 1 for Message Data, 2 for Timeseries Data"
         },
         "status": {
           "type": "integer",
@@ -736,6 +944,18 @@
           "type": "string",
           "format": "int64",
           "description": "更新时间"
+        },
+        "devices_status": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "targets_status": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sub_id": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -750,7 +970,8 @@
         },
         "type": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Type 1 for Message Data, 2 for Timeseries Data"
         }
       },
       "description": "Rule create."
@@ -770,11 +991,13 @@
         },
         "type": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Type 1 for Message Data, 2 for Timeseries Data"
         },
         "status": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Status 1 for Running, 0 for Stopped"
         },
         "created_at": {
           "type": "string",
@@ -787,9 +1010,6 @@
           "description": "更新时间"
         }
       }
-    },
-    "ruleRuleDeleteResp": {
-      "type": "object"
     },
     "ruleRuleDevicesIDResp": {
       "type": "object",
@@ -806,32 +1026,32 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Total",
           "required": [
             "total"
           ]
         },
         "page_num": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page number",
           "required": [
             "page_num"
           ]
         },
         "last_page": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Last page",
           "required": [
             "last_page"
           ]
         },
         "page_size": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page size",
           "required": [
             "page_size"
@@ -855,32 +1075,32 @@
       "type": "object",
       "properties": {
         "total": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Total",
           "required": [
             "total"
           ]
         },
         "page_num": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page number",
           "required": [
             "page_num"
           ]
         },
         "last_page": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Last page",
           "required": [
             "last_page"
           ]
         },
         "page_size": {
-          "type": "string",
-          "format": "uint64",
+          "type": "integer",
+          "format": "int64",
           "description": "Page size",
           "required": [
             "page_size"
@@ -909,7 +1129,8 @@
         },
         "status": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Status 1 for Running, 0 for Stopped"
         }
       }
     },
@@ -928,7 +1149,8 @@
         },
         "type": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "description": "Type 1 for Message Data, 2 for Timeseries Data"
         },
         "status": {
           "type": "integer",
