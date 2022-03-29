@@ -24,6 +24,9 @@ var (
 
 func SetCoreClientUp() (err error) {
 	CoreClient, err = core.NewCoreClient()
+	if err != nil {
+		return errors.Wrap(err, "failed to create core client")
+	}
 
 	d, err = dapr.NewClient()
 	if err != nil {
