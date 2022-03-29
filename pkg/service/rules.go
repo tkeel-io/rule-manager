@@ -671,6 +671,62 @@ func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq)
 	return &emptypb.Empty{}, nil
 }
 
+func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErrSubscribeReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+
+	if _, err = rule.Exists(); err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+	if err = rule.Select().Error; err != nil {
+		tkeelLog.Error("select failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	subID, err := strconv.Atoi(req.SubscribeId)
+	if err != nil {
+		log.Error("subscribe id is not int", err)
+		return nil, pb.ErrInvalidArgument()
+	}
+
+	if err = rule.Subscribe(uint(subID)); err != nil {
+		tkeelLog.Error("save rule failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribeReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+
+	if _, err = rule.Exists(); err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	if err = rule.Unsubscribe(); err != nil {
+		tkeelLog.Error("save rule failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
 func (s *RulesService) getDevicesFromCore(token string, ress []dao.RuleEntities) ([]*pb.Device, error) {
 	dc := deviceutil.NewClient(token)
 	devices := make([]*pb.Device, 0, len(ress))
