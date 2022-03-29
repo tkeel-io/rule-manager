@@ -20,6 +20,8 @@ var errInternalError *errors.TError
 var errRuleNotFound *errors.TError
 var errForbidden *errors.TError
 var errUnauthorized *errors.TError
+var errFailedKafkaConnection *errors.TError
+var errOkKafkaConnection *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -40,6 +42,10 @@ func init() {
 	errors.Register(errForbidden)
 	errUnauthorized = errors.New(int(codes.PermissionDenied), "rule.v1.ERR_UNAUTHORIZED", "请确保用户权限")
 	errors.Register(errUnauthorized)
+	errFailedKafkaConnection = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_KAFKA_CONNECTION", "建立连接失败")
+	errors.Register(errFailedKafkaConnection)
+	errOkKafkaConnection = errors.New(int(codes.OK), "rule.v1.ERR_OK_KAFKA_CONNECTION", "成功")
+	errors.Register(errOkKafkaConnection)
 }
 
 func ErrUnknown() errors.Error {
@@ -76,4 +82,12 @@ func ErrForbidden() errors.Error {
 
 func ErrUnauthorized() errors.Error {
 	return errUnauthorized
+}
+
+func ErrFailedKafkaConnection() errors.Error {
+	return errFailedKafkaConnection
+}
+
+func ErrOkKafkaConnection() errors.Error {
+	return errOkKafkaConnection
 }
