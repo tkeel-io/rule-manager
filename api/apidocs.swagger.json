@@ -490,6 +490,35 @@
       }
     },
     "/rules/{id}/subscribe/error": {
+      "delete": {
+        "operationId": "Rules_ErrUnsubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
       "post": {
         "operationId": "Rules_ErrSubscribe",
         "responses": {
@@ -522,8 +551,49 @@
               "type": "object",
               "properties": {
                 "subscribe_id": {
-                  "type": "string",
-                  "format": "uint64"
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
+      "put": {
+        "operationId": "Rules_ChangeErrSubscribe",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "subscribe_id": {
+                  "type": "string"
                 }
               }
             }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"strconv"
 	"strings"
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
@@ -411,11 +412,8 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 	conditions = append(conditions, deviceutil.EqQuery("owner", user.ID))
 	conditions = append(conditions, deviceutil.WildcardQuery("sysField._ruleInfo", fmt.Sprintf("%d-", rule.ID)))
 	data, err := s.getEntitiesByConditions(conditions, user.Token, &page)
-	if err != nil {
+	if err != nil && !errors.Is(err, ErrDeviceNotFound) {
 		log.Error("err:", err)
-		if errors.Is(err, ErrDeviceNotFound) {
-			return nil, pb.ErrNotFound()
-		}
 		return nil, pb.ErrInternalError()
 	}
 
@@ -659,7 +657,69 @@ func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq)
 		return nil, pb.ErrInternalError()
 	}
 
-	if err = rule.Subscribe(uint(req.SubscribeId)); err != nil {
+	subID, err := strconv.Atoi(req.SubscribeId)
+	if err != nil {
+		log.Error("subscribe id is not int", err)
+		return nil, pb.ErrInvalidArgument()
+	}
+
+	if err = rule.Subscribe(uint(subID)); err != nil {
+		tkeelLog.Error("save rule failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErrSubscribeReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+
+	if _, err = rule.Exists(); err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+	if err = rule.Select().Error; err != nil {
+		tkeelLog.Error("select failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	subID, err := strconv.Atoi(req.SubscribeId)
+	if err != nil {
+		log.Error("subscribe id is not int", err)
+		return nil, pb.ErrInvalidArgument()
+	}
+
+	if err = rule.Subscribe(uint(subID)); err != nil {
+		tkeelLog.Error("save rule failed", err)
+		return nil, pb.ErrInternalError()
+	}
+
+	return &emptypb.Empty{}, nil
+}
+
+func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribeReq) (*emptypb.Empty, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.Id)},
+		UserID: user.ID,
+	}
+
+	if _, err = rule.Exists(); err != nil {
+		tkeelLog.Error("user and rule are not match", err)
+		return nil, pb.ErrForbidden()
+	}
+
+	if err = rule.Unsubscribe(); err != nil {
 		tkeelLog.Error("save rule failed", err)
 		return nil, pb.ErrInternalError()
 	}
