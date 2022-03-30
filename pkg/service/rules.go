@@ -3,9 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/Shopify/sarama"
 	"strconv"
 	"strings"
+
+	"github.com/Shopify/sarama"
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
 	"github.com/tkeel-io/core-broker/pkg/core"
@@ -15,6 +16,8 @@ import (
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"github.com/tkeel-io/rule-manager/internal/dao"
+	"github.com/tkeel-io/rule-manager/internal/endpoint"
+	"github.com/tkeel-io/rule-manager/internal/endpoint/utils"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -27,6 +30,11 @@ const (
 	UpdatePrefixTag = "[RuleUpdate]"
 	DeletePrefixTag = "[RuleDelete]"
 	QueryPrefixTag  = "[RuleQuery]"
+	StartPrefixTag  = "[RuleStart]"
+	StopPrefixTag   = "[RuleStop]"
+
+	RuleRunning = 1
+	RuleStoped  = 0
 )
 
 var (
@@ -296,6 +304,33 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrForbidden()
 	}
+
+	if rule.Status == uint8(req.Status) {
+		return &pb.RuleStatusSwitchResp{Status: uint32(rule.Status), Id: uint64(rule.ID)}, nil
+	}
+
+	var ruleReq *utils.Rule
+	if ruleReq, err = utils.ConvertRule(ctx, uint(req.Id), user.ID); err != nil {
+		return nil, err
+	}
+	switch req.Status {
+	case RuleRunning:
+		if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); err != nil {
+			tkeelLog.Error(StartPrefixTag, err)
+		}
+	case RuleStoped:
+		if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); err != nil {
+			//update pg.
+			tkeelLog.Error(StopPrefixTag, err)
+		}
+	default:
+		err = errors.New("rule status invalid.")
+	}
+
+	if err != nil {
+		return nil, errors.Wrap(err, "operator rule err")
+	}
+
 	rule.Status = uint8(req.Status)
 	result = dao.DB().Save(&rule)
 	if result.Error != nil {

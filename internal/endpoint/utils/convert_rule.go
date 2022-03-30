@@ -58,36 +58,54 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 	}
 	for _, ac := range targets {
 		//check action status.
-		if true {
-			if act := ConvertActionZ(ac); nil != act {
-				res.Actions = append(res.Actions, act)
-			} else {
-				log.Error(zap.Any(convertRuleLogTitle, map[string]interface{}{
-					"call":           "ConvertRule",
-					"rule_id":        res.Id,
-					"user_id":        res.UserId,
-					"topic":          res.Topic,
-					"count(actions)": len(targets),
-					"count(actives)": len(res.Actions),
-				}))
-			}
+		if act := ConvertActionZ(ac); nil != act {
+			res.Actions = append(res.Actions, act)
+		} else {
+			log.Error(zap.Any(convertRuleLogTitle, map[string]interface{}{
+				"call":           "ConvertRule",
+				"rule_id":        res.Id,
+				"user_id":        res.UserId,
+				"topic":          res.Topic,
+				"count(actions)": len(targets),
+				"count(actives)": len(res.Actions),
+			}))
 		}
-		log.Info(zap.Any(convertRuleLogTitle, map[string]interface{}{
-			"call":           "ConvertRule",
-			"rule_id":        res.Id,
-			"user_id":        res.UserId,
-			"topic":          res.Topic,
-			"count(actions)": len(targets),
-			"count(actives)": len(res.Actions),
-		}))
-		return res, nil
-		log.Warn(zap.Any(convertRuleLogTitle, map[string]interface{}{
-			"call":    "ConvertRule",
-			"rule_id": id,
-			"user_id": userId,
-			"error":   err,
-		}))
-		return nil, err
 	}
-	return nil, nil
+
+	if rule.SubID > 0 {
+		// TODO
+		errorSinkHost := "tkeel-middleware-kafka-headless:9092"
+		errorTopic := "errorTopic"
+		const version = "v0.0.1"
+		var options = make(map[string]interface{})
+		errorSink := xutils.GenerateUrlKafka(errorSinkHost, "user", "password", errorTopic)
+		options["sink"] = errorSink
+		options["topic"] = errorTopic
+		errorAction := &Action{
+			Id:         ruleId2RulexID(rule.ID),
+			UserId:     res.UserId,
+			ActionType: "kafka",
+			Sink:       errorSink,
+			ErrorFlag:  true,
+			Metadata: map[string]string{
+				"version": version,
+				"option":  xutils.Encode2String(options),
+			},
+			Body: []byte{},
+		}
+
+		res.Actions = append(res.Actions, errorAction)
+
+	}
+
+	log.Info(zap.Any(convertRuleLogTitle, map[string]interface{}{
+		"call":           "ConvertRule",
+		"rule_id":        res.Id,
+		"user_id":        res.UserId,
+		"topic":          res.Topic,
+		"count(actions)": len(targets),
+		"count(actives)": len(res.Actions),
+	}))
+
+	return res, err
 }

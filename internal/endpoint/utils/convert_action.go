@@ -52,9 +52,6 @@ func ConvertAction(ctx context.Context, actionId, ruleId uint) *Action {
 	return nil
 }
 
-func errorAction(ac *dao.Target, err error) {
-
-}
 func ConvertActionZ(ac *dao.Target) *Action {
 
 	const version = "v0.0.1"
@@ -69,7 +66,7 @@ func ConvertActionZ(ac *dao.Target) *Action {
 	}
 
 	act := &Action{
-		Id:         "id",
+		Id:         actionId2ActionID(ac.ID),
 		UserId:     ac.Rule.UserID,
 		ActionType: "kafka",
 		Sink:       options["sink"].(string),
@@ -93,4 +90,8 @@ func getString(m map[string]interface{}, key string) string {
 
 func ruleId2RulexID(id uint) string {
 	return fmt.Sprintf("rule-%d", id)
+}
+
+func actionId2ActionID(id uint) string {
+	return fmt.Sprintf("action-%d", id)
 }
