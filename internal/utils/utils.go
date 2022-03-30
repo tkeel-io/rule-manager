@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	mathRand "math/rand"
 	"net"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type prefix string
@@ -174,4 +176,24 @@ func MapCat(m1, m2 map[string]interface{}) map[string]interface{} {
 		m1[key] = value
 	}
 	return m1
+}
+
+var chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+func GenerateRandString(len int) string {
+	b := make([]byte, len, len)
+	for i := 0; i < len; i++ {
+		source := mathRand.NewSource(time.Now().UnixNano())
+		index := mathRand.New(source).Intn(len)
+		b[i] = chars[index]
+	}
+	b[0] = RandomWord()
+	return string(b)
+}
+
+func RandomWord() byte {
+	words := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	source := mathRand.NewSource(time.Now().UnixNano())
+	index := mathRand.New(source).Intn(len(words))
+	return words[index]
 }

@@ -8,6 +8,7 @@ import (
 )
 
 var DSN = "root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local"
+var RuleTopic = "TOPIC_FOR_RULE"
 
 type Config struct {
 	Server struct {
