@@ -24,6 +24,6 @@ func GenerateRuleql(rule *dao.Rule) string {
 
 func GenerateTopic(rule *dao.Rule) string {
 	//rule.ShortTopic = thingId/deviceId
-	topic := "rulex"
+	topic := fmt.Sprintf("rulex/rule-%d", rule.ID)
 	return topic
 }
