@@ -585,7 +585,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 	return resp, nil
 }
 
-func (s RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleTargetReq) (*emptypb.Empty, error) {
+func (s *RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleTargetReq) (*emptypb.Empty, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
@@ -640,7 +640,7 @@ func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConne
 	return &emptypb.Empty{}, nil
 }
 
-func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq) (*emptypb.Empty, error) {
+func (s *RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq) (*emptypb.Empty, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()

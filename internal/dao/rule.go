@@ -2,11 +2,11 @@ package dao
 
 import (
 	"fmt"
-	"github.com/tkeel-io/rule-manager/config"
 	"reflect"
 	"strings"
 
 	"github.com/tkeel-io/kit/log"
+	"github.com/tkeel-io/rule-manager/config"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -32,12 +32,13 @@ const (
 
 type Rule struct {
 	gorm.Model
-	UserID string `gorm:"index"`
-	SubID  uint
-	Name   string `gorm:"not null;size:255"`
-	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
-	Desc   string
-	Type   uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+	UserID      string `gorm:"index"`
+	SubID       uint
+	SubEndpoint string
+	Name        string `gorm:"not null;size:255"`
+	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
+	Desc        string
+	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
