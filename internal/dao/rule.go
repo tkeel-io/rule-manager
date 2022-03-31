@@ -64,7 +64,7 @@ func (r *Rule) BeforeDelete(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (r *Rule) Select() *gorm.DB {
+func (r *Rule) SelectFirst() *gorm.DB {
 	return DB().Model(r).Where(r).First(r)
 }
 
@@ -99,7 +99,7 @@ func (r *Rule) Subscribe(id uint) error {
 
 func (r *Rule) Unsubscribe() error {
 	r.SubID = 0
-	return DB().Model(&r).Save(&r).Error
+	return DB().Model(r).Save(r).Error
 }
 
 type RuleEntities struct {

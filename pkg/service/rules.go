@@ -165,7 +165,7 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		Model:  gorm.Model{ID: uint(req.Id)},
 		UserID: user.ID,
 	}
-	if result := rule.Select(); result.Error != nil {
+	if result := rule.SelectFirst(); result.Error != nil {
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
@@ -410,7 +410,9 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 
 	conditions := make(deviceutil.Conditions, 0)
 	conditions = append(conditions, deviceutil.EqQuery("owner", user.ID))
-	conditions = append(conditions, deviceutil.WildcardQuery("sysField._ruleInfo", fmt.Sprintf("%d-", rule.ID)))
+	conditions = append(conditions,
+		deviceutil.WildcardQuery("sysField._ruleInfo",
+			fmt.Sprintf("%d-", rule.ID)))
 	data, err := s.getEntitiesByConditions(conditions, user.Token, &page)
 	if err != nil && !errors.Is(err, ErrDeviceNotFound) {
 		log.Error("err:", err)
@@ -652,7 +654,7 @@ func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq)
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
-	if err = rule.Select().Error; err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("select failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -685,7 +687,7 @@ func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErr
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
-	if err = rule.Select().Error; err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("select failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -714,7 +716,7 @@ func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribe
 		UserID: user.ID,
 	}
 
-	if _, err = rule.Exists(); err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
@@ -809,7 +811,7 @@ func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, 
 	entities := make([]*pb.Device, 0)
 
 	bytes, err := client.Search(deviceutil.EntitySearch, conditions,
-		deviceutil.WithQuery(page.SearchKey), deviceutil.WithPagination(int32(page.Num), int32(page.Size)))
+		deviceutil.WithQuery(page.KeyWords), deviceutil.WithPagination(int32(page.Num), int32(page.Size)))
 	if err != nil {
 		log.Error("query device by device id err:", err)
 		return nil, err
