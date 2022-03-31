@@ -153,6 +153,10 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 		return nil, pb.ErrForbidden()
 	}
 
+	if rule.Status != 0 {
+		return nil, pb.ErrCantDeleteRunningRule()
+	}
+
 	tx := dao.DB().Begin()
 	result = tx.Delete(&rule)
 	if result.Error != nil {

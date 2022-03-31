@@ -23,6 +23,7 @@ var errUnauthorized *errors.TError
 var errFailedKafkaConnection *errors.TError
 var errOkKafkaConnection *errors.TError
 var errDuplicateCreate *errors.TError
+var errCantDeleteRunningRule *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -49,6 +50,8 @@ func init() {
 	errors.Register(errOkKafkaConnection)
 	errDuplicateCreate = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_DUPLICATE_CREATE", "重复创建")
 	errors.Register(errDuplicateCreate)
+	errCantDeleteRunningRule = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_CANT_DELETE_RUNNING_RULE", "不能删除正在运行的规则")
+	errors.Register(errCantDeleteRunningRule)
 }
 
 func ErrUnknown() errors.Error {
@@ -97,4 +100,8 @@ func ErrOkKafkaConnection() errors.Error {
 
 func ErrDuplicateCreate() errors.Error {
 	return errDuplicateCreate
+}
+
+func ErrCantDeleteRunningRule() errors.Error {
+	return errCantDeleteRunningRule
 }
