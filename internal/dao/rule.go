@@ -153,7 +153,7 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 		return err
 	}
 
-	if err := UpdateEntityRuleInfo(e.EntityID, e.UniqueKey, add); err != nil {
+	if err := UpdateEntityRuleInfo(e.EntityID, "RULE:"+e.UniqueKey, add); err != nil {
 		log.Error("call update entity error", err)
 		return err
 	}
@@ -174,7 +174,7 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 		return err
 	}
 
-	if err := UpdateEntityRuleInfo(e.EntityID, e.UniqueKey, reduce); err != nil {
+	if err := UpdateEntityRuleInfo(e.EntityID, "RULE:"+e.UniqueKey, reduce); err != nil {
 		log.Error("call update entity error", err)
 		return err
 	}
