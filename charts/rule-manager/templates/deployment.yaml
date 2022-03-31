@@ -33,6 +33,8 @@ spec:
           env:
             - name: DSN
               value: {{ .Values.env.dsn }}
+            - name: RuleTopic
+              value: {{ .Values.env.ruletopic }}
           ports:
             - name: http
               containerPort: {{.Values.appPort}}
@@ -40,10 +42,10 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: metadata
-          image: "{{ .Values.metadata.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.metadata.repository }}:{{ .Values.metadata.tag }}"
           imagePullPolicy: {{ .Values.metadata.pullPolicy }}
         - name: rulex
-          image: "{{ .Values.rulex.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.rulex.repository }}:{{ .Values.rulex.tag }}"
           imagePullPolicy: {{ .Values.rulex.pullPolicy }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
