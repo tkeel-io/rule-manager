@@ -74,7 +74,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 	if rule.SubID > 0 {
 		// TODO
 		errorSinkHost := "tkeel-middleware-kafka-headless:9092"
-		errorTopic := "errorTopic"
+		errorTopic := rule.SubEndpoint
 		const version = "v0.0.1"
 		var options = make(map[string]interface{})
 		errorSink := xutils.GenerateUrlKafka(errorSinkHost, "user", "password", errorTopic)
@@ -92,9 +92,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 			},
 			Body: []byte{},
 		}
-
 		res.Actions = append(res.Actions, errorAction)
-
 	}
 
 	log.Info(zap.Any(convertRuleLogTitle, map[string]interface{}{
