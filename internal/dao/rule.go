@@ -1,12 +1,15 @@
 package dao
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/tkeel-io/rule-manager/config"
+	"net/http"
 	"reflect"
 	"strings"
 
 	"github.com/tkeel-io/kit/log"
+	"github.com/tkeel-io/rule-manager/config"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -30,14 +33,17 @@ const (
 	TargetTypeObjectStorage
 )
 
+const SubscriptionIDFormat = "%s_%d_%s"
+
 type Rule struct {
 	gorm.Model
-	UserID string `gorm:"index"`
-	SubID  uint
-	Name   string `gorm:"not null;size:255"`
-	Status uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
-	Desc   string
-	Type   uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+	UserID      string `gorm:"index"`
+	SubID       uint
+	SubEndpoint string
+	Name        string `gorm:"not null;size:255"`
+	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
+	Desc        string
+	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
 }
 
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
@@ -64,7 +70,7 @@ func (r *Rule) BeforeDelete(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (r *Rule) Select() *gorm.DB {
+func (r *Rule) SelectFirst() *gorm.DB {
 	return DB().Model(r).Where(r).First(r)
 }
 
@@ -94,12 +100,36 @@ func (r *Rule) SwitchStatus() error {
 
 func (r *Rule) Subscribe(id uint) error {
 	r.SubID = id
+	url := fmt.Sprintf("v1/subscribe/%d", r.SubID)
+	c, err := d.InvokeMethod(context.Background(), "core-broker", url, http.MethodGet)
+	if err != nil {
+		log.Error("invoke", url, "err:", err)
+		return err
+	}
+	response := make(map[string]interface{})
+	if err = json.Unmarshal(c, &response); err != nil {
+		log.Errorf("unmarshal response content: %s \n err:%v", string(c), err)
+		return err
+	}
+	data, ok := response["data"].(map[string]interface{})
+	if !ok {
+		return errors.New("no data")
+	}
+
+	dataEndpoint, ok := data["endpoint"].(string)
+	if !ok {
+		return errors.New("no endpoint")
+	}
+
+	endpointSplit := strings.Split(dataEndpoint, "/")
+	r.SubEndpoint = endpointSplit[len(endpointSplit)-1]
+
 	return DB().Model(r).Save(r).Error
 }
 
 func (r *Rule) Unsubscribe() error {
 	r.SubID = 0
-	return DB().Model(&r).Save(&r).Error
+	return DB().Model(r).Save(r).Error
 }
 
 type RuleEntities struct {
@@ -117,8 +147,8 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 	if e.UniqueKey == "" {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
-
-	if err := CoreClient.Subscribe(e.EntityID, config.RuleTopic); err != nil {
+	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
 	}
@@ -138,7 +168,8 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 	if e.UniqueKey == "" {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
-	if err := CoreClient.Unsubscribe(e.EntityID, config.RuleTopic); err != nil {
+	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if err := CoreClient.Unsubscribe(subscribeID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
 	}
@@ -188,7 +219,7 @@ type Target struct {
 	Type   uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
 	Host   string
 	Value  string
-	Ext    *string `gorm:"type:json,null"`
+	Ext    *string `gorm:"type:json;null"`
 	RuleID uint
 
 	Rule Rule

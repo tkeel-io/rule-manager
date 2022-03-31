@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"strconv"
 	"strings"
 
@@ -34,7 +35,7 @@ const (
 	StopPrefixTag   = "[RuleStop]"
 
 	RuleRunning = 1
-	RuleStoped  = 0
+	RuleStopped = 0
 )
 
 var (
@@ -152,6 +153,10 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 		return nil, pb.ErrForbidden()
 	}
 
+	if rule.Status != 0 {
+		return nil, pb.ErrCantDeleteRunningRule()
+	}
+
 	tx := dao.DB().Begin()
 	result = tx.Delete(&rule)
 	if result.Error != nil {
@@ -173,7 +178,7 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		Model:  gorm.Model{ID: uint(req.Id)},
 		UserID: user.ID,
 	}
-	if result := rule.Select(); result.Error != nil {
+	if result := rule.SelectFirst(); result.Error != nil {
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
@@ -318,7 +323,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); err != nil {
 			tkeelLog.Error(StartPrefixTag, err)
 		}
-	case RuleStoped:
+	case RuleStopped:
 		if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); err != nil {
 			//update pg.
 			tkeelLog.Error(StopPrefixTag, err)
@@ -382,6 +387,10 @@ func (s *RulesService) AddDevicesToRule(ctx context.Context, req *pb.AddDevicesT
 	}
 	if err := saveDevicesToRule(rule, req.DevicesIds); err != nil {
 		tkeelLog.Error("save rule_entities records err", err)
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return nil, pb.ErrDuplicateCreate()
+		}
 		return nil, pb.ErrInternalError()
 	}
 
@@ -445,7 +454,9 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 
 	conditions := make(deviceutil.Conditions, 0)
 	conditions = append(conditions, deviceutil.EqQuery("owner", user.ID))
-	conditions = append(conditions, deviceutil.WildcardQuery("sysField._ruleInfo", fmt.Sprintf("%d-", rule.ID)))
+	conditions = append(conditions,
+		deviceutil.WildcardQuery("sysField._ruleInfo",
+			fmt.Sprintf("%d-", rule.ID)))
 	data, err := s.getEntitiesByConditions(conditions, user.Token, &page)
 	if err != nil && !errors.Is(err, ErrDeviceNotFound) {
 		log.Error("err:", err)
@@ -618,7 +629,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 	return resp, nil
 }
 
-func (s RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleTargetReq) (*emptypb.Empty, error) {
+func (s *RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleTargetReq) (*emptypb.Empty, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
@@ -673,7 +684,7 @@ func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConne
 	return &emptypb.Empty{}, nil
 }
 
-func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq) (*emptypb.Empty, error) {
+func (s *RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq) (*emptypb.Empty, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
@@ -687,7 +698,7 @@ func (s RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq)
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
-	if err = rule.Select().Error; err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("select failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -720,7 +731,7 @@ func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErr
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
-	if err = rule.Select().Error; err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("select failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -749,7 +760,7 @@ func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribe
 		UserID: user.ID,
 	}
 
-	if _, err = rule.Exists(); err != nil {
+	if err = rule.SelectFirst().Error; err != nil {
 		tkeelLog.Error("user and rule are not match", err)
 		return nil, pb.ErrForbidden()
 	}
@@ -844,7 +855,7 @@ func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, 
 	entities := make([]*pb.Device, 0)
 
 	bytes, err := client.Search(deviceutil.EntitySearch, conditions,
-		deviceutil.WithQuery(page.SearchKey), deviceutil.WithPagination(int32(page.Num), int32(page.Size)))
+		deviceutil.WithQuery(page.KeyWords), deviceutil.WithPagination(int32(page.Num), int32(page.Size)))
 	if err != nil {
 		log.Error("query device by device id err:", err)
 		return nil, err

@@ -52,4 +52,12 @@ enum Error {
   // @msg=成功
   // @code=OK
   ERR_OK_KAFKA_CONNECTION = 10;
+
+  // @msg=重复创建
+  // @code=INVALID_ARGUMENT
+  ERR_DUPLICATE_CREATE = 11;
+
+  // @msg=不能删除正在运行的规则
+  // @code=INVALID_ARGUMENT
+  ERR_CANT_DELETE_RUNNING_RULE = 12;
 }
