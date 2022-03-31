@@ -43,7 +43,7 @@ middleware:
   queue: kafka://tkeel-middleware-kafka-headless:9092
 env:
   dsn: root:a3fks=ixmeb82a@tcp(tkeel-core-broker-mysql:3306)/rule_manager?charset=utf8mb4&parseTime=True&loc=Local
-  RuleTopic: mdmp-topic
+  ruletopic: mdmp-topic
 autoscaling:
   enabled: false
   minReplicas: 1
