@@ -107,7 +107,7 @@ func (r *Rule) Subscribe(id uint) error {
 		return err
 	}
 	response := make(map[string]interface{})
-	if err = json.Unmarshal(c, response); err != nil {
+	if err = json.Unmarshal(c, &response); err != nil {
 		log.Errorf("unmarshal response content: %s \n err:%v", string(c), err)
 		return err
 	}
