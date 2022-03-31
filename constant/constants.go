@@ -15,23 +15,13 @@ const (
 
 //ActionType
 const (
-	ActionType_Republish  = "republish"
-	ActionType_Kafka      = "kafka"
-	ActionType_Bucket     = "bucket"
-	ActionType_Chronus    = "chronus"
-	ActionType_MYSQL      = "mysql"
-	ActionType_POSTGRESQL = "postgresql"
-	ActionType_REDIS      = "redis"
+	ActionType_Kafka  = 1
+	ActionType_Bucket = 2
 )
 
-var ActionTypes = []string{
-	ActionType_Republish,
+var ActionTypes = []uint8{
 	ActionType_Kafka,
 	ActionType_Bucket,
-	ActionType_Chronus,
-	ActionType_MYSQL,
-	ActionType_POSTGRESQL,
-	ActionType_REDIS,
 }
 
 const (
