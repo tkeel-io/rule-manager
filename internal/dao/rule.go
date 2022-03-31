@@ -1,7 +1,10 @@
 package dao
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -29,6 +32,8 @@ const (
 	TargetTypeKafka = iota + 1
 	TargetTypeObjectStorage
 )
+
+const SubscriptionIDFormat = "%s_%d_%s"
 
 type Rule struct {
 	gorm.Model
@@ -95,6 +100,30 @@ func (r *Rule) SwitchStatus() error {
 
 func (r *Rule) Subscribe(id uint) error {
 	r.SubID = id
+	url := fmt.Sprintf("v1/subscribe/%d", r.SubID)
+	c, err := d.InvokeMethod(context.Background(), "core-broker", url, http.MethodGet)
+	if err != nil {
+		log.Error("invoke", url, "err:", err)
+		return err
+	}
+	response := make(map[string]interface{})
+	if err = json.Unmarshal(c, response); err != nil {
+		log.Errorf("unmarshal response content: %s \n err:%v", string(c), err)
+		return err
+	}
+	data, ok := response["data"].(map[string]interface{})
+	if !ok {
+		return errors.New("no data")
+	}
+
+	dataEndpoint, ok := data["endpoint"].(string)
+	if !ok {
+		return errors.New("no endpoint")
+	}
+
+	endpointSplit := strings.Split(dataEndpoint, "/")
+	r.SubEndpoint = endpointSplit[len(endpointSplit)-1]
+
 	return DB().Model(r).Save(r).Error
 }
 
@@ -118,8 +147,8 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 	if e.UniqueKey == "" {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
-
-	if err := CoreClient.Subscribe(e.EntityID, config.RuleTopic); err != nil {
+	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
 	}
@@ -139,7 +168,8 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 	if e.UniqueKey == "" {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
-	if err := CoreClient.Unsubscribe(e.EntityID, config.RuleTopic); err != nil {
+	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if err := CoreClient.Unsubscribe(subscribeID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
 	}
@@ -189,7 +219,7 @@ type Target struct {
 	Type   uint8 `gorm:"not null;index;comment:'1:kafka;2:object-storage'"`
 	Host   string
 	Value  string
-	Ext    *string `gorm:"type:json,null"`
+	Ext    *string `gorm:"type:json;null"`
 	RuleID uint
 
 	Rule Rule

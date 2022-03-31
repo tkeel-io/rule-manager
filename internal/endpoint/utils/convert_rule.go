@@ -26,7 +26,6 @@ func ConvertRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 }
 
 func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
-
 	//query rule.
 	var (
 		err error
@@ -36,7 +35,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 		Model:  gorm.Model{ID: uint(id)},
 		UserID: userId,
 	}
-	if result := rule.Select(); result.Error != nil {
+	if result := rule.SelectFirst(); result.Error != nil {
 		return nil, result.Error
 	}
 

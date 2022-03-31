@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"strconv"
 	"strings"
 
@@ -34,7 +35,7 @@ const (
 	StopPrefixTag   = "[RuleStop]"
 
 	RuleRunning = 1
-	RuleStoped  = 0
+	RuleStopped = 0
 )
 
 var (
@@ -318,7 +319,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); err != nil {
 			tkeelLog.Error(StartPrefixTag, err)
 		}
-	case RuleStoped:
+	case RuleStopped:
 		if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); err != nil {
 			//update pg.
 			tkeelLog.Error(StopPrefixTag, err)
@@ -382,6 +383,10 @@ func (s *RulesService) AddDevicesToRule(ctx context.Context, req *pb.AddDevicesT
 	}
 	if err := saveDevicesToRule(rule, req.DevicesIds); err != nil {
 		tkeelLog.Error("save rule_entities records err", err)
+		mysqlErr, ok := err.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return nil, pb.ErrDuplicateCreate()
+		}
 		return nil, pb.ErrInternalError()
 	}
 

@@ -22,6 +22,7 @@ var errForbidden *errors.TError
 var errUnauthorized *errors.TError
 var errFailedKafkaConnection *errors.TError
 var errOkKafkaConnection *errors.TError
+var errDuplicateCreate *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -46,6 +47,8 @@ func init() {
 	errors.Register(errFailedKafkaConnection)
 	errOkKafkaConnection = errors.New(int(codes.OK), "rule.v1.ERR_OK_KAFKA_CONNECTION", "成功")
 	errors.Register(errOkKafkaConnection)
+	errDuplicateCreate = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_DUPLICATE_CREATE", "重复创建")
+	errors.Register(errDuplicateCreate)
 }
 
 func ErrUnknown() errors.Error {
@@ -90,4 +93,8 @@ func ErrFailedKafkaConnection() errors.Error {
 
 func ErrOkKafkaConnection() errors.Error {
 	return errOkKafkaConnection
+}
+
+func ErrDuplicateCreate() errors.Error {
+	return errDuplicateCreate
 }
