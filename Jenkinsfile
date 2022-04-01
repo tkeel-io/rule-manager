@@ -6,8 +6,8 @@ pipeline {
   }
     parameters {
         string(name:'GITHUB_ACCOUNT',defaultValue: 'lunz1207',description:'helm chart 仓库名')
-        string(name:'APP_VERSION',defaultValue: '0.4.2',description:'组件镜像版本')
-        string(name:'CHART_VERSION',defaultValue: '0.4.2',description:'组件chart 版本')
+        string(name:'APP_VERSION',defaultValue: 'dev',description:'组件镜像版本')
+        string(name:'CHART_VERSION',defaultValue: '0.0.0-dev',description:'组件chart 版本')
     }
 
     environment {
