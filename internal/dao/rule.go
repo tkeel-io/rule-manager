@@ -1,9 +1,10 @@
 package dao
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strings"
@@ -32,6 +33,8 @@ const (
 	TargetTypeKafka = iota + 1
 	TargetTypeObjectStorage
 )
+
+const SubscribeService string = "http://localhost:3500/v1.0/invoke/keel/method/apis/core-broker/v1/subscribe/%d"
 
 const SubscriptionIDFormat = "%s_%d_%s"
 
@@ -98,17 +101,32 @@ func (r *Rule) SwitchStatus() error {
 	return DB().Model(r).Save(r).Error
 }
 
-func (r *Rule) Subscribe(id uint) error {
+func (r *Rule) Subscribe(id uint, auth string) error {
 	r.SubID = id
-	url := fmt.Sprintf("v1/subscribe/%d", r.SubID)
-	c, err := d.InvokeMethod(context.Background(), "core-broker", url, http.MethodGet)
+
+	url := fmt.Sprintf(SubscribeService, r.SubID)
+
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer([]byte{}))
 	if err != nil {
-		log.Error("invoke", url, "err:", err)
 		return err
 	}
+	//	req.Header.Add("Authorization", c.token)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-Tkeel-Auth", auth)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
 	response := make(map[string]interface{})
-	if err = json.Unmarshal(c, &response); err != nil {
-		log.Errorf("unmarshal response content: %s \n err:%v", string(c), err)
+	respData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(respData, &response); err != nil {
+		log.Errorf("unmarshal response content: %s \n err:%v", string(respData), err)
 		return err
 	}
 	data, ok := response["data"].(map[string]interface{})
