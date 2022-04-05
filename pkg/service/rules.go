@@ -11,7 +11,6 @@ import (
 	"github.com/Shopify/sarama"
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
-	"github.com/tkeel-io/core-broker/pkg/core"
 	"github.com/tkeel-io/core-broker/pkg/deviceutil"
 	"github.com/tkeel-io/core-broker/pkg/pagination"
 	"github.com/tkeel-io/kit/log"
@@ -46,17 +45,19 @@ var (
 
 type RulesService struct {
 	pb.UnimplementedRulesServer
-	Core *core.Client
+	//	Core *core.Client
 }
 
 func NewRulesService() *RulesService {
-	if dao.CoreClient == nil {
-		if err := dao.SetCoreClientUp(); err != nil {
-			tkeelLog.Fatal("setup core client failed", err)
+	/*
+		if dao.CoreClient == nil {
+			if err := dao.SetCoreClientUp(); err != nil {
+				tkeelLog.Fatal("setup core client failed", err)
+			}
 		}
-	}
+	*/
 	return &RulesService{
-		Core: dao.CoreClient,
+		//		Core: dao.CoreClient,
 	}
 }
 

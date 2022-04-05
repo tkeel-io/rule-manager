@@ -110,6 +110,7 @@ func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error
 	}
 
 	var flagStart bool
+	rule.UserId = "admin"
 	packetId := atomic.AddInt64(&c.packedId, 1)
 	ruleql := &metapb.RuleQL{
 		Id:          rule.Id,
@@ -176,6 +177,7 @@ func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error
 func (c *MetadataEndpoint) DelRule(ctx context.Context, rule *xutils.Rule) error {
 
 	packetId := atomic.AddInt64(&c.packedId, 1)
+	rule.UserId = "admin"
 	resp, err := c.Client.Rule().DelRule(ctx, &metapb.RuleRequest{
 		Header: &metapb.RequestHeader{
 			UserId: rule.UserId,

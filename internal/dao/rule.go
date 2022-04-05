@@ -166,6 +166,11 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
@@ -187,6 +192,11 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err := CoreClient.Unsubscribe(subscribeID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
@@ -298,6 +308,11 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	separator := ","
 	patchData := make([]map[string]interface{}, 0)
 
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	device, err := CoreClient.GetDeviceEntity(entityID)
 	log.Debug("get device entity:", device)
 	if err != nil {
@@ -338,6 +353,11 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	log.Debug("patchData:", patchData)
 	log.Debug("call patch on choice (add 1, reduce 2):", c)
 
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err = CoreClient.PatchEntity(entityID, patchData); err != nil {
 		err = errors.Wrap(err, "patch entity err")
 		return err
