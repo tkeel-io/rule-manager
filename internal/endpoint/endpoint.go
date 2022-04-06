@@ -10,6 +10,6 @@ var authOnce sync.Once
 //initialize all endpoint.
 func Init() {
 	//	initRule()
-	InitRedis()
+	// InitRedis()
 	initMetaEnd()
 }

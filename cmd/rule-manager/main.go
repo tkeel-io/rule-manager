@@ -14,6 +14,7 @@ import (
 	transportHTTP "github.com/tkeel-io/kit/transport/http"
 	"github.com/tkeel-io/rule-manager/config"
 	"github.com/tkeel-io/rule-manager/internal/dao"
+	"github.com/tkeel-io/rule-manager/internal/endpoint"
 	"github.com/tkeel-io/rule-manager/pkg/server"
 	"github.com/tkeel-io/rule-manager/pkg/service"
 
@@ -35,6 +36,9 @@ func main() {
 	initEnv()
 	initDB()
 	initInternalLog()
+
+	config.InitConfig("./config.yml")
+	endpoint.Init()
 
 	httpSrv := server.NewHTTPServer(HTTPAddr)
 	grpcSrv := server.NewGRPCServer(GRPCAddr)

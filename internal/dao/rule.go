@@ -1,9 +1,10 @@
 package dao
 
 import (
-	"context"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strings"
@@ -32,6 +33,8 @@ const (
 	TargetTypeKafka = iota + 1
 	TargetTypeObjectStorage
 )
+
+const SubscribeService string = "http://localhost:3500/v1.0/invoke/keel/method/apis/core-broker/v1/subscribe/%d"
 
 const SubscriptionIDFormat = "%s_%d_%s"
 
@@ -98,17 +101,32 @@ func (r *Rule) SwitchStatus() error {
 	return DB().Model(r).Save(r).Error
 }
 
-func (r *Rule) Subscribe(id uint) error {
+func (r *Rule) Subscribe(id uint, auth string) error {
 	r.SubID = id
-	url := fmt.Sprintf("v1/subscribe/%d", r.SubID)
-	c, err := d.InvokeMethod(context.Background(), "core-broker", url, http.MethodGet)
+
+	url := fmt.Sprintf(SubscribeService, r.SubID)
+
+	req, err := http.NewRequest(http.MethodGet, url, bytes.NewBuffer([]byte{}))
 	if err != nil {
-		log.Error("invoke", url, "err:", err)
 		return err
 	}
+	//	req.Header.Add("Authorization", c.token)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("X-Tkeel-Auth", auth)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
 	response := make(map[string]interface{})
-	if err = json.Unmarshal(c, &response); err != nil {
-		log.Errorf("unmarshal response content: %s \n err:%v", string(c), err)
+	respData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if err = json.Unmarshal(respData, &response); err != nil {
+		log.Errorf("unmarshal response content: %s \n err:%v", string(respData), err)
 		return err
 	}
 	data, ok := response["data"].(map[string]interface{})
@@ -148,6 +166,11 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
@@ -169,6 +192,11 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err := CoreClient.Unsubscribe(subscribeID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
@@ -280,6 +308,11 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	separator := ","
 	patchData := make([]map[string]interface{}, 0)
 
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	device, err := CoreClient.GetDeviceEntity(entityID)
 	log.Debug("get device entity:", device)
 	if err != nil {
@@ -320,6 +353,11 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	log.Debug("patchData:", patchData)
 	log.Debug("call patch on choice (add 1, reduce 2):", c)
 
+	if CoreClient == nil {
+		if err := SetCoreClientUp(); err != nil {
+			return err
+		}
+	}
 	if err = CoreClient.PatchEntity(entityID, patchData); err != nil {
 		err = errors.Wrap(err, "patch entity err")
 		return err

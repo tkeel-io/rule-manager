@@ -4,12 +4,11 @@ go 1.17
 
 require (
 	github.com/Shopify/sarama v1.32.0
-	github.com/dapr/go-sdk v1.3.1
 	github.com/emicklei/go-restful v2.15.0+incompatible
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/tkeel-io/core-broker v0.4.6
+	github.com/tkeel-io/core-broker v0.4.7-0.20220405115706-8d7f949d0d47
 	github.com/tkeel-io/kit v0.0.0-20220318074455-2c14ff2895e8
 	github.com/tkeel-io/rule-util v0.0.0-20220328140104-48b9cedb7c43
 	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220311032517-6775df80b836
@@ -24,6 +23,7 @@ require (
 require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/dapr/go-sdk v1.3.1 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
@@ -41,7 +41,7 @@ require (
 	github.com/eapache/queue v1.1.0 // indirect
 	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/go-sql-driver/mysql v1.6.0 // indirect
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/googleapis v1.4.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

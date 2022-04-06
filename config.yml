@@ -1,0 +1,3 @@
+etcd:
+  address:
+    - http://tkeel-middleware-etcd:2379

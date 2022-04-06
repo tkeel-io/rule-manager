@@ -3,14 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/go-sql-driver/mysql"
 	"strconv"
 	"strings"
+
+	"github.com/go-sql-driver/mysql"
 
 	"github.com/Shopify/sarama"
 
 	"github.com/tkeel-io/core-broker/pkg/auth"
-	"github.com/tkeel-io/core-broker/pkg/core"
 	"github.com/tkeel-io/core-broker/pkg/deviceutil"
 	"github.com/tkeel-io/core-broker/pkg/pagination"
 	"github.com/tkeel-io/kit/log"
@@ -45,17 +45,19 @@ var (
 
 type RulesService struct {
 	pb.UnimplementedRulesServer
-	Core *core.Client
+	//	Core *core.Client
 }
 
 func NewRulesService() *RulesService {
-	if dao.CoreClient == nil {
-		if err := dao.SetCoreClientUp(); err != nil {
-			tkeelLog.Fatal("setup core client failed", err)
+	/*
+		if dao.CoreClient == nil {
+			if err := dao.SetCoreClientUp(); err != nil {
+				tkeelLog.Fatal("setup core client failed", err)
+			}
 		}
-	}
+	*/
 	return &RulesService{
-		Core: dao.CoreClient,
+		//		Core: dao.CoreClient,
 	}
 }
 
@@ -457,7 +459,7 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 	conditions = append(conditions,
 		deviceutil.WildcardQuery("sysField._ruleInfo",
 			fmt.Sprintf("%d-", rule.ID)))
-	data, err := s.getEntitiesByConditions(conditions, user.Token, &page)
+	data, err := s.getEntitiesByConditions(conditions, user.Token, user.Auth, &page)
 	if err != nil && !errors.Is(err, ErrDeviceNotFound) {
 		log.Error("err:", err)
 		return nil, pb.ErrInternalError()
@@ -709,7 +711,7 @@ func (s *RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq
 		return nil, pb.ErrInvalidArgument()
 	}
 
-	if err = rule.Subscribe(uint(subID)); err != nil {
+	if err = rule.Subscribe(uint(subID), user.Auth); err != nil {
 		tkeelLog.Error("save rule failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -742,7 +744,7 @@ func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErr
 		return nil, pb.ErrInvalidArgument()
 	}
 
-	if err = rule.Subscribe(uint(subID)); err != nil {
+	if err = rule.Subscribe(uint(subID), user.Auth); err != nil {
 		tkeelLog.Error("save rule failed", err)
 		return nil, pb.ErrInternalError()
 	}
@@ -773,8 +775,8 @@ func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribe
 	return &emptypb.Empty{}, nil
 }
 
-func (s *RulesService) getDevicesFromCore(token string, ress []dao.RuleEntities) ([]*pb.Device, error) {
-	dc := deviceutil.NewClient(token)
+func (s *RulesService) getDevicesFromCore(token, auth string, ress []dao.RuleEntities) ([]*pb.Device, error) {
+	dc := deviceutil.NewClient(token, auth)
 	devices := make([]*pb.Device, 0, len(ress))
 	for _, re := range ress {
 		bytes, err := dc.Search(deviceutil.EntitySearch, deviceutil.Conditions{deviceutil.DeviceQuery(re.EntityID)})
@@ -850,8 +852,8 @@ func fillPagination(tx *gorm.DB, p pagination.Page) {
 	}
 }
 
-func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, token string, page *pagination.Page) ([]*pb.Device, error) {
-	client := deviceutil.NewClient(token)
+func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, token, auth string, page *pagination.Page) ([]*pb.Device, error) {
+	client := deviceutil.NewClient(token, auth)
 	entities := make([]*pb.Device, 0)
 
 	bytes, err := client.Search(deviceutil.EntitySearch, conditions,
