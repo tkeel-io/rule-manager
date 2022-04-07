@@ -278,7 +278,7 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		if err = dao.DB().Model(&dao.RuleEntities{}).Where("rule_id = ?", r.ID).Limit(1).Count(&ds).Error; err != nil {
 			log.Error("query rule entities count error", err)
 		}
-		if err = dao.DB().Model(&dao.Target{}).Where("rule_id = ?", r.ID).Limit(1).Count(&ds).Error; err != nil {
+		if err = dao.DB().Model(&dao.Target{}).Where("rule_id = ?", r.ID).Limit(1).Count(&ts).Error; err != nil {
 			log.Error("query rule target count error", err)
 		}
 		resp.Data = append(resp.Data, &pb.Rule{
