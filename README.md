@@ -14,8 +14,15 @@ export RuleTopic="<your-rule-topic>"
 `DSN` 信息用于连接服务数据库，目前使用的是 *MySQL* 驱动。采用的是 GORM 所以可以适配多个不同数据驱动。
 
 `RuleTopic` 信息用于创建订阅 ID, 订阅服务可解析此 ID 创建规则主题然后用于用户订阅数据传输。
+## 依赖
+该服务为 tKeel 下的一个插件，需要在项目中使用以下服务：
+- MySQL
+- dapr 边车
+- redis
+- tKeel Core
+- tKeel Device
 ## 依赖库
-Core 的调用以及 Service 中的用户认证 Auth ，还有分页工具用的是 core-broker 项目中的包。后面注意拆解。
+`Core 的调用`以及 Service 中的`用户认证 Auth` ，还有`分页工具`用的是 core-broker 项目中的包。后面注意拆解。
 ```go
 import (
     "github.com/tkeel-io/core-broker/pkg/auth"
