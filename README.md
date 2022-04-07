@@ -1,34 +1,73 @@
-# tkeel-plugin-template-go
+# Rule-manager
 
-This is a template we have given for Go language developers to quickly build a plugin application.
+规则引擎相关服务。设置规则将数据转发置你想要的目标。
 
-## Usage
-We have a development tool that will automatically download this template for you: [artisan](https://github.com/tkeel-io/tkeel-interface/tree/main/tool ).
+## 使用
+### 环境变量
+设置系统环境变量：
+```bash
+# root@tcp(localhost:3306)/test?charset=utf8&parseTime=True&loc=Local
+export DSN="<your-dsn>"
 
-According to the _**artisan**_ documentation, you can find the `Quick Start' document, which describes how to use this template.
+export RuleTopic="<your-rule-topic>"
+```
+`DSN` 信息用于连接服务数据库，目前使用的是 *MySQL* 驱动。采用的是 GORM 所以可以适配多个不同数据驱动。
 
-1. Use the _**artisan**_ to quickly generate the **proto** you need in the `api` directory and define the structures you need in it.
-2. Automatic generation of the transport layer source files required for the service via **proto** files
-3. Use the _**artisan**_ to generate the **service** files into `/pkg/service` and then write your own business logic in them.
-4. Adding your services to the server in `cmd/your/main.go`.
-5. Run your server
+`RuleTopic` 信息用于创建订阅 ID, 订阅服务可解析此 ID 创建规则主题然后用于用户订阅数据传输。
+## 依赖
+该服务为 tKeel 下的一个插件，需要在项目中使用以下服务：
+- MySQL
+- dapr 边车
+- redis
+- tKeel Core
+- tKeel Device
+## 依赖库
+`Core 的调用`以及 Service 中的`用户认证 Auth` ，还有`分页工具`用的是 core-broker 项目中的包。后面注意拆解。
+```go
+import (
+    "github.com/tkeel-io/core-broker/pkg/auth"
+    "github.com/tkeel-io/core-broker/pkg/core"
+    "github.com/tkeel-io/core-broker/pkg/deviceutil"
+    "github.com/tkeel-io/core-broker/pkg/pagination"
+)
 
-## About
-We have a copy of our discussion process and results on why this template is styled the way it is here :
-[About The Project Layout](https://github.com/tkeel-io/tkeel/issues/17 )
-[Layout of PKG Directory](https://github.com/tkeel-io/tkeel/issues/39 ).
+```
+## 设计
+### 表设计
+#### rules
+规则表，用于存储规则信息。
 
-## 🔥 Light up
+| 字段 | 类型 | 备注                    |
+| ---- | --- |-----------------------|
+| id | int | 主键                    |
+|user_id| string| 用户ID                  |
+|sub_id|int| 订阅ID                  |
+|sub_enpoint|string| 订阅地址                  |
+|name|string| 规则名称                  |
+|status|int| 规则状态: 0-未启动，1-启动      |
+|desc|string| 规则描述                  |
+|type|int| 规则类型: 0-消息，1-时序...可拓展 |
+|created_at|DateTime| 创建时间                  |
+|updated_at|DateTime| 更新时间                  |
+|deleted_at|DateTime| 删除时间                  |
 
-If you have any suggestions or ideas, you are welcome to file an [Issue](https://github.com/tkeel-io/rule-manager/issues ) at any time, we'll look forward to sharing them together to make the world a better place.
+### rule_entities
+用于存储规则与实体设备关系的中间表
 
-**Thank you very much** for your `feedback` and `suggestions`!
+| 字段 | 类型  | 备注                    |
+| ---- |-----|-----------------------|
+|unique_key| string  | 采用规则拼接的唯一键，主要用于避免重复插入 |
+|rule_id| int | 规则ID                  |
+|entity_id| string | 实体设备ID                  |
 
-### 🌟 Find Us
+### targets
+规则目标表，用于存储规则转发目标的一些信息。
 
-You may have many questions, and we will ensure that they are answered as soon as possible!
-
-| Social Platforms | Links |
-|:---|----|
-|email| tkeel@yunify.com|
-|Weibo| [@tkeel]()|
+| 字段 | 类型  | 备注                                             |
+| ---- |-----|------------------------------------------------|
+|id| int | 主键                                             |
+|type| int | 目标类型: 1-kafka，2-对象存储...可拓展                     |
+|host| string | 目标地址                                           |
+|value| string | 目标值，比如说 kafka 的某一个主题，存储对象的某一个桶... 自定义而适配于自己的服务 |
+|ext |json| 扩展信息，以json格式存储                                 |
+|rule_id | int | 规则ID                                           |
