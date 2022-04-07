@@ -70,7 +70,7 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 	rule := dao.Rule{
 		UserID: user.ID,
 		Name:   req.Name,
-		Status: dao.NotRunningStatus,
+		Status: dao.StatusNotRunning,
 		Desc:   req.Desc,
 		Type:   uint8(req.Type),
 	}

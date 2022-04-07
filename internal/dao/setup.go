@@ -19,7 +19,7 @@ var (
 	db         *gorm.DB
 	CoreClient *core.Client
 
-//	d          dapr.Client
+	//	d          dapr.Client
 )
 
 func SetCoreClientUp() (err error) {

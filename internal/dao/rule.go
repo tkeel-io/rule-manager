@@ -18,14 +18,14 @@ import (
 
 // Const for Rule's Type
 const (
-	MessageRule uint8 = iota + 1
-	TimeseriesRule
+	TypeMessageRule uint8 = iota + 1
+	TypeTimeseriesRule
 )
 
 // Const for Rule's Status
 const (
-	NotRunningStatus uint8 = iota
-	RunningStatus
+	StatusNotRunning uint8 = iota
+	StatusRunning
 )
 
 // The field for Target type
@@ -93,10 +93,10 @@ func (r *Rule) SwitchStatus() error {
 		return result.Error
 	}
 	switch r.Status {
-	case NotRunningStatus:
-		r.Status = RunningStatus
-	case RunningStatus:
-		r.Status = NotRunningStatus
+	case StatusNotRunning:
+		r.Status = StatusRunning
+	case StatusRunning:
+		r.Status = StatusNotRunning
 	}
 	return DB().Model(r).Save(r).Error
 }
