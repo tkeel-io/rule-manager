@@ -102,6 +102,13 @@ service Rules {
     };
   };
 
+  rpc ActionVerify(ASVerifyReq) returns (ASVerifyResp) {
+    option (google.api.http) = {
+      post : "/verify/{sink_type}"
+      body: "*"
+    };
+  };
+
   rpc ListRuleTarget(ListRuleTargetReq) returns (ListRuleTargetResp) {
     option (google.api.http) = {
       get : "/rules/{id}/target"
@@ -447,6 +454,21 @@ message TestConnectToKafkaReq {
       description: "Try to connect to kafka server address, split by ','",
     }];
   string topic = 2;
+}
+
+//verify.
+message ASVerifyReq{
+    string sink_type = 1;
+    //delimiter : ';'
+    string urls  = 2;
+    string user_id = 3;
+	//meta用于储存不同类型的特有信息，如chronus需要user，和password
+	map<string, string> meta  =4;
+}
+
+message ASVerifyResp{
+    string id = 1;
+    repeated string types = 2;
 }
 
 message ListRuleTargetReq {

@@ -32,6 +32,7 @@ type RulesClient interface {
 	CreateRuleTarget(ctx context.Context, in *CreateRuleTargetReq, opts ...grpc.CallOption) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ActionVerify(ctx context.Context, in *ASVerifyReq, opts ...grpc.CallOption) (*ASVerifyResp, error)
 	ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -164,6 +165,15 @@ func (c *rulesClient) TestConnectToKafka(ctx context.Context, in *TestConnectToK
 	return out, nil
 }
 
+func (c *rulesClient) ActionVerify(ctx context.Context, in *ASVerifyReq, opts ...grpc.CallOption) (*ASVerifyResp, error) {
+	out := new(ASVerifyResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/ActionVerify", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *rulesClient) ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error) {
 	out := new(ListRuleTargetResp)
 	err := c.cc.Invoke(ctx, "/api.rule.Rules/ListRuleTarget", in, out, opts...)
@@ -226,6 +236,7 @@ type RulesServer interface {
 	CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
+	ActionVerify(context.Context, *ASVerifyReq) (*ASVerifyResp, error)
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error)
 	ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error)
@@ -276,6 +287,9 @@ func (UnimplementedRulesServer) UpdateRuleTarget(context.Context, *UpdateRuleTar
 }
 func (UnimplementedRulesServer) TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestConnectToKafka not implemented")
+}
+func (UnimplementedRulesServer) ActionVerify(context.Context, *ASVerifyReq) (*ASVerifyResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ActionVerify not implemented")
 }
 func (UnimplementedRulesServer) ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRuleTarget not implemented")
@@ -539,6 +553,24 @@ func _Rules_TestConnectToKafka_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_ActionVerify_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ASVerifyReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).ActionVerify(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/ActionVerify",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).ActionVerify(ctx, req.(*ASVerifyReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Rules_ListRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListRuleTargetReq)
 	if err := dec(in); err != nil {
@@ -687,6 +719,10 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TestConnectToKafka",
 			Handler:    _Rules_TestConnectToKafka_Handler,
+		},
+		{
+			MethodName: "ActionVerify",
+			Handler:    _Rules_ActionVerify_Handler,
 		},
 		{
 			MethodName: "ListRuleTarget",

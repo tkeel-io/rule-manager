@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	mathRand "math/rand"
 	"net"
 	"net/url"
@@ -106,6 +107,16 @@ func GenerateUrlsChronusDB(hosts []string, user, password, database string) []st
 		endpoints = append(endpoints, u.String())
 	}
 	return endpoints
+}
+
+func ContainFieldType(fieldTypes []action_sink.BaseFieldType, ele string) bool {
+	lowerEle := strings.ToLower(ele)
+	for _, fieldType := range fieldTypes {
+		if strings.HasPrefix(lowerEle, strings.ToLower(fieldType.Name)) {
+			return true
+		}
+	}
+	return false
 }
 
 func GenerateUrlKafka(host, user, passwd, topic string) string {
