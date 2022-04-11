@@ -21,6 +21,7 @@ import (
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"github.com/tkeel-io/rule-manager/internal/dao"
+	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_chronus "github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_kafka "github.com/tkeel-io/rule-manager/internal/dao/action_sink/kafka"
@@ -56,7 +57,7 @@ const (
 	ActionType_Republish  = "republish"
 	ActionType_Kafka      = "kafka"
 	ActionType_Bucket     = "bucket"
-	ActionType_Chronus    = "chronus"
+	ActionType_Chronus    = "clickhouse"
 	ActionType_MYSQL      = "mysql"
 	ActionType_POSTGRESQL = "postgresql"
 	ActionType_REDIS      = "redis"
@@ -72,6 +73,7 @@ type ConnectInfo struct {
 	password  string
 	Database  string   `json:"database" mapstructure:"database"`
 	Endpoints []string `json:"endpoints" mapstructure:"endpoints"`
+	SinkType  string   `json:"sink_type"`
 }
 
 func (this *ConnectInfo) GetPassword() string {
@@ -1036,7 +1038,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"call":  "ChronusVerify",
 			"error": "meta field is empty.",
 		})
-		return "", errors.New("meta field is empty.")
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	user, ok1 := meta["user"]
 	password, ok2 := meta["password"]
@@ -1047,7 +1049,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"call":  "ChronusVerify",
 			"error": err,
 		})
-		return "", err
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	//check endpoints
 	if !xutils.CheckHost(endpoints) {
@@ -1056,7 +1058,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"error":     "check host failed.",
 			"endpoints": endpoints,
 		})
-		return "", errors.New("check host failed.")
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	//generate  chronus urls.
 	endpoints = xutils.GenerateUrlsChronusDB(endpoints, user, password, database)
@@ -1065,6 +1067,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 		//Password:  password,
 		Database:  database,
 		Endpoints: endpoints,
+		SinkType:  ActionType_Chronus,
 	}
 	connectInfo.SetPassword(password)
 	//connetc chronus.
@@ -1077,7 +1080,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_chronus.ChronusSinkId, err
+		return sink_chronus.ChronusSinkId, pb.ErrFailedClickhouseConnection()
 	}
 	//push sinkid, configuration.
 	key := connectInfo.Key()
@@ -1091,7 +1094,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_chronus.ChronusSinkId, err
+		return sink_chronus.ChronusSinkId, pb.ErrFailedClickhouseConnection()
 	}
 	return key, nil
 }
@@ -1102,7 +1105,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": "meta is empty",
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	user, ok1 := meta["user"]
@@ -1114,7 +1117,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": err,
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	if !xutils.CheckHost(endpoints) {
@@ -1123,7 +1126,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": err,
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	endpoints = xutils.GenerateUrlMysql(endpoints, user, pass, db)
@@ -1131,6 +1134,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 		User:      user,
 		Database:  db,
 		Endpoints: endpoints,
+		SinkType:  ActionType_MYSQL,
 	}
 	connectInfo.SetPassword(pass)
 
@@ -1143,7 +1147,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_mysql.MysqlSinkId, err
+		return sink_mysql.MysqlSinkId, pb.ErrFailedMysqlConnection()
 	}
 
 	key := connectInfo.Key()
@@ -1157,8 +1161,93 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_mysql.MysqlSinkId, err
+		return sink_mysql.MysqlSinkId, pb.ErrFailedMysqlConnection()
 	}
 
 	return key, nil
+}
+
+func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*pb.ASTableListResp, error) {
+
+	var (
+		err      error
+		buf      string
+		sinkId   = req.Id
+		connInfo ConnectInfo
+	)
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(10)*time.Second)
+	defer cancelHandler()
+
+	//get connect informations from redis.
+	if buf, err = endpoint.GetRedisEndpoint().Get(sinkId); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":    "TableList",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, errors.New("get sink info failed")
+	}
+	//unmarshal...
+	if err = json.Unmarshal([]byte(buf), &connInfo); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":    "TableList",
+			"desc":    "json unmarshal failed.",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, errors.New("unmarshal sink info failed")
+	}
+	tabs := make([]*pb.Table, 0)
+	var tables []action_sink.Table
+	switch strings.ToLower(connInfo.SinkType) {
+	case ActionType_Chronus:
+		tables, err = sink_chronus.ListTable(ctx, connInfo.Endpoints)
+	case ActionType_MYSQL:
+		tables, err = sink_mysql.ListTable(ctx, connInfo.Endpoints, connInfo.Database)
+	default:
+		return nil, errors.New(fmt.Sprintf("sink type %s not support", connInfo.SinkType))
+	}
+
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "GetTableDetails",
+			"sink_type": connInfo.SinkType,
+			"sink_id":   sinkId,
+			"database":  connInfo.Database,
+			"endpoints": connInfo.Endpoints,
+			"error":     err,
+		})
+		return nil, err
+	}
+
+	for _, tab := range tables {
+
+		fields := make([]*pb.Field, 0)
+		for _, field := range tab.GetFields() {
+			fields = append(fields, &pb.Field{
+				Name: field.GetName(),
+				Type: field.GetType(),
+			})
+		}
+		tabs = append(tabs, &pb.Table{
+			Name:   tab.GetName(),
+			Fields: fields,
+		})
+	}
+
+	return &pb.ASTableListResp{
+		Tables: tabs,
+	}, nil
+}
+
+func (s *RulesService) GetTableDetails(ctx context.Context, req *pb.ASGetTableDetailsReq) (*pb.ASGetTableDetailsResp, error) {
+	return &pb.ASGetTableDetailsResp{}, nil
+}
+
+func (s *RulesService) GetTableMap(ctx context.Context, req *pb.ASGetTableMapReq) (*pb.ASGetTableMapResp, error) {
+	return &pb.ASGetTableMapResp{}, nil
+}
+
+func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
+	return &pb.ASUpdateTableMapResp{}, nil
 }

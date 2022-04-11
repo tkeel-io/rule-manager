@@ -24,6 +24,8 @@ var errFailedKafkaConnection *errors.TError
 var errOkKafkaConnection *errors.TError
 var errDuplicateCreate *errors.TError
 var errCantDeleteRunningRule *errors.TError
+var errFailedMysqlConnection *errors.TError
+var errFailedClickhouseConnection *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -52,6 +54,10 @@ func init() {
 	errors.Register(errDuplicateCreate)
 	errCantDeleteRunningRule = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_CANT_DELETE_RUNNING_RULE", "不能删除正在运行的规则")
 	errors.Register(errCantDeleteRunningRule)
+	errFailedMysqlConnection = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_MYSQL_CONNECTION", "建立连接失败")
+	errors.Register(errFailedMysqlConnection)
+	errFailedClickhouseConnection = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_CLICKHOUSE_CONNECTION", "建立连接失败")
+	errors.Register(errFailedClickhouseConnection)
 }
 
 func ErrUnknown() errors.Error {
@@ -104,4 +110,12 @@ func ErrDuplicateCreate() errors.Error {
 
 func ErrCantDeleteRunningRule() errors.Error {
 	return errCantDeleteRunningRule
+}
+
+func ErrFailedMysqlConnection() errors.Error {
+	return errFailedMysqlConnection
+}
+
+func ErrFailedClickhouseConnection() errors.Error {
+	return errFailedClickhouseConnection
 }

@@ -109,6 +109,35 @@ service Rules {
     };
   };
 
+rpc TableList (ASTableListReq) returns (ASTableListResp) {
+    option (google.api.http) = {
+      get: "/sink/{id}/tables"
+    };
+
+};
+
+rpc GetTableDetails(ASGetTableDetailsReq) returns (ASGetTableDetailsResp) {
+    option (google.api.http) = {
+      get: "/sink/id/tables/{table_name}"
+    };
+
+};
+
+rpc GetTableMap (ASGetTableMapReq) returns (ASGetTableMapResp) {
+    option (google.api.http) = {
+      get: "/sink/id/maps"
+    };
+
+};
+rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
+
+    option (google.api.http) = {
+      put: "/sink/id/maps"
+      body: "*"
+    };
+};
+
+
   rpc ListRuleTarget(ListRuleTargetReq) returns (ListRuleTargetResp) {
     option (google.api.http) = {
       get : "/rules/{id}/target"
@@ -547,3 +576,77 @@ message ChangeErrSubscribeReq {
 message ErrUnsubscribeReq {
   uint64 id = 1;
 }
+
+message Field {
+    string name =1;
+    string type =2;
+    bool isPK = 3;
+}
+
+message Table {
+    string Name                 =1;
+	string Sql                  =2;
+	string Engine               =3;
+	repeated string Partitions  =4;
+	repeated string OrderBy     =5;
+	string TTL                  =6;
+    int64 IndexGranularity      =7;
+    repeated Field fields       =8;
+}
+
+message MapField {
+    Field t_field = 1;
+    Field m_field = 2;
+}
+
+//table list
+message ASTableListReq{
+    string id = 1;
+}
+
+message ASTableListResp{
+    repeated Table tables = 1;
+}
+
+//get table map
+message ASGetTableMapReq{
+    string target_id =1;
+    string table_name =2;
+}
+
+message ASGetTableMapResp {
+    string target_id =2;
+    string table_name =3;
+    repeated Field table_fields = 4;
+    repeated MapField map_fields = 5;
+}
+
+
+//update table map.
+message ASUpdateTableMapReq{
+    string id = 1;
+    string target_id =2;
+    string table_name =3;
+    repeated MapField fields = 5;
+}
+
+message ASUpdateTableMapResp{
+    string id = 1;
+    string target_id =2;
+    string table_name =3;
+    repeated MapField fields = 4;
+}
+
+
+
+//get table details.
+message ASGetTableDetailsReq{
+    string id = 1;
+    string table_name = 3;
+}
+
+message ASGetTableDetailsResp {
+    Table table = 1;
+}
+
+

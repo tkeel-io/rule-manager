@@ -33,6 +33,10 @@ type RulesClient interface {
 	UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(ctx context.Context, in *TestConnectToKafkaReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ActionVerify(ctx context.Context, in *ASVerifyReq, opts ...grpc.CallOption) (*ASVerifyResp, error)
+	TableList(ctx context.Context, in *ASTableListReq, opts ...grpc.CallOption) (*ASTableListResp, error)
+	GetTableDetails(ctx context.Context, in *ASGetTableDetailsReq, opts ...grpc.CallOption) (*ASGetTableDetailsResp, error)
+	GetTableMap(ctx context.Context, in *ASGetTableMapReq, opts ...grpc.CallOption) (*ASGetTableMapResp, error)
+	UpdateTableMap(ctx context.Context, in *ASUpdateTableMapReq, opts ...grpc.CallOption) (*ASUpdateTableMapResp, error)
 	ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(ctx context.Context, in *DeleteRuleTargetReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -174,6 +178,42 @@ func (c *rulesClient) ActionVerify(ctx context.Context, in *ASVerifyReq, opts ..
 	return out, nil
 }
 
+func (c *rulesClient) TableList(ctx context.Context, in *ASTableListReq, opts ...grpc.CallOption) (*ASTableListResp, error) {
+	out := new(ASTableListResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/TableList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) GetTableDetails(ctx context.Context, in *ASGetTableDetailsReq, opts ...grpc.CallOption) (*ASGetTableDetailsResp, error) {
+	out := new(ASGetTableDetailsResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/GetTableDetails", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) GetTableMap(ctx context.Context, in *ASGetTableMapReq, opts ...grpc.CallOption) (*ASGetTableMapResp, error) {
+	out := new(ASGetTableMapResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/GetTableMap", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) UpdateTableMap(ctx context.Context, in *ASUpdateTableMapReq, opts ...grpc.CallOption) (*ASUpdateTableMapResp, error) {
+	out := new(ASUpdateTableMapResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/UpdateTableMap", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *rulesClient) ListRuleTarget(ctx context.Context, in *ListRuleTargetReq, opts ...grpc.CallOption) (*ListRuleTargetResp, error) {
 	out := new(ListRuleTargetResp)
 	err := c.cc.Invoke(ctx, "/api.rule.Rules/ListRuleTarget", in, out, opts...)
@@ -237,6 +277,10 @@ type RulesServer interface {
 	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
 	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
 	ActionVerify(context.Context, *ASVerifyReq) (*ASVerifyResp, error)
+	TableList(context.Context, *ASTableListReq) (*ASTableListResp, error)
+	GetTableDetails(context.Context, *ASGetTableDetailsReq) (*ASGetTableDetailsResp, error)
+	GetTableMap(context.Context, *ASGetTableMapReq) (*ASGetTableMapResp, error)
+	UpdateTableMap(context.Context, *ASUpdateTableMapReq) (*ASUpdateTableMapResp, error)
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
 	DeleteRuleTarget(context.Context, *DeleteRuleTargetReq) (*emptypb.Empty, error)
 	ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error)
@@ -290,6 +334,18 @@ func (UnimplementedRulesServer) TestConnectToKafka(context.Context, *TestConnect
 }
 func (UnimplementedRulesServer) ActionVerify(context.Context, *ASVerifyReq) (*ASVerifyResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ActionVerify not implemented")
+}
+func (UnimplementedRulesServer) TableList(context.Context, *ASTableListReq) (*ASTableListResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TableList not implemented")
+}
+func (UnimplementedRulesServer) GetTableDetails(context.Context, *ASGetTableDetailsReq) (*ASGetTableDetailsResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTableDetails not implemented")
+}
+func (UnimplementedRulesServer) GetTableMap(context.Context, *ASGetTableMapReq) (*ASGetTableMapResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTableMap not implemented")
+}
+func (UnimplementedRulesServer) UpdateTableMap(context.Context, *ASUpdateTableMapReq) (*ASUpdateTableMapResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTableMap not implemented")
 }
 func (UnimplementedRulesServer) ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListRuleTarget not implemented")
@@ -571,6 +627,78 @@ func _Rules_ActionVerify_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_TableList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ASTableListReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).TableList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/TableList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).TableList(ctx, req.(*ASTableListReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_GetTableDetails_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ASGetTableDetailsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).GetTableDetails(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/GetTableDetails",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).GetTableDetails(ctx, req.(*ASGetTableDetailsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_GetTableMap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ASGetTableMapReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).GetTableMap(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/GetTableMap",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).GetTableMap(ctx, req.(*ASGetTableMapReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_UpdateTableMap_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ASUpdateTableMapReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).UpdateTableMap(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/UpdateTableMap",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).UpdateTableMap(ctx, req.(*ASUpdateTableMapReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Rules_ListRuleTarget_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListRuleTargetReq)
 	if err := dec(in); err != nil {
@@ -723,6 +851,22 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ActionVerify",
 			Handler:    _Rules_ActionVerify_Handler,
+		},
+		{
+			MethodName: "TableList",
+			Handler:    _Rules_TableList_Handler,
+		},
+		{
+			MethodName: "GetTableDetails",
+			Handler:    _Rules_GetTableDetails_Handler,
+		},
+		{
+			MethodName: "GetTableMap",
+			Handler:    _Rules_GetTableMap_Handler,
+		},
+		{
+			MethodName: "UpdateTableMap",
+			Handler:    _Rules_UpdateTableMap_Handler,
 		},
 		{
 			MethodName: "ListRuleTarget",
