@@ -648,6 +648,11 @@ func (h *RulesHTTPHandler) GetTableMap(req *go_restful.Request, resp *go_restful
 			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
 		return
 	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
 
 	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
 
@@ -1324,6 +1329,11 @@ func (h *RulesHTTPHandler) UpdateTableMap(req *go_restful.Request, resp *go_rest
 			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
 		return
 	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
 
 	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
 
@@ -1416,11 +1426,11 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 		To(handler.ActionVerify))
 	ws.Route(ws.GET("/sink/{id}/tables").
 		To(handler.TableList))
-	ws.Route(ws.GET("/sink/id/tables/{table_name}").
+	ws.Route(ws.GET("/sink/{id}/tables/{table_name}").
 		To(handler.GetTableDetails))
-	ws.Route(ws.GET("/sink/id/maps").
+	ws.Route(ws.GET("/sink/{id}/maps").
 		To(handler.GetTableMap))
-	ws.Route(ws.PUT("/sink/id/maps").
+	ws.Route(ws.PUT("/sink/{id}/maps").
 		To(handler.UpdateTableMap))
 	ws.Route(ws.GET("/rules/{id}/target").
 		To(handler.ListRuleTarget))

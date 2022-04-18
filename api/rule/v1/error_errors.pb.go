@@ -26,6 +26,9 @@ var errDuplicateCreate *errors.TError
 var errCantDeleteRunningRule *errors.TError
 var errFailedMysqlConnection *errors.TError
 var errFailedClickhouseConnection *errors.TError
+var errFailedSinkInfo *errors.TError
+var errFailedMapInfo *errors.TError
+var errFailedTableInfo *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -58,6 +61,12 @@ func init() {
 	errors.Register(errFailedMysqlConnection)
 	errFailedClickhouseConnection = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_CLICKHOUSE_CONNECTION", "建立连接失败")
 	errors.Register(errFailedClickhouseConnection)
+	errFailedSinkInfo = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_SINK_INFO", "获取配置信息失败")
+	errors.Register(errFailedSinkInfo)
+	errFailedMapInfo = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_MAP_INFO", "获取映射信息失败")
+	errors.Register(errFailedMapInfo)
+	errFailedTableInfo = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_TABLE_INFO", "获取数据表信息失败")
+	errors.Register(errFailedTableInfo)
 }
 
 func ErrUnknown() errors.Error {
@@ -118,4 +127,16 @@ func ErrFailedMysqlConnection() errors.Error {
 
 func ErrFailedClickhouseConnection() errors.Error {
 	return errFailedClickhouseConnection
+}
+
+func ErrFailedSinkInfo() errors.Error {
+	return errFailedSinkInfo
+}
+
+func ErrFailedMapInfo() errors.Error {
+	return errFailedMapInfo
+}
+
+func ErrFailedTableInfo() errors.Error {
+	return errFailedTableInfo
 }

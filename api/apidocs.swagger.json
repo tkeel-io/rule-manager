@@ -102,7 +102,8 @@
             "type": "string"
           },
           {
-            "name": "type.value",
+            "name": "type",
+            "description": "Type 1 for Message Data, 2 for Timeseries Data",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -720,8 +721,21 @@
                 "value": {
                   "type": "string"
                 },
-                "ext": {
+                "table_name": {
+                  "type": "string",
+                  "title": "string ext = 5;"
+                },
+                "sink_type": {
                   "type": "string"
+                },
+                "sink_id": {
+                  "type": "string"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ruleMapField"
+                  }
                 }
               }
             }
@@ -813,11 +827,169 @@
                 "value": {
                   "type": "string"
                 },
-                "ext": {
+                "sink_type": {
+                  "type": "string",
+                  "title": "string ext = 5;"
+                },
+                "sink_id": {
                   "type": "string"
                 }
               }
             }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    },
+    "/sink/{id}/maps": {
+      "get": {
+        "operationId": "Rules_GetTableMap",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ruleASGetTableMapResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "table_name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      },
+      "put": {
+        "operationId": "Rules_UpdateTableMap",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ruleASUpdateTableMapResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "target_id": {
+                  "type": "string",
+                  "format": "uint64"
+                },
+                "table_name": {
+                  "type": "string"
+                },
+                "fields": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ruleMapField"
+                  }
+                }
+              },
+              "description": "update table map."
+            }
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    },
+    "/sink/{id}/tables": {
+      "get": {
+        "operationId": "Rules_TableList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ruleASTableListResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rules"
+        ]
+      }
+    },
+    "/sink/{id}/tables/{table_name}": {
+      "get": {
+        "operationId": "Rules_GetTableDetails",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/ruleASGetTableDetailsResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "table_name",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "tags": [
@@ -946,6 +1118,69 @@
         }
       }
     },
+    "ruleASGetTableDetailsResp": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "$ref": "#/definitions/ruleTable"
+        }
+      }
+    },
+    "ruleASGetTableMapResp": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "table_name": {
+          "type": "string"
+        },
+        "table_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleField"
+          }
+        },
+        "map_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleMapField"
+          }
+        }
+      }
+    },
+    "ruleASTableListResp": {
+      "type": "object",
+      "properties": {
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleTable"
+          }
+        }
+      }
+    },
+    "ruleASUpdateTableMapResp": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "target_id": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "table_name": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleMapField"
+          }
+        }
+      }
+    },
     "ruleASVerifyResp": {
       "type": "object",
       "properties": {
@@ -978,7 +1213,29 @@
         "value": {
           "type": "string"
         },
-        "ext": {
+        "table_name": {
+          "type": "string",
+          "title": "string ext = 5;"
+        },
+        "sink_type": {
+          "type": "string"
+        },
+        "sink_id": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleMapField"
+          }
+        },
+        "user": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "database": {
           "type": "string"
         }
       }
@@ -1000,6 +1257,20 @@
         },
         "status": {
           "type": "string"
+        }
+      }
+    },
+    "ruleField": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "isPK": {
+          "type": "boolean"
         }
       }
     },
@@ -1052,6 +1323,17 @@
         "page_size"
       ]
     },
+    "ruleMapField": {
+      "type": "object",
+      "properties": {
+        "tfield_name": {
+          "type": "string"
+        },
+        "m_field": {
+          "$ref": "#/definitions/ruleField"
+        }
+      }
+    },
     "ruleRule": {
       "type": "object",
       "properties": {
@@ -1095,6 +1377,14 @@
         "sub_id": {
           "type": "integer",
           "format": "int64"
+        },
+        "model_id": {
+          "type": "string",
+          "description": "模板id"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "模板名称"
         }
       }
     },
@@ -1111,6 +1401,12 @@
           "type": "integer",
           "format": "int64",
           "description": "Type 1 for Message Data, 2 for Timeseries Data"
+        },
+        "model_id": {
+          "type": "string"
+        },
+        "model_name": {
+          "type": "string"
         }
       },
       "description": "Rule create."
@@ -1147,6 +1443,14 @@
           "type": "string",
           "format": "int64",
           "description": "更新时间"
+        },
+        "model_id": {
+          "type": "string",
+          "description": "模板id"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "模板名称"
         }
       }
     },
@@ -1304,6 +1608,14 @@
           "type": "string",
           "format": "int64",
           "description": "更新时间"
+        },
+        "model_id": {
+          "type": "string",
+          "description": "模板id"
+        },
+        "model_name": {
+          "type": "string",
+          "description": "模板名称"
         }
       }
     },
@@ -1312,6 +1624,45 @@
       "properties": {
         "value": {
           "type": "string"
+        }
+      }
+    },
+    "ruleTable": {
+      "type": "object",
+      "properties": {
+        "Name": {
+          "type": "string"
+        },
+        "Sql": {
+          "type": "string"
+        },
+        "Engine": {
+          "type": "string"
+        },
+        "Partitions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "OrderBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "TTL": {
+          "type": "string"
+        },
+        "IndexGranularity": {
+          "type": "string",
+          "format": "int64"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleField"
+          }
         }
       }
     },
@@ -1350,8 +1701,18 @@
         "value": {
           "type": "string"
         },
-        "ext": {
+        "sink_type": {
+          "type": "string",
+          "title": "string ext = 5;"
+        },
+        "sink_id": {
           "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ruleMapField"
+          }
         }
       }
     }

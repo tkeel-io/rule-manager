@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	mathRand "math/rand"
-	"net"
 	"net/url"
 	"sort"
 	"strconv"
@@ -166,9 +165,9 @@ func CheckHost(hosts []string) bool {
 			return false
 		}
 		//check ip
-		if nil == net.ParseIP(p[0]) {
-			return false
-		}
+		//	if nil == net.ParseIP(p[0]) {
+		//		return false
+		//	}
 		//check port
 		if port, err := strconv.ParseInt(p[1], 10, 63); nil != err {
 			return false

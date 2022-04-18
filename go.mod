@@ -6,6 +6,7 @@ require (
 	github.com/Shopify/sarama v1.32.0
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220314183648-97c793e446ba
 	github.com/emicklei/go-restful v2.15.0+incompatible
+	github.com/goinggo/mapstructure v0.0.0-20140717182941-194205d9b4a9
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
