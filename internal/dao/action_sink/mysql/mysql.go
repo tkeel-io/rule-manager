@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	mysql "github.com/tkeel-io/rule-manager/internal/action/mysql"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	xutils "github.com/tkeel-io/rule-manager/internal/utils"
@@ -153,7 +154,7 @@ func tableList(ctx context.Context, endpoints []string) ([]string, error) {
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return nil, err
+		return nil, pb.ErrFailedMysqlConnection()
 	}
 
 	return tabs, nil
@@ -220,7 +221,7 @@ func TableInfo(ctx context.Context, endpoints []string, tableName string) (actio
 			"tableName": tableName,
 			"error":     err,
 		})
-		return nil, err
+		return nil, pb.ErrFailedTableInfo()
 	}
 
 	tab, err := mysql.NewTransport().TableInfo(ctx, endpoints, tableName)
@@ -231,7 +232,7 @@ func TableInfo(ctx context.Context, endpoints []string, tableName string) (actio
 			"tableName": tableName,
 			"error":     err,
 		})
-		return nil, err
+		return nil, pb.ErrFailedTableInfo()
 	}
 	table := Table{
 		Name:   tableName,

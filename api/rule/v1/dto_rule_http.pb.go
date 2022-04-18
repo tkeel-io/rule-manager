@@ -37,6 +37,8 @@ type RulesHTTPServer interface {
 	ErrUnsubscribe(context.Context, *ErrUnsubscribeReq) (*emptypb.Empty, error)
 	GetRuleDevices(context.Context, *RuleDevicesReq) (*RuleDevicesResp, error)
 	GetRuleDevicesID(context.Context, *RuleDevicesIDReq) (*RuleDevicesIDResp, error)
+	GetTableDetails(context.Context, *ASGetTableDetailsReq) (*ASGetTableDetailsResp, error)
+	GetTableMap(context.Context, *ASGetTableMapReq) (*ASGetTableMapResp, error)
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
 	RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error)
 	RuleCreate(context.Context, *RuleCreateReq) (*RuleCreateResp, error)
@@ -45,8 +47,10 @@ type RulesHTTPServer interface {
 	RuleQuery(context.Context, *RuleQueryReq) (*RuleQueryResp, error)
 	RuleStatusSwitch(context.Context, *RuleStatusSwitchReq) (*RuleStatusSwitchResp, error)
 	RuleUpdate(context.Context, *RuleUpdateReq) (*RuleUpdateResp, error)
+	TableList(context.Context, *ASTableListReq) (*ASTableListResp, error)
 	TestConnectToKafka(context.Context, *TestConnectToKafkaReq) (*emptypb.Empty, error)
 	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
+	UpdateTableMap(context.Context, *ASUpdateTableMapReq) (*ASUpdateTableMapResp, error)
 }
 
 type RulesHTTPHandler struct {
@@ -579,6 +583,122 @@ func (h *RulesHTTPHandler) GetRuleDevicesID(req *go_restful.Request, resp *go_re
 	}
 }
 
+func (h *RulesHTTPHandler) GetTableDetails(req *go_restful.Request, resp *go_restful.Response) {
+	in := ASGetTableDetailsReq{}
+	if err := transportHTTP.GetQuery(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.GetTableDetails(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
+func (h *RulesHTTPHandler) GetTableMap(req *go_restful.Request, resp *go_restful.Response) {
+	in := ASGetTableMapReq{}
+	if err := transportHTTP.GetQuery(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.GetTableMap(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
 func (h *RulesHTTPHandler) ListRuleTarget(req *go_restful.Request, resp *go_restful.Response) {
 	in := ListRuleTargetReq{}
 	if err := transportHTTP.GetQuery(req, &in); err != nil {
@@ -1033,6 +1153,64 @@ func (h *RulesHTTPHandler) RuleUpdate(req *go_restful.Request, resp *go_restful.
 	}
 }
 
+func (h *RulesHTTPHandler) TableList(req *go_restful.Request, resp *go_restful.Response) {
+	in := ASTableListReq{}
+	if err := transportHTTP.GetQuery(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.TableList(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
 func (h *RulesHTTPHandler) TestConnectToKafka(req *go_restful.Request, resp *go_restful.Response) {
 	in := TestConnectToKafkaReq{}
 	if err := transportHTTP.GetQuery(req, &in); err != nil {
@@ -1144,6 +1322,64 @@ func (h *RulesHTTPHandler) UpdateRuleTarget(req *go_restful.Request, resp *go_re
 	}
 }
 
+func (h *RulesHTTPHandler) UpdateTableMap(req *go_restful.Request, resp *go_restful.Response) {
+	in := ASUpdateTableMapReq{}
+	if err := transportHTTP.GetBody(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.UpdateTableMap(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
 func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServer) {
 	var ws *go_restful.WebService
 	for _, v := range container.RegisteredWebServices() {
@@ -1188,6 +1424,14 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 		To(handler.TestConnectToKafka))
 	ws.Route(ws.POST("/verify/{sink_type}").
 		To(handler.ActionVerify))
+	ws.Route(ws.GET("/sink/{id}/tables").
+		To(handler.TableList))
+	ws.Route(ws.GET("/sink/{id}/tables/{table_name}").
+		To(handler.GetTableDetails))
+	ws.Route(ws.GET("/sink/{id}/maps").
+		To(handler.GetTableMap))
+	ws.Route(ws.PUT("/sink/{id}/maps").
+		To(handler.UpdateTableMap))
 	ws.Route(ws.GET("/rules/{id}/target").
 		To(handler.ListRuleTarget))
 	ws.Route(ws.DELETE("/rules/{id}/target/{target_id}").

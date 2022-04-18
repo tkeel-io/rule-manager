@@ -41,6 +41,8 @@ const SubscriptionIDFormat = "%s_%d_%s"
 type Rule struct {
 	gorm.Model
 	UserID      string `gorm:"index"`
+	ModelID     string
+	ModelName   string
 	SubID       uint
 	SubEndpoint string
 	Name        string `gorm:"not null;size:255"`
@@ -250,11 +252,23 @@ type Target struct {
 	Ext    *string `gorm:"type:json;null"`
 	RuleID uint
 
-	Rule Rule
+	Status       string `gorm:"column:status"`
+	ConfigStatus bool   `gorm:"column:config_status"`
+	//	Configuration   map[string]interface{} `gorm:"column:configuration"`
+	SinkType        string `gorm:"column:sink_type"`
+	SinkId          string `gorm:"column:sink_id"`
+	ErrorActionFlag bool   `gorm:"column:error_action_flag"`
+	CreateTime      int64  `gorm:"column:create_time"`
+	UpdateTime      int64  `gorm:"column:update_time"`
+	Rule            Rule
 }
 
 func (t *Target) AfterCreate(tx *gorm.DB) (err error) {
 	return nil
+}
+
+func (t *Target) Update() (err error) {
+	return DB().Model(t).Save(t).Error
 }
 
 func (t *Target) Create() error {

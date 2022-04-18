@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	chronus "github.com/tkeel-io/rule-manager/internal/action/clickhouse"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	xutils "github.com/tkeel-io/rule-manager/internal/utils"
@@ -237,6 +238,9 @@ func TableInfo(ctx context.Context, endpoints []string, tableName string) (actio
 			exists = true
 		}
 	}
+	if err != nil {
+		return nil, pb.ErrFailedClickhouseConnection()
+	}
 	if !exists {
 		err = errors.New("table not exists.")
 		log.ErrorWithFields(SinkLogChronus, log.Fields{
@@ -245,7 +249,7 @@ func TableInfo(ctx context.Context, endpoints []string, tableName string) (actio
 			"table":      tableName,
 			"error":      err,
 		})
-		return nil, err
+		return nil, pb.ErrFailedTableInfo()
 	}
 	tableinfo, err := chronus.GetTransport().TableInfo(ctx, endpoints, tableName)
 	if nil != err {
@@ -255,7 +259,7 @@ func TableInfo(ctx context.Context, endpoints []string, tableName string) (actio
 			"table":      tableName,
 			"error":      err,
 		})
-		return nil, err
+		return nil, pb.ErrFailedTableInfo()
 	}
 	//translate table.
 	fields := []action_sink.TableField{}

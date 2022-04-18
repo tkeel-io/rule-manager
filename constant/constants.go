@@ -24,6 +24,27 @@ var ActionTypes = []uint8{
 	ActionType_Bucket,
 }
 
+//ActionType
+const (
+	Action1Type_Republish  = "republish"
+	Action1Type_Kafka      = "kafka"
+	Action1Type_Bucket     = "bucket"
+	Action1Type_Chronus    = "clickhouse"
+	Action1Type_MYSQL      = "mysql"
+	Action1Type_POSTGRESQL = "postgresql"
+	Action1Type_REDIS      = "redis"
+)
+
+var Action1Types = []string{
+	Action1Type_Republish,
+	Action1Type_Kafka,
+	Action1Type_Bucket,
+	Action1Type_Chronus,
+	Action1Type_MYSQL,
+	Action1Type_POSTGRESQL,
+	Action1Type_REDIS,
+}
+
 const (
 	TopicTypeProperty = "property"
 	TopicTypeEvent    = "event"

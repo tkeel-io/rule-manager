@@ -60,4 +60,24 @@ enum Error {
   // @msg=不能删除正在运行的规则
   // @code=INVALID_ARGUMENT
   ERR_CANT_DELETE_RUNNING_RULE = 12;
+  
+  // @msg=建立连接失败
+  // @code=OK
+  ERR_FAILED_MYSQL_CONNECTION = 13;
+
+  // @msg=建立连接失败
+  // @code=OK
+  ERR_FAILED_CLICKHOUSE_CONNECTION = 14;
+
+  // @msg=获取配置信息失败
+  // @code=OK
+  ERR_FAILED_SINK_INFO = 15;
+
+  // @msg=获取映射信息失败
+  // @code=OK
+  ERR_FAILED_MAP_INFO = 16;
+
+  // @msg=获取数据表信息失败
+  // @code=OK
+  ERR_FAILED_TABLE_INFO = 17;
 }

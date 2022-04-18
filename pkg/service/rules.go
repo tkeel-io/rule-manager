@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -21,15 +20,18 @@ import (
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"github.com/tkeel-io/rule-manager/internal/dao"
+	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_chronus "github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_kafka "github.com/tkeel-io/rule-manager/internal/dao/action_sink/kafka"
 	sink_mysql "github.com/tkeel-io/rule-manager/internal/dao/action_sink/mysql"
+	daoutils "github.com/tkeel-io/rule-manager/internal/daoutil"
 	"github.com/tkeel-io/rule-manager/internal/endpoint"
 	"github.com/tkeel-io/rule-manager/internal/endpoint/utils"
 	commonlog "github.com/tkeel-io/rule-util/pkg/commonlog"
 
 	xutils "github.com/tkeel-io/rule-manager/internal/utils"
+	util "github.com/tkeel-io/rule-manager/pkg/util"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -56,7 +58,7 @@ const (
 	ActionType_Republish  = "republish"
 	ActionType_Kafka      = "kafka"
 	ActionType_Bucket     = "bucket"
-	ActionType_Chronus    = "chronus"
+	ActionType_Chronus    = "clickhouse"
 	ActionType_MYSQL      = "mysql"
 	ActionType_POSTGRESQL = "postgresql"
 	ActionType_REDIS      = "redis"
@@ -66,40 +68,6 @@ var (
 	ErrUnmatched      = errors.New("delete records are not matched whit user")
 	ErrDeviceNotFound = errors.New("device not found")
 )
-
-type ConnectInfo struct {
-	User      string `json:"user" mapstructure:"user"`
-	password  string
-	Database  string   `json:"database" mapstructure:"database"`
-	Endpoints []string `json:"endpoints" mapstructure:"endpoints"`
-}
-
-func (this *ConnectInfo) GetPassword() string {
-	return this.password
-}
-func (this *ConnectInfo) SetPassword(pass string) {
-	this.password = pass
-}
-
-func (this *ConnectInfo) Key() string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("[%s]:[%v]", "sink-", xutils.SortStringSlice(this.Endpoints)))))
-}
-
-func (this *ConnectInfo) Value() []byte {
-
-	buf, err := json.Marshal(this)
-	if nil != err {
-		commonlog.ErrorWithFields("[MappingInfo]", commonlog.Fields{
-			"call":      "Marshal ConnectInfo failed.",
-			"user":      this.User,
-			"password":  this.password,
-			"database":  this.Database,
-			"endpoints": this.Endpoints,
-			"error":     err,
-		})
-	}
-	return buf
-}
 
 type RulesService struct {
 	pb.UnimplementedRulesServer
@@ -126,11 +94,13 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := dao.Rule{
-		UserID: user.ID,
-		Name:   req.Name,
-		Status: dao.StatusNotRunning,
-		Desc:   req.Desc,
-		Type:   uint8(req.Type),
+		UserID:    user.ID,
+		Name:      req.Name,
+		Status:    dao.StatusNotRunning,
+		Desc:      req.Desc,
+		Type:      uint8(req.Type),
+		ModelID:   req.ModelId,
+		ModelName: req.ModelName,
 	}
 
 	result := dao.DB().Model(&rule).Create(&rule)
@@ -144,6 +114,8 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 		Desc:      rule.Desc,
 		Status:    uint32(rule.Status),
 		Type:      uint32(rule.Type),
+		ModelId:   rule.ModelID,
+		ModelName: rule.ModelName,
 		CreatedAt: rule.CreatedAt.Unix(),
 		UpdatedAt: rule.UpdatedAt.Unix(),
 	}, nil
@@ -191,6 +163,8 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 		Desc:      rule.Desc,
 		Status:    uint32(rule.Status),
 		Type:      uint32(rule.Type),
+		ModelId:   rule.ModelID,
+		ModelName: rule.ModelName,
 		CreatedAt: rule.CreatedAt.Unix(),
 		UpdatedAt: rule.UpdatedAt.Unix(),
 	}, nil
@@ -262,6 +236,8 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		SubId:         uint32(rule.SubID),
 		DevicesStatus: uint32(ds),
 		TargetsStatus: uint32(ts),
+		ModelId:       rule.ModelID,
+		ModelName:     rule.ModelName,
 	}, nil
 }
 
@@ -301,8 +277,8 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		tx.Where("name = ?", req.Name.Value)
 	}
 
-	if req.Type != nil {
-		tx.Where("type = ?", req.Type.Value)
+	if req.Type > 0 {
+		tx.Where("type = ?", req.Type)
 	}
 
 	if req.Status != nil {
@@ -350,6 +326,8 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 			DevicesStatus: uint32(ds),
 			TargetsStatus: uint32(ts),
 			SubId:         uint32(r.SubID),
+			ModelId:       r.ModelID,
+			ModelName:     r.ModelName,
 		})
 	}
 	return resp, nil
@@ -548,7 +526,12 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		return nil, pb.ErrForbidden()
 	}
 
-	if req.Type == 0 || req.Host == "" || req.Value == "" {
+	if req.Type == 1 {
+		if req.Host == "" || req.Value == "" {
+			return nil, pb.ErrInvalidArgument()
+		}
+		req.SinkType = ActionType_Kafka
+	} else if req.SinkId == "" || req.SinkType == "" || req.TableName == "" {
 		return nil, pb.ErrInvalidArgument()
 	}
 
@@ -558,8 +541,75 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		Host:   req.Host,
 		Value:  req.Value,
 	}
-	if req.Ext != "" {
-		ruleTarget.Ext = &req.Ext
+
+	if req.SinkType != "" {
+		ruleTarget.SinkType = req.SinkType
+	}
+
+	if req.SinkId != "" {
+		ruleTarget.SinkId = req.SinkId
+		//get connect informations.
+		var connInfo *util.ConnectInfo
+		connInfo, err = GetConnectInfoBySinkIdFromRedis(req.SinkId)
+		if nil != err {
+			commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+				"call":       "UpdateTableMap",
+				"table_name": req.TableName,
+				"maps":       req.Fields,
+				"sink_id":    req.SinkId,
+				"error":      err,
+			})
+			return nil, pb.ErrFailedSinkInfo()
+		}
+
+		//update configurations, sink_id.
+		mapFields := make([]util.MapField, 0)
+		for _, field := range req.Fields {
+			if "" == field.TfieldName {
+				commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
+					"table_name": req.TableName,
+					"sink_id":    req.SinkId,
+					"error":      "table field name is empty",
+				})
+				continue
+			}
+			mapFields = append(mapFields, util.MapField{
+				TFieldName: field.TfieldName,
+				MField: util.ModelField{
+					Name: field.MField.Name,
+					Type: field.MField.Type,
+				},
+			})
+		}
+
+		configuration := make(map[string]interface{})
+		//更新映射关系，配置完整性
+		mapInfo := &util.MappingInfo{
+			//connInfo:  connInfo,
+			TableName: req.TableName,
+			Maps:      mapFields,
+		}
+		mapInfo.SetConnInfo(*connInfo)
+		//对映射关系进行合成...
+		configuration[MappingInfoKey] = mapInfo
+
+		//更新action的配置
+		configurationData, err := json.Marshal(configuration)
+		if err != nil {
+			return nil, err
+		}
+		configurationStr := string(configurationData)
+		ruleTarget.Ext = &configurationStr
+		var warn error
+		ruleTarget.ConfigStatus, warn = daoutils.ValidateAction(ctx, ruleTarget)
+		if nil != warn {
+			commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+				"desc":           "action create config_status.",
+				"validate_error": warn,
+			})
+		}
+		//update Configurations.
+
 	}
 	if err = ruleTarget.Create(); err != nil {
 		tkeelLog.Error("save target record error", err)
@@ -567,14 +617,17 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 	}
 
 	resp := &pb.CreateRuleTargetResp{
-		Id:    uint64(ruleTarget.ID),
-		Type:  uint32(ruleTarget.Type),
-		Host:  ruleTarget.Host,
-		Value: ruleTarget.Value,
+		Id:       uint64(ruleTarget.ID),
+		Type:     uint32(ruleTarget.Type),
+		Host:     ruleTarget.Host,
+		Value:    ruleTarget.Value,
+		SinkType: ruleTarget.SinkType,
+		SinkId:   ruleTarget.SinkId,
+		Fields:   req.Fields,
 	}
-
-	if ruleTarget.Ext != nil {
-		resp.Ext = *ruleTarget.Ext
+	if *ruleTarget.Ext != "" {
+		//get connect informations.
+		resp.Host, resp.Database, resp.TableName = getTargetFromExt(*ruleTarget.Ext)
 	}
 
 	return resp, nil
@@ -601,9 +654,6 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		return nil, pb.ErrForbidden()
 	}
 
-	if req.Ext != "" {
-		target.Ext = &req.Ext
-	}
 	target.Value = req.Value
 	target.Host = req.Host
 
@@ -611,17 +661,97 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		tkeelLog.Error("save target record error", err)
 		return nil, pb.ErrInternalError()
 	}
+	fields := make([]*pb.MapField, 0)
+	if target.Ext != nil {
+		fields = getFieldsFromExt(*target.Ext)
+	}
 
 	resp := &pb.UpdateRuleTargetResp{
-		Id:    uint64(target.ID),
-		Type:  uint32(target.Type),
-		Host:  target.Host,
-		Value: target.Value,
-	}
-	if target.Ext != nil {
-		resp.Ext = *target.Ext
+		Id:       uint64(target.ID),
+		Type:     uint32(target.Type),
+		Host:     target.Host,
+		Value:    target.Value,
+		SinkType: target.SinkType,
+		SinkId:   target.SinkId,
+		Fields:   fields,
 	}
 	return resp, nil
+}
+
+func getTargetFromExt(ext string) (host, database, tableName string) {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return
+	}
+	//反序列化action.Configuration.
+	var info interface{}
+	var exists bool
+	var oldmapInfo *util.MappingInfo
+
+	info, exists = configuration[MappingInfoKey]
+	if exists {
+		oldmapInfo = util.NewConnectInfoFromJson(info)
+	}
+
+	if oldmapInfo != nil {
+		if len(oldmapInfo.ConnInfo.Endpoints) > 0 {
+			hostWithUser := strings.Split(oldmapInfo.ConnInfo.Endpoints[0], "?")[0]
+			host := ""
+			items := strings.Split(hostWithUser, "@")
+			if len(items) >= 2 {
+				host = items[1]
+				userItems := strings.Split(items[1], ":")
+				if len(userItems) == 2 {
+					user := userItems[0]
+					password := userItems[1]
+					fmt.Println(user, password)
+				}
+			} else {
+				host = items[0]
+			}
+			host0 := strings.Split(host, ")")[0]
+			host0s := strings.Split(host0, "(")
+			if len(host0s) >= 2 {
+				host = host0s[1]
+			} else {
+				host = host0s[0]
+			}
+
+			if err == nil {
+				return host, oldmapInfo.GetDatabase(), oldmapInfo.TableName
+			}
+		}
+	}
+	return
+}
+
+func getFieldsFromExt(ext string) (fields []*pb.MapField) {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return
+	}
+	//反序列化action.Configuration.
+	var info interface{}
+	var exists bool
+	var odlmapInfo *util.MappingInfo
+
+	info, exists = configuration[MappingInfoKey]
+	if exists {
+		odlmapInfo = util.NewConnectInfoFromJson(info)
+	}
+	for _, mapField := range odlmapInfo.Maps {
+		fields = append(fields, &pb.MapField{
+			TfieldName: mapField.TFieldName,
+			MField: &pb.Field{
+				Name: mapField.MField.Name,
+				Type: mapField.MField.Type,
+			},
+		})
+	}
+
+	return
 }
 
 func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTargetReq) (*pb.ListRuleTargetResp, error) {
@@ -668,15 +798,27 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 
 	data := make([]*pb.CreateRuleTargetResp, 0, len(targets))
 	for _, target := range targets {
-		t := &pb.CreateRuleTargetResp{
-			Id:    uint64(target.ID),
-			Type:  uint32(target.Type),
-			Host:  target.Host,
-			Value: target.Value,
-		}
+
+		fields := make([]*pb.MapField, 0)
 		if target.Ext != nil {
-			t.Ext = *target.Ext
+			fields = getFieldsFromExt(*target.Ext)
 		}
+
+		t := &pb.CreateRuleTargetResp{
+			Id:       uint64(target.ID),
+			Type:     uint32(target.Type),
+			Host:     target.Host,
+			Value:    target.Value,
+			SinkType: target.SinkType,
+			SinkId:   target.SinkId,
+			Fields:   fields,
+		}
+
+		if target.Ext != nil {
+			//get connect informations.
+			t.Host, t.Database, t.TableName = getTargetFromExt(*target.Ext)
+		}
+
 		data = append(data, t)
 	}
 
@@ -1036,7 +1178,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"call":  "ChronusVerify",
 			"error": "meta field is empty.",
 		})
-		return "", errors.New("meta field is empty.")
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	user, ok1 := meta["user"]
 	password, ok2 := meta["password"]
@@ -1047,7 +1189,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"call":  "ChronusVerify",
 			"error": err,
 		})
-		return "", err
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	//check endpoints
 	if !xutils.CheckHost(endpoints) {
@@ -1056,15 +1198,16 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"error":     "check host failed.",
 			"endpoints": endpoints,
 		})
-		return "", errors.New("check host failed.")
+		return "", pb.ErrFailedClickhouseConnection()
 	}
 	//generate  chronus urls.
 	endpoints = xutils.GenerateUrlsChronusDB(endpoints, user, password, database)
-	connectInfo := ConnectInfo{
+	connectInfo := util.ConnectInfo{
 		User: user,
 		//Password:  password,
 		Database:  database,
 		Endpoints: endpoints,
+		SinkType:  ActionType_Chronus,
 	}
 	connectInfo.SetPassword(password)
 	//connetc chronus.
@@ -1077,7 +1220,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_chronus.ChronusSinkId, err
+		return sink_chronus.ChronusSinkId, pb.ErrFailedClickhouseConnection()
 	}
 	//push sinkid, configuration.
 	key := connectInfo.Key()
@@ -1091,7 +1234,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_chronus.ChronusSinkId, err
+		return sink_chronus.ChronusSinkId, pb.ErrFailedClickhouseConnection()
 	}
 	return key, nil
 }
@@ -1102,7 +1245,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": "meta is empty",
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	user, ok1 := meta["user"]
@@ -1114,7 +1257,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": err,
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	if !xutils.CheckHost(endpoints) {
@@ -1123,14 +1266,15 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"call":  "verify_mysql",
 			"error": err,
 		}))
-		return "", pb.ErrInternalError()
+		return "", pb.ErrFailedMysqlConnection()
 	}
 
 	endpoints = xutils.GenerateUrlMysql(endpoints, user, pass, db)
-	connectInfo := ConnectInfo{
+	connectInfo := util.ConnectInfo{
 		User:      user,
 		Database:  db,
 		Endpoints: endpoints,
+		SinkType:  ActionType_MYSQL,
 	}
 	connectInfo.SetPassword(pass)
 
@@ -1143,7 +1287,7 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_mysql.MysqlSinkId, err
+		return sink_mysql.MysqlSinkId, pb.ErrFailedMysqlConnection()
 	}
 
 	key := connectInfo.Key()
@@ -1157,8 +1301,310 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 			"endpoints": endpoints,
 			"error":     err,
 		})
-		return sink_mysql.MysqlSinkId, err
+		return sink_mysql.MysqlSinkId, pb.ErrFailedMysqlConnection()
 	}
 
 	return key, nil
+}
+
+func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*pb.ASTableListResp, error) {
+
+	var (
+		err      error
+		buf      string
+		sinkId   = req.Id
+		connInfo util.ConnectInfo
+	)
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(10)*time.Second)
+	defer cancelHandler()
+
+	//get connect informations from redis.
+	if buf, err = endpoint.GetRedisEndpoint().Get(sinkId); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":    "TableList",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, errors.New("get sink info failed")
+	}
+	//unmarshal...
+	if err = json.Unmarshal([]byte(buf), &connInfo); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":    "TableList",
+			"desc":    "json unmarshal failed.",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, errors.New("unmarshal sink info failed")
+	}
+	tabs := make([]*pb.Table, 0)
+	var tables []action_sink.Table
+	switch strings.ToLower(connInfo.SinkType) {
+	case ActionType_Chronus:
+		tables, err = sink_chronus.ListTable(ctx, connInfo.Endpoints)
+	case ActionType_MYSQL:
+		tables, err = sink_mysql.ListTable(ctx, connInfo.Endpoints, connInfo.Database)
+	default:
+		return nil, errors.New(fmt.Sprintf("sink type %s not support", connInfo.SinkType))
+	}
+
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "GetTableDetails",
+			"sink_type": connInfo.SinkType,
+			"sink_id":   sinkId,
+			"database":  connInfo.Database,
+			"endpoints": connInfo.Endpoints,
+			"error":     err,
+		})
+		return nil, err
+	}
+
+	for _, tab := range tables {
+
+		fields := make([]*pb.Field, 0)
+		for _, field := range tab.GetFields() {
+			fields = append(fields, &pb.Field{
+				Name: field.GetName(),
+				Type: field.GetType(),
+			})
+		}
+		tabs = append(tabs, &pb.Table{
+			Name:   tab.GetName(),
+			Fields: fields,
+		})
+	}
+
+	return &pb.ASTableListResp{
+		Tables: tabs,
+	}, nil
+}
+
+func (s *RulesService) GetTableDetails(ctx context.Context, req *pb.ASGetTableDetailsReq) (*pb.ASGetTableDetailsResp, error) {
+	return &pb.ASGetTableDetailsResp{}, nil
+}
+
+func (s *RulesService) GetTableMap(ctx context.Context, req *pb.ASGetTableMapReq) (*pb.ASGetTableMapResp, error) {
+
+	if req.TableName == "" {
+		return nil, pb.ErrFailedSinkInfo()
+	}
+	//get connect informations.
+	connInfo, err := GetConnectInfoBySinkIdFromRedis(req.Id)
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":       "UpdateTableMap",
+			"table_name": req.TableName,
+			"sink_id":    req.Id,
+			"error":      err,
+		})
+		return nil, pb.ErrFailedSinkInfo()
+	}
+
+	//construct.
+	//table infomation.
+	var table action_sink.Table
+	switch strings.ToLower(connInfo.SinkType) {
+	case ActionType_Chronus:
+		table, err = sink_chronus.TableInfo(ctx, connInfo.Endpoints, req.TableName)
+	case ActionType_MYSQL:
+		table, err = sink_mysql.TableInfo(ctx, connInfo.Endpoints, req.TableName)
+	default:
+		return nil, pb.ErrInternalError()
+	}
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "GetTableMap",
+			"table":     req.TableName,
+			"database":  connInfo.Database,
+			"endpoints": connInfo.Endpoints,
+			"error":     err,
+		})
+		return nil, err
+	}
+	tfields := make([]*pb.Field, 0)
+	for _, field := range table.GetFields() {
+		tfields = append(tfields, &pb.Field{
+			Name: field.GetName(),
+			Type: field.GetType(),
+			IsPK: field.ISPK(),
+		})
+	}
+
+	return &pb.ASGetTableMapResp{
+		Id:          req.Id,
+		TableName:   req.TableName,
+		TableFields: tfields,
+		MapFields:   nil,
+	}, nil
+}
+
+func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
+	var (
+		err         error
+		buf         string
+		sinkId      = id
+		connectInfo util.ConnectInfo
+	)
+
+	//get connect informations from redis.
+	if buf, err = endpoint.GetRedisEndpoint().Get(sinkId); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"desc":    "get connect informations from redis by sink id failed.",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, err
+	}
+	//unmarshal...
+	if err = json.Unmarshal([]byte(buf), &connectInfo); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"descs":   "get connect informations from redis by sink id failed.",
+			"desc":    "json unmarshal failed.",
+			"sink_id": sinkId,
+			"error":   err,
+		})
+		return nil, err
+	}
+	return &connectInfo, nil
+}
+
+//action的configuration里的字段
+const MappingInfoKey = "mapping"
+
+func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
+
+	//select action.
+	var (
+		err      error
+		sinkId   = req.Id
+		connInfo *util.ConnectInfo
+		action   = &dao.Target{
+			ID: uint(req.TargetId),
+		}
+	)
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	defer cancelHandler()
+
+	if err = action.Find(); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":       "UpdateTableMap",
+			"action_id":  req.TargetId,
+			"table_name": req.TableName,
+			"maps":       req.Fields,
+			"sink_id":    sinkId,
+			"error":      err,
+		})
+		return nil, pb.ErrInternalError()
+	}
+
+	//get connect informations.
+	connInfo, err = GetConnectInfoBySinkIdFromRedis(sinkId)
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":       "UpdateTableMap",
+			"action_id":  req.TargetId,
+			"table_name": req.TableName,
+			"maps":       req.Fields,
+			"sink_id":    sinkId,
+			"error":      err,
+		})
+		return nil, pb.ErrFailedSinkInfo()
+	}
+
+	//update configurations, sink_id.
+	mapFields := make([]util.MapField, 0)
+	for _, field := range req.Fields {
+		if "" == field.TfieldName {
+			commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
+				"action_id":  req.TargetId,
+				"table_name": req.TableName,
+				"sink_id":    sinkId,
+				"error":      "table field name is empty",
+			})
+			continue
+		}
+		mapFields = append(mapFields, util.MapField{
+			TFieldName: field.TfieldName,
+			MField: util.ModelField{
+				Name: field.MField.Name,
+				Type: field.MField.Type,
+			},
+		})
+	}
+	if len(mapFields) == 0 {
+		commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":       "UpdateTableMap",
+			"action_id":  req.TargetId,
+			"table_name": req.TableName,
+			"up-maps":    mapFields,
+			"sink_id":    sinkId,
+			"error":      err,
+		})
+		return &pb.ASUpdateTableMapResp{}, nil
+	}
+
+	//反序列化action.Configuration.
+	var info interface{}
+	var exists bool
+	var warn error
+	var odlmapInfo *util.MappingInfo
+
+	configuration := make(map[string]interface{})
+	if nil != configuration {
+		info, exists = configuration[MappingInfoKey]
+		if exists {
+			odlmapInfo = util.NewConnectInfoFromJson(info)
+		}
+	} else {
+		configuration = make(map[string]interface{})
+	}
+	//更新映射关系，配置完整性
+	mapInfo := &util.MappingInfo{
+		//connInfo:  connInfo,
+		TableName: req.TableName,
+		Maps:      mapFields,
+	}
+	mapInfo.SetConnInfo(*connInfo)
+
+	//对映射关系进行合成...
+	configuration[MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
+
+	//更新action的配置
+	configurationData, err := json.Marshal(configuration)
+	if err != nil {
+		return &pb.ASUpdateTableMapResp{}, err
+	}
+	configurationStr := string(configurationData)
+	action.Ext = &configurationStr
+	action.ConfigStatus, warn = daoutils.ValidateAction(ctx, action)
+	if nil != warn {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"desc":           "action update config_status.",
+			"action_id":      req.TargetId,
+			"change_status":  action.ConfigStatus,
+			"validate_error": warn,
+		})
+	}
+	//update Configurations.
+
+	action.SinkId = connInfo.Key()
+	action.Update()
+	if err = action.Update(); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":       "UpdateTableMap",
+			"action_id":  req.TargetId,
+			"table_name": req.TableName,
+			"maps":       req.Fields,
+			"sink_id":    sinkId,
+			"error":      err,
+		})
+		return nil, err
+	}
+	return &pb.ASUpdateTableMapResp{
+		Id:        sinkId,
+		TargetId:  req.TargetId,
+		TableName: req.TableName,
+		Fields:    req.Fields,
+	}, err
 }

@@ -1,3 +1,7 @@
 etcd:
   address:
     - http://tkeel-middleware-etcd:2379
+redis:
+  addr: tkeel-middleware-redis-master:6379
+  db: 9
+  password: Biz0P8Xoup

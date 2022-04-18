@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	mathRand "math/rand"
-	"net"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 )
 
 type prefix string
@@ -127,7 +127,7 @@ func GenerateUrlKafka(host, user, passwd, topic string) string {
 func GenerateUrlMysql(endpoints []string, user, passwd, db string) []string {
 	urls := []string{}
 	for _, endpoint := range endpoints {
-		urls = append(urls, fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", user, passwd, endpoint, db, "charset=utf8&parseTime=True&loc=Asia%2FShanghai"))
+		urls = append(urls, fmt.Sprintf("%s:%s@tcp(%s)/%s?%s", user, passwd, endpoint, db, "charset=utf8&parseTime=True&loc=Local"))
 	}
 	return urls
 }
@@ -165,9 +165,9 @@ func CheckHost(hosts []string) bool {
 			return false
 		}
 		//check ip
-		if nil == net.ParseIP(p[0]) {
-			return false
-		}
+		//	if nil == net.ParseIP(p[0]) {
+		//		return false
+		//	}
 		//check port
 		if port, err := strconv.ParseInt(p[1], 10, 63); nil != err {
 			return false

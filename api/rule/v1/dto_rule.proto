@@ -109,6 +109,35 @@ service Rules {
     };
   };
 
+rpc TableList (ASTableListReq) returns (ASTableListResp) {
+    option (google.api.http) = {
+      get: "/sink/{id}/tables"
+    };
+
+};
+
+rpc GetTableDetails(ASGetTableDetailsReq) returns (ASGetTableDetailsResp) {
+    option (google.api.http) = {
+      get: "/sink/{id}/tables/{table_name}"
+    };
+
+};
+
+rpc GetTableMap (ASGetTableMapReq) returns (ASGetTableMapResp) {
+    option (google.api.http) = {
+      get: "/sink/{id}/maps"
+    };
+
+};
+rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
+
+    option (google.api.http) = {
+      put: "/sink/{id}/maps"
+      body: "*"
+    };
+};
+
+
   rpc ListRuleTarget(ListRuleTargetReq) returns (ListRuleTargetResp) {
     option (google.api.http) = {
       get : "/rules/{id}/target"
@@ -165,6 +194,8 @@ message RuleCreateReq {
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Type 1 for Message Data, 2 for Timeseries Data",
   }];
+  string model_id = 4;
+  string model_name = 5;
 }
 
 message RuleCreateResp {
@@ -183,6 +214,10 @@ message RuleCreateResp {
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
   int64 updated_at = 7
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+  string model_id = 8
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+  string model_name = 9
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
 }
 
 message Rule {
@@ -201,6 +236,10 @@ message Rule {
   uint32 devices_status = 8;
   uint32 targets_status = 9;
   uint32 sub_id = 10;
+  string model_id = 11
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+  string model_name = 12
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
 }
 
 
@@ -223,6 +262,10 @@ message RuleUpdateResp {
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
   int64 updated_at = 7
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+  string model_id = 8
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+  string model_name = 9
+  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
 }
 
 
@@ -273,7 +316,7 @@ message RuleQueryReq {
   Uint64 id = 7;
   repeated string ids = 8;
   String name = 9;
-  Uint32 type = 10
+  uint32 type = 10
   [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "Type 1 for Message Data, 2 for Timeseries Data",
   }];
@@ -417,7 +460,11 @@ message CreateRuleTargetReq {
   }];
   string host = 3;
   string value = 4;
-  string ext = 5;
+  //string ext = 5;
+    string table_name = 5;
+  string sink_type = 6;
+  string sink_id = 7;
+    repeated MapField fields = 8;
 }
 
 message CreateRuleTargetResp {
@@ -428,7 +475,14 @@ message CreateRuleTargetResp {
   }];
   string host = 3;
   string value = 4;
-  string ext = 5;
+ // string ext = 5;
+    string table_name = 5;
+  string sink_type = 6;
+  string sink_id = 7;
+    repeated MapField fields = 8;
+    string user = 9;
+    string password = 10;
+    string database = 11;
 }
 
 message UpdateRuleTargetReq {
@@ -436,7 +490,9 @@ message UpdateRuleTargetReq {
   uint64 target_id = 2;
   string host = 3;
   string value = 4;
-  string ext = 5;
+ // string ext = 5;
+  string sink_type = 6;
+  string sink_id = 7;
 }
 
 message UpdateRuleTargetResp {
@@ -444,7 +500,10 @@ message UpdateRuleTargetResp {
   uint32 type = 2;
   string host = 3;
   string value = 4;
-  string ext = 5;
+ // string ext = 5;
+  string sink_type = 6;
+  string sink_id = 7;
+    repeated MapField fields = 8;
 }
 
 message TestConnectToKafkaReq {
@@ -547,3 +606,77 @@ message ChangeErrSubscribeReq {
 message ErrUnsubscribeReq {
   uint64 id = 1;
 }
+
+message Field {
+    string name =1;
+    string type =2;
+    bool isPK = 3;
+}
+
+message Table {
+    string Name                 =1;
+	string Sql                  =2;
+	string Engine               =3;
+	repeated string Partitions  =4;
+	repeated string OrderBy     =5;
+	string TTL                  =6;
+    int64 IndexGranularity      =7;
+    repeated Field fields       =8;
+}
+
+message MapField {
+    string tfield_name = 1;
+    Field m_field = 2;
+}
+
+//table list
+message ASTableListReq{
+    string id = 1;
+}
+
+message ASTableListResp{
+    repeated Table tables = 1;
+}
+
+//get table map
+message ASGetTableMapReq{
+    string id = 1;
+    string table_name = 3;
+}
+
+message ASGetTableMapResp {
+    string id =1;
+    string table_name =2;
+    repeated Field table_fields = 3;
+    repeated MapField map_fields = 4;
+}
+
+
+//update table map.
+message ASUpdateTableMapReq{
+    string id = 1;
+    uint64 target_id =2;
+    string table_name =3;
+    repeated MapField fields = 5;
+}
+
+message ASUpdateTableMapResp{
+    string id = 1;
+    uint64 target_id =2;
+    string table_name =3;
+    repeated MapField fields = 4;
+}
+
+
+
+//get table details.
+message ASGetTableDetailsReq{
+    string id = 1;
+    string table_name = 3;
+}
+
+message ASGetTableDetailsResp {
+    Table table = 1;
+}
+
+
