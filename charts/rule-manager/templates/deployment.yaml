@@ -44,9 +44,13 @@ spec:
         - name: metadata
           image: "{{ .Values.metadata.repository }}:{{ .Values.metadata.tag }}"
           imagePullPolicy: {{ .Values.metadata.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
         - name: rulex
           image: "{{ .Values.rulex.repository }}:{{ .Values.rulex.tag }}"
           imagePullPolicy: {{ .Values.rulex.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

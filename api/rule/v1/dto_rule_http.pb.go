@@ -28,6 +28,7 @@ var (
 )
 
 type RulesHTTPServer interface {
+	ActionVerify(context.Context, *ASVerifyReq) (*ASVerifyResp, error)
 	AddDevicesToRule(context.Context, *AddDevicesToRuleReq) (*emptypb.Empty, error)
 	ChangeErrSubscribe(context.Context, *ChangeErrSubscribeReq) (*emptypb.Empty, error)
 	CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error)
@@ -56,6 +57,64 @@ func newRulesHTTPHandler(s RulesHTTPServer) *RulesHTTPHandler {
 	return &RulesHTTPHandler{srv: s}
 }
 
+func (h *RulesHTTPHandler) ActionVerify(req *go_restful.Request, resp *go_restful.Response) {
+	in := ASVerifyReq{}
+	if err := transportHTTP.GetBody(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.ActionVerify(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
 func (h *RulesHTTPHandler) AddDevicesToRule(req *go_restful.Request, resp *go_restful.Response) {
 	in := AddDevicesToRuleReq{}
 	if err := transportHTTP.GetBody(req, &in); err != nil {
@@ -75,9 +134,6 @@ func (h *RulesHTTPHandler) AddDevicesToRule(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -136,9 +192,6 @@ func (h *RulesHTTPHandler) ChangeErrSubscribe(req *go_restful.Request, resp *go_
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -197,9 +250,6 @@ func (h *RulesHTTPHandler) CreateRuleTarget(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -258,9 +308,6 @@ func (h *RulesHTTPHandler) DeleteRuleTarget(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -319,9 +366,6 @@ func (h *RulesHTTPHandler) ErrSubscribe(req *go_restful.Request, resp *go_restfu
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -380,9 +424,6 @@ func (h *RulesHTTPHandler) ErrUnsubscribe(req *go_restful.Request, resp *go_rest
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -441,9 +482,6 @@ func (h *RulesHTTPHandler) GetRuleDevices(req *go_restful.Request, resp *go_rest
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -502,9 +540,6 @@ func (h *RulesHTTPHandler) GetRuleDevicesID(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -563,9 +598,6 @@ func (h *RulesHTTPHandler) ListRuleTarget(req *go_restful.Request, resp *go_rest
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -624,9 +656,6 @@ func (h *RulesHTTPHandler) RemoveDevicesFromRule(req *go_restful.Request, resp *
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -680,9 +709,6 @@ func (h *RulesHTTPHandler) RuleCreate(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -741,9 +767,6 @@ func (h *RulesHTTPHandler) RuleDelete(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -802,9 +825,6 @@ func (h *RulesHTTPHandler) RuleGet(req *go_restful.Request, resp *go_restful.Res
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -858,9 +878,6 @@ func (h *RulesHTTPHandler) RuleQuery(req *go_restful.Request, resp *go_restful.R
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -919,9 +936,6 @@ func (h *RulesHTTPHandler) RuleStatusSwitch(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -980,9 +994,6 @@ func (h *RulesHTTPHandler) RuleUpdate(req *go_restful.Request, resp *go_restful.
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -1036,9 +1047,6 @@ func (h *RulesHTTPHandler) TestConnectToKafka(req *go_restful.Request, resp *go_
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -1097,9 +1105,6 @@ func (h *RulesHTTPHandler) UpdateRuleTarget(req *go_restful.Request, resp *go_re
 	if err != nil {
 		tErr := errors.FromError(err)
 		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
-		if httpCode == http.StatusMovedPermanently {
-			resp.Header().Set("Location", tErr.Message)
-		}
 		resp.WriteHeaderAndJson(httpCode,
 			result.Set(tErr.Reason, tErr.Message, out), "application/json")
 		return
@@ -1181,6 +1186,8 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 		To(handler.UpdateRuleTarget))
 	ws.Route(ws.GET("/testing/kafka").
 		To(handler.TestConnectToKafka))
+	ws.Route(ws.POST("/verify/{sink_type}").
+		To(handler.ActionVerify))
 	ws.Route(ws.GET("/rules/{id}/target").
 		To(handler.ListRuleTarget))
 	ws.Route(ws.DELETE("/rules/{id}/target/{target_id}").

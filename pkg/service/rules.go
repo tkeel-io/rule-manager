@@ -2,11 +2,15 @@ package service
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-sql-driver/mysql"
+	"go.uber.org/zap"
 
 	"github.com/Shopify/sarama"
 
@@ -17,8 +21,15 @@ import (
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"github.com/tkeel-io/rule-manager/internal/dao"
+	"github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
+	sink_chronus "github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
+	sink_kafka "github.com/tkeel-io/rule-manager/internal/dao/action_sink/kafka"
+	sink_mysql "github.com/tkeel-io/rule-manager/internal/dao/action_sink/mysql"
 	"github.com/tkeel-io/rule-manager/internal/endpoint"
 	"github.com/tkeel-io/rule-manager/internal/endpoint/utils"
+	commonlog "github.com/tkeel-io/rule-util/pkg/commonlog"
+
+	xutils "github.com/tkeel-io/rule-manager/internal/utils"
 
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -34,14 +45,61 @@ const (
 	StartPrefixTag  = "[RuleStart]"
 	StopPrefixTag   = "[RuleStop]"
 
+	actionSinkLogTitle = "[ActionSink]"
+
 	RuleRunning = 1
 	RuleStopped = 0
+)
+
+//ActionType
+const (
+	ActionType_Republish  = "republish"
+	ActionType_Kafka      = "kafka"
+	ActionType_Bucket     = "bucket"
+	ActionType_Chronus    = "chronus"
+	ActionType_MYSQL      = "mysql"
+	ActionType_POSTGRESQL = "postgresql"
+	ActionType_REDIS      = "redis"
 )
 
 var (
 	ErrUnmatched      = errors.New("delete records are not matched whit user")
 	ErrDeviceNotFound = errors.New("device not found")
 )
+
+type ConnectInfo struct {
+	User      string `json:"user" mapstructure:"user"`
+	password  string
+	Database  string   `json:"database" mapstructure:"database"`
+	Endpoints []string `json:"endpoints" mapstructure:"endpoints"`
+}
+
+func (this *ConnectInfo) GetPassword() string {
+	return this.password
+}
+func (this *ConnectInfo) SetPassword(pass string) {
+	this.password = pass
+}
+
+func (this *ConnectInfo) Key() string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("[%s]:[%v]", "sink-", xutils.SortStringSlice(this.Endpoints)))))
+}
+
+func (this *ConnectInfo) Value() []byte {
+
+	buf, err := json.Marshal(this)
+	if nil != err {
+		commonlog.ErrorWithFields("[MappingInfo]", commonlog.Fields{
+			"call":      "Marshal ConnectInfo failed.",
+			"user":      this.User,
+			"password":  this.password,
+			"database":  this.Database,
+			"endpoints": this.Endpoints,
+			"error":     err,
+		})
+	}
+	return buf
+}
 
 type RulesService struct {
 	pb.UnimplementedRulesServer
@@ -887,4 +945,220 @@ func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, 
 		entities = append(entities, entity)
 	}
 	return entities, nil
+}
+
+func (s *RulesService) ActionVerify(ctx context.Context, req *pb.ASVerifyReq) (*pb.ASVerifyResp, error) {
+	var (
+		err     error
+		sink_id string = "SinkId"
+		types   []string
+	)
+	urls := strings.Split(req.Urls, ";")
+	if len(urls) <= 0 {
+		err = errors.New("urls is invalid.")
+		return nil, err
+	}
+	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
+	defer cancelHandler()
+
+	switch req.SinkType {
+	case ActionType_Republish:
+		return &pb.ASVerifyResp{}, nil
+	case ActionType_Kafka:
+		sink_id, err = s.verify_kafka(ctx, urls, req.Meta)
+	case ActionType_Chronus:
+		sink_id, err = s.verify_chronus(ctx, urls, req.Meta)
+		types = chronus.GetTableFieldTypes()
+	case ActionType_MYSQL:
+		sink_id, err = s.verify_mysql(ctx, urls, req.Meta)
+		types = sink_mysql.GetTableFieldTypes()
+	default:
+		return nil, errors.New("type not supported")
+	}
+	if nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "Verify",
+			"SinkType":  req.SinkType,
+			"endpoints": urls,
+			"meta":      req.Meta,
+			"error":     err,
+		})
+		//err = erro.New(erro.SinkTypeNotSupport, err)
+	}
+	resp := &pb.ASVerifyResp{
+		Id:    sink_id,
+		Types: types,
+	}
+	return resp, err
+}
+
+//verify kafka
+func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
+
+	if !xutils.CheckHost(endpoints) {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "KafkaVerify",
+			"error":     "check host failed.",
+			"endpoints": endpoints,
+		})
+		return sink_kafka.KafkaSinkId, errors.New("check host failed.")
+	}
+
+	config := sarama.NewConfig()
+	config.Producer.RequiredAcks = sarama.WaitForAll          // 发送完数据需要leader和follow都确认
+	config.Producer.Partitioner = sarama.NewRandomPartitioner // 新选出一个partition
+	config.Producer.Return.Successes = true                   // 成功交付的消息将在success channel返回
+
+	// 连接kafka
+	client, err := sarama.NewSyncProducer(endpoints, config)
+	if err != nil {
+		//log.Error(err)
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "KafkaVerify",
+			"desc":      "failed open consumer.",
+			"endpoints": endpoints,
+			"sinkType":  "kafka",
+			"error":     err,
+		})
+		return sink_kafka.KafkaSinkId, err
+	}
+	client.Close()
+
+	return sink_kafka.KafkaSinkId, err
+}
+
+//verify chronus
+func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
+
+	var err error
+	if nil == meta {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "ChronusVerify",
+			"error": "meta field is empty.",
+		})
+		return "", errors.New("meta field is empty.")
+	}
+	user, ok1 := meta["user"]
+	password, ok2 := meta["password"]
+	database, ok3 := meta["db_name"]
+	if !ok1 || !ok2 || !ok3 {
+		err = errors.New("verify chronus required user.")
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "ChronusVerify",
+			"error": err,
+		})
+		return "", err
+	}
+	//check endpoints
+	if !xutils.CheckHost(endpoints) {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "ChronusVerify",
+			"error":     "check host failed.",
+			"endpoints": endpoints,
+		})
+		return "", errors.New("check host failed.")
+	}
+	//generate  chronus urls.
+	endpoints = xutils.GenerateUrlsChronusDB(endpoints, user, password, database)
+	connectInfo := ConnectInfo{
+		User: user,
+		//Password:  password,
+		Database:  database,
+		Endpoints: endpoints,
+	}
+	connectInfo.SetPassword(password)
+	//connetc chronus.
+	if err = sink_chronus.Connect(ctx, endpoints, database); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "ChronusVerify",
+			"user":      user,
+			"password":  password,
+			"database":  database,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_chronus.ChronusSinkId, err
+	}
+	//push sinkid, configuration.
+	key := connectInfo.Key()
+	value := connectInfo.Value()
+	if err = endpoint.GetRedisEndpoint().Set(key, string(value), 0); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "ChronusVerify",
+			"user":      user,
+			"password":  password,
+			"database":  database,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_chronus.ChronusSinkId, err
+	}
+	return key, nil
+}
+
+func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
+	if meta == nil {
+		log.L().Error(actionSinkLogTitle, zap.Any("meta", map[string]interface{}{
+			"call":  "verify_mysql",
+			"error": "meta is empty",
+		}))
+		return "", pb.ErrInternalError()
+	}
+
+	user, ok1 := meta["user"]
+	pass, ok2 := meta["password"]
+	db, ok3 := meta["db_name"]
+	if !ok1 || !ok2 || !ok3 {
+		err := errors.New("user/password/db_name can not be empty")
+		log.L().Error(actionSinkLogTitle, zap.Any("meta", map[string]interface{}{
+			"call":  "verify_mysql",
+			"error": err,
+		}))
+		return "", pb.ErrInternalError()
+	}
+
+	if !xutils.CheckHost(endpoints) {
+		err := errors.New("check endpoints failed")
+		log.L().Error(actionSinkLogTitle, zap.Any("endpoint", map[string]interface{}{
+			"call":  "verify_mysql",
+			"error": err,
+		}))
+		return "", pb.ErrInternalError()
+	}
+
+	endpoints = xutils.GenerateUrlMysql(endpoints, user, pass, db)
+	connectInfo := ConnectInfo{
+		User:      user,
+		Database:  db,
+		Endpoints: endpoints,
+	}
+	connectInfo.SetPassword(pass)
+
+	if err := sink_mysql.Connect(ctx, endpoints, db); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "verify_mysql",
+			"user":      user,
+			"password":  pass,
+			"database":  db,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_mysql.MysqlSinkId, err
+	}
+
+	key := connectInfo.Key()
+	value := connectInfo.Value()
+	if err := endpoint.GetRedisEndpoint().Set(key, string(value), 0); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "MysqlVerify",
+			"user":      user,
+			"password":  pass,
+			"database":  db,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_mysql.MysqlSinkId, err
+	}
+
+	return key, nil
 }
