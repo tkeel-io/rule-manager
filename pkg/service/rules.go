@@ -259,8 +259,6 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 	rule := &dao.Rule{UserID: user.ID}
 	tx := dao.DB().Model(&rule).Where(&rule)
 
-	fillPagination(tx, page)
-
 	if req.Id != nil && req.Ids != nil && len(req.Ids) > 0 {
 		return nil, pb.ErrInvalidArgument()
 	}
@@ -284,15 +282,16 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 	if req.Status != nil {
 		tx.Where("status = ?", req.Status.Value)
 	}
-
-	rules := make([]*dao.Rule, 0)
-	result := tx.Find(&rules)
+	var count int64
+	result := tx.Count(&count)
 	if result.Error != nil {
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
-	var count int64
-	result = tx.Count(&count)
+
+	fillPagination(tx, page)
+	rules := make([]*dao.Rule, 0)
+	result = tx.Find(&rules)
 	if result.Error != nil {
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
