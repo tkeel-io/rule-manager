@@ -625,7 +625,7 @@ message Table {
 }
 
 message MapField {
-    string tfield_name = 1;
+    Field t_field = 1;
     Field m_field = 2;
 }
 
@@ -655,14 +655,14 @@ message ASGetTableMapResp {
 //update table map.
 message ASUpdateTableMapReq{
     string id = 1;
-    uint64 target_id =2;
+    string target_id =2;
     string table_name =3;
     repeated MapField fields = 5;
 }
 
 message ASUpdateTableMapResp{
     string id = 1;
-    uint64 target_id =2;
+    string target_id =2;
     string table_name =3;
     repeated MapField fields = 4;
 }

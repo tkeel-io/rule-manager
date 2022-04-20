@@ -302,7 +302,15 @@ func (t *Target) FindAndAuth(userID string) error {
 }
 
 func (t *Target) Delete() error {
-	return DB().Model(t).Where(t).Delete(t).Error
+	tx := DB().Begin()
+	result := tx.Delete(t)
+	if result.Error != nil {
+		tx.Rollback()
+		log.Error("delete target", result.Error)
+	}
+	tx.Commit()
+
+	return result.Error
 }
 
 const separator = "-"

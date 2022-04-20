@@ -565,7 +565,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		//update configurations, sink_id.
 		mapFields := make([]util.MapField, 0)
 		for _, field := range req.Fields {
-			if "" == field.TfieldName {
+			if "" == field.TField.Name {
 				commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
 					"table_name": req.TableName,
 					"sink_id":    req.SinkId,
@@ -574,7 +574,10 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 				continue
 			}
 			mapFields = append(mapFields, util.MapField{
-				TFieldName: field.TfieldName,
+				TField: util.ModelField{
+					Name: field.TField.Name,
+					Type: field.TField.Type,
+				},
 				MField: util.ModelField{
 					Name: field.MField.Name,
 					Type: field.MField.Type,
@@ -625,7 +628,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		SinkId:   ruleTarget.SinkId,
 		Fields:   req.Fields,
 	}
-	if *ruleTarget.Ext != "" {
+	if (ruleTarget.Ext != nil) && (*ruleTarget.Ext != "") {
 		//get connect informations.
 		resp.Host, resp.Database, resp.TableName = getTargetFromExt(*ruleTarget.Ext)
 	}
@@ -696,19 +699,9 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 
 	if oldmapInfo != nil {
 		if len(oldmapInfo.ConnInfo.Endpoints) > 0 {
-			hostWithUser := strings.Split(oldmapInfo.ConnInfo.Endpoints[0], "?")[0]
-			host := ""
-			items := strings.Split(hostWithUser, "@")
-			if len(items) >= 2 {
-				host = items[1]
-				userItems := strings.Split(items[1], ":")
-				if len(userItems) == 2 {
-					user := userItems[0]
-					password := userItems[1]
-					fmt.Println(user, password)
-				}
-			} else {
-				host = items[0]
+			hostItem := strings.Split(oldmapInfo.ConnInfo.Endpoints[0], "@")
+			if len(hostItem) == 2 {
+				host = strings.Split(hostItem[1], "/")[0]
 			}
 			host0 := strings.Split(host, ")")[0]
 			host0s := strings.Split(host0, "(")
@@ -717,7 +710,6 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 			} else {
 				host = host0s[0]
 			}
-
 			if err == nil {
 				return host, oldmapInfo.GetDatabase(), oldmapInfo.TableName
 			}
@@ -743,7 +735,10 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	}
 	for _, mapField := range odlmapInfo.Maps {
 		fields = append(fields, &pb.MapField{
-			TfieldName: mapField.TFieldName,
+			TField: &pb.Field{
+				Name: mapField.TField.Name,
+				Type: mapField.TField.Type,
+			},
 			MField: &pb.Field{
 				Name: mapField.MField.Name,
 				Type: mapField.MField.Type,
@@ -1475,12 +1470,15 @@ const MappingInfoKey = "mapping"
 func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
 
 	//select action.
+	targetId, err := strconv.ParseUint(req.TargetId, 10, 0)
+	if err != nil {
+		return nil, pb.ErrInvalidArgument()
+	}
 	var (
-		err      error
 		sinkId   = req.Id
 		connInfo *util.ConnectInfo
 		action   = &dao.Target{
-			ID: uint(req.TargetId),
+			ID: uint(targetId),
 		}
 	)
 	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(3)*time.Second)
@@ -1515,7 +1513,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 	//update configurations, sink_id.
 	mapFields := make([]util.MapField, 0)
 	for _, field := range req.Fields {
-		if "" == field.TfieldName {
+		if "" == field.TField.Name {
 			commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
 				"action_id":  req.TargetId,
 				"table_name": req.TableName,
@@ -1525,7 +1523,10 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 			continue
 		}
 		mapFields = append(mapFields, util.MapField{
-			TFieldName: field.TfieldName,
+			TField: util.ModelField{
+				Name: field.TField.Name,
+				Type: field.TField.Type,
+			},
 			MField: util.ModelField{
 				Name: field.MField.Name,
 				Type: field.MField.Type,
