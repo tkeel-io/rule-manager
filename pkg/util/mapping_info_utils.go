@@ -56,8 +56,8 @@ type ModelField struct {
 }
 
 type MapField struct {
-	TFieldName string     `json:"tfield_name" mapstructure:"tfield_name"`
-	MField     ModelField `json:"mfield" mapstructure:"mfield"`
+	TField ModelField `json:"tfield" mapstructure:"tfield"`
+	MField ModelField `json:"mfield" mapstructure:"mfield"`
 }
 
 type MappingInfo struct {
@@ -139,11 +139,13 @@ func MergeMapping(m1, m2 *MappingInfo) *MappingInfo {
 	if nil != m2 {
 		//update maps just.
 		mapsm := make(map[string]MapField)
-		for _, m := range m1.Maps {
-			mapsm[m.TFieldName] = m
-		}
+		/*
+			for _, m := range m1.Maps {
+				mapsm[m.TFieldName] = m
+			}
+		*/
 		for _, m := range m2.Maps {
-			mapsm[m.TFieldName] = m
+			mapsm[m.TField.Name] = m
 		}
 
 		//construct...
