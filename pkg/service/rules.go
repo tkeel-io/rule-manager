@@ -564,7 +564,10 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		//update configurations, sink_id.
 		mapFields := make([]util.MapField, 0)
 		for _, field := range req.Fields {
-			if "" == field.TField.Name {
+			if (field.MField == nil) || (field.TField == nil) {
+				continue
+			}
+			if field.TField.Name == "" {
 				commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
 					"table_name": req.TableName,
 					"sink_id":    req.SinkId,
@@ -1358,6 +1361,9 @@ func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*
 
 		fields := make([]*pb.Field, 0)
 		for _, field := range tab.GetFields() {
+			if field.GetName() == "id" || field.GetName() == "timestamp" {
+				continue
+			}
 			fields = append(fields, &pb.Field{
 				Name: field.GetName(),
 				Type: field.GetType(),
@@ -1418,6 +1424,9 @@ func (s *RulesService) GetTableMap(ctx context.Context, req *pb.ASGetTableMapReq
 	}
 	tfields := make([]*pb.Field, 0)
 	for _, field := range table.GetFields() {
+		if field.GetName() == "id" || field.GetName() == "timestamp" {
+			continue
+		}
 		tfields = append(tfields, &pb.Field{
 			Name: field.GetName(),
 			Type: field.GetType(),
@@ -1512,7 +1521,10 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 	//update configurations, sink_id.
 	mapFields := make([]util.MapField, 0)
 	for _, field := range req.Fields {
-		if "" == field.TField.Name {
+		if (field.MField == nil) || (field.TField == nil) {
+			continue
+		}
+		if field.TField.Name == "" {
 			commonlog.WarnWithFields(actionSinkLogTitle, commonlog.Fields{
 				"action_id":  req.TargetId,
 				"table_name": req.TableName,

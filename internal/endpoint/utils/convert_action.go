@@ -133,6 +133,9 @@ func ConvertActionZ(ac *dao.Target) *Action {
 		for _, field := range mapping.Maps {
 			tfname := field.TField.Name
 			if _, ok := ftypes[tfname]; ok {
+				if field.MField.Name == "" {
+					continue
+				}
 				mfields[tfname] = &Field{
 					Type:  ftypes[tfname],
 					Value: fmt.Sprintf("properties.telemetry.%s.value", field.MField.Name),
