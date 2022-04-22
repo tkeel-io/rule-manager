@@ -493,7 +493,7 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 	conditions = append(conditions, deviceutil.EqQuery("owner", user.ID))
 	conditions = append(conditions,
 		deviceutil.WildcardQuery("sysField._ruleInfo",
-			fmt.Sprintf("%d-", rule.ID)))
+			fmt.Sprintf("RULE:%d-iotd", rule.ID)))
 	data, err := s.getEntitiesByConditions(conditions, user.Token, user.Auth, &page)
 	if err != nil && !errors.Is(err, ErrDeviceNotFound) {
 		log.Error("err:", err)
