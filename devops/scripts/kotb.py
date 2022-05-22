@@ -15,7 +15,7 @@ def chart():
 @click.pass_context
 def write(ctx, input, output, value):
     data = yaml.load(input, Loader=yaml.FullLoader)
-    data['image']['repository'] = value
+    data['rulemanager']['repository'] = value
     yaml.dump(data, output)
 
 
