@@ -11,11 +11,12 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/tkeel-io/core-broker v0.4.7-0.20220405115706-8d7f949d0d47
-	github.com/tkeel-io/kit v0.0.0-20220325093202-6fee69755ded
+	github.com/prometheus/client_golang v1.12.1
+	github.com/tkeel-io/core-broker v0.4.7-0.20220524230123-7fa264e6d12c
+	github.com/tkeel-io/kit v0.0.0-20220516081405-657ecd52268a
 	github.com/tkeel-io/rule-rulex v0.0.0-20220405115923-88c8d3c289c9
 	github.com/tkeel-io/rule-util v0.0.0-20220410081249-7a1e485c463b
-	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220311032517-6775df80b836
+	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220424073125-8edc0200490f
 	google.golang.org/genproto v0.0.0-20220310185008-1973136f34c6
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.28.0
@@ -26,6 +27,8 @@ require (
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.5 // indirect
+	github.com/beorn7/perks v1.0.1 // indirect
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
@@ -37,9 +40,13 @@ require (
 	github.com/lestrrat/go-envload v0.0.0-20180220120943-6ed08b54a570 // indirect
 	github.com/lestrrat/go-file-rotatelogs v0.0.0-20180223000712-d3151e2a480f // indirect
 	github.com/lestrrat/go-strftime v0.0.0-20180220042222-ba3bf9c1d042 // indirect
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
+	github.com/prometheus/client_model v0.2.0 // indirect
+	github.com/prometheus/common v0.32.1 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rifflock/lfshook v0.0.0-20180920164130-b9218ef580f5 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/tebeka/strftime v0.1.5 // indirect

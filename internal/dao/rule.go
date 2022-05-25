@@ -11,6 +11,7 @@ import (
 
 	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/rule-manager/config"
+	"github.com/tkeel-io/rule-manager/pkg/metrics"
 
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -34,6 +35,18 @@ const (
 	TargetTypeObjectStorage
 )
 
+// The key of the entity properties
+const (
+	KeyRawData   = "rawData"
+	KeyTeleMetry = "telemetry"
+)
+
+// rule type.
+const (
+	RuleTypeMessage    = 1
+	RuleTypeTimeseries = 2
+)
+
 const SubscribeService string = "http://localhost:3500/v1.0/invoke/keel/method/apis/core-broker/v1/subscribe/%d"
 
 const SubscriptionIDFormat = "%s_%d_%s"
@@ -41,6 +54,7 @@ const SubscriptionIDFormat = "%s_%d_%s"
 type Rule struct {
 	gorm.Model
 	UserID      string `gorm:"index"`
+	TenantID    string
 	ModelID     string
 	ModelName   string
 	SubID       uint
@@ -80,12 +94,10 @@ func (r *Rule) SelectFirst() *gorm.DB {
 }
 
 func (r *Rule) Exists() (bool, error) {
-	var c string
-	result := DB().Model(r).Select("1").Where(r).Limit(1).First(&c)
+	result := DB().Model(r).Where(r).Limit(1).First(r)
 	if result.Error != nil || result.RowsAffected == 0 {
 		return false, result.Error
 	}
-
 	return true, nil
 }
 
@@ -152,6 +164,18 @@ func (r *Rule) Unsubscribe() error {
 	return DB().Model(r).Save(r).Error
 }
 
+func (r *Rule) InitMetrics() {
+	type res struct {
+		Tenant string
+		Count  int
+	}
+	ress := make([]res, 0)
+	DB().Model(r).Select("tenant_id as tenant, count(1) as count").Group("tenant").Find(&ress)
+	for _, v := range ress {
+		metrics.CollectorRuleNumber.WithLabelValues(v.Tenant).Set(float64(v.Count))
+	}
+}
+
 type RuleEntities struct {
 	UniqueKey string `gorm:"uniqueIndex;size:255"`
 	RuleID    uint
@@ -173,7 +197,16 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 			return err
 		}
 	}
-	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic); err != nil {
+	field := "*"
+	switch int(e.Rule.Type) {
+	case RuleTypeMessage:
+		field = fmt.Sprintf("%s as %s", KeyRawData, KeyRawData)
+	case RuleTypeTimeseries:
+		field = fmt.Sprintf("%s as %s", KeyTeleMetry, KeyTeleMetry)
+	default:
+		log.Error("rule type ", e)
+	}
+	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic, e.Rule.TenantID, field); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
 	}
@@ -199,7 +232,11 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 			return err
 		}
 	}
-	if err := CoreClient.Unsubscribe(subscribeID); err != nil {
+	var rule Rule
+	if DB().Model(&Rule{}).Where("id=?", e.RuleID).First(&rule).Error != nil {
+		return fmt.Errorf("rule not found")
+	}
+	if err := CoreClient.Unsubscribe(subscribeID, rule.TenantID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
 	}

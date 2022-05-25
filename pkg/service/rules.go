@@ -53,7 +53,7 @@ const (
 	RuleStopped = 0
 )
 
-//ActionType
+// ActionType
 const (
 	ActionType_Republish  = "republish"
 	ActionType_Kafka      = "kafka"
@@ -95,6 +95,7 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 	}
 	rule := dao.Rule{
 		UserID:    user.ID,
+		TenantID:  user.TenantID,
 		Name:      req.Name,
 		Status:    dao.StatusNotRunning,
 		Desc:      req.Desc,
@@ -171,7 +172,7 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 }
 
 func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*emptypb.Empty, error) {
-	//print request [debug]
+	// print request [debug]
 	printInputDebug(DeletePrefixTag, req)
 	user, err := auth.GetUser(ctx)
 	if err != nil {
@@ -242,7 +243,7 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 }
 
 func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb.RuleQueryResp, error) {
-	//print request [debug]
+	// print request [debug]
 	printInputDebug(QueryPrefixTag, req)
 	user, err := auth.GetUser(ctx)
 	if err != nil {
@@ -338,8 +339,9 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
-		UserID: user.ID,
+		Model:    gorm.Model{ID: uint(req.Id)},
+		UserID:   user.ID,
+		TenantID: user.TenantID,
 	}
 	result := dao.DB().Model(&rule).Where(&rule).First(&rule)
 	if result.Error != nil || result.Error == gorm.ErrRecordNotFound {
@@ -362,7 +364,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		}
 	case RuleStopped:
 		if err = endpoint.GetMetadataEndpointIns().DelRule(ctx, ruleReq); err != nil {
-			//update pg.
+			// update pg.
 			tkeelLog.Error(StopPrefixTag, err)
 		}
 	default:
@@ -547,7 +549,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 
 	if req.SinkId != "" {
 		ruleTarget.SinkId = req.SinkId
-		//get connect informations.
+		// get connect informations.
 		var connInfo *util.ConnectInfo
 		connInfo, err = GetConnectInfoBySinkIdFromRedis(req.SinkId)
 		if nil != err {
@@ -561,7 +563,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 			return nil, pb.ErrFailedSinkInfo()
 		}
 
-		//update configurations, sink_id.
+		// update configurations, sink_id.
 		mapFields := make([]util.MapField, 0)
 		for _, field := range req.Fields {
 			if (field.MField == nil) || (field.TField == nil) {
@@ -588,17 +590,17 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		}
 
 		configuration := make(map[string]interface{})
-		//更新映射关系，配置完整性
+		// 更新映射关系，配置完整性
 		mapInfo := &util.MappingInfo{
-			//connInfo:  connInfo,
+			// connInfo:  connInfo,
 			TableName: req.TableName,
 			Maps:      mapFields,
 		}
 		mapInfo.SetConnInfo(*connInfo)
-		//对映射关系进行合成...
+		// 对映射关系进行合成...
 		configuration[MappingInfoKey] = mapInfo
 
-		//更新action的配置
+		// 更新action的配置
 		configurationData, err := json.Marshal(configuration)
 		if err != nil {
 			return nil, err
@@ -613,7 +615,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 				"validate_error": warn,
 			})
 		}
-		//update Configurations.
+		// update Configurations.
 
 	}
 	if err = ruleTarget.Create(); err != nil {
@@ -631,7 +633,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		Fields:   req.Fields,
 	}
 	if (ruleTarget.Ext != nil) && (*ruleTarget.Ext != "") {
-		//get connect informations.
+		// get connect informations.
 		resp.Host, resp.Database, resp.TableName = getTargetFromExt(*ruleTarget.Ext)
 	}
 
@@ -689,7 +691,7 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 	if err != nil {
 		return
 	}
-	//反序列化action.Configuration.
+	// 反序列化action.Configuration.
 	var info interface{}
 	var exists bool
 	var oldmapInfo *util.MappingInfo
@@ -726,7 +728,7 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	if err != nil {
 		return
 	}
-	//反序列化action.Configuration.
+	// 反序列化action.Configuration.
 	var info interface{}
 	var exists bool
 	var odlmapInfo *util.MappingInfo
@@ -812,7 +814,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 		}
 
 		if target.Ext != nil {
-			//get connect informations.
+			// get connect informations.
 			t.Host, t.Database, t.TableName = getTargetFromExt(*target.Ext)
 		}
 
@@ -858,7 +860,6 @@ func (s *RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleT
 }
 
 func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConnectToKafkaReq) (*emptypb.Empty, error) {
-
 	endpoints := strings.Split(req.Host, ",")
 
 	config := sarama.NewConfig()
@@ -868,7 +869,7 @@ func (s *RulesService) TestConnectToKafka(ctx context.Context, req *pb.TestConne
 
 	client, err := sarama.NewSyncProducer(endpoints, config)
 	if err != nil {
-		//log.Error(err)
+		// log.Error(err)
 		log.Errorf(`
 			"call":      "KafkaVerify",
 			"desc":      "failed open consumer.",
@@ -1122,7 +1123,7 @@ func (s *RulesService) ActionVerify(ctx context.Context, req *pb.ASVerifyReq) (*
 			"meta":      req.Meta,
 			"error":     err,
 		})
-		//err = erro.New(erro.SinkTypeNotSupport, err)
+		// err = erro.New(erro.SinkTypeNotSupport, err)
 	}
 	resp := &pb.ASVerifyResp{
 		Id:    sink_id,
@@ -1131,9 +1132,8 @@ func (s *RulesService) ActionVerify(ctx context.Context, req *pb.ASVerifyReq) (*
 	return resp, err
 }
 
-//verify kafka
+// verify kafka
 func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
-
 	if !xutils.CheckHost(endpoints) {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":      "KafkaVerify",
@@ -1151,7 +1151,7 @@ func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, met
 	// 连接kafka
 	client, err := sarama.NewSyncProducer(endpoints, config)
 	if err != nil {
-		//log.Error(err)
+		// log.Error(err)
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":      "KafkaVerify",
 			"desc":      "failed open consumer.",
@@ -1166,9 +1166,8 @@ func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, met
 	return sink_kafka.KafkaSinkId, err
 }
 
-//verify chronus
+// verify chronus
 func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
-
 	var err error
 	if nil == meta {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
@@ -1188,7 +1187,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 		})
 		return "", pb.ErrFailedClickhouseConnection()
 	}
-	//check endpoints
+	// check endpoints
 	if !xutils.CheckHost(endpoints) {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":      "ChronusVerify",
@@ -1197,17 +1196,17 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 		})
 		return "", pb.ErrFailedClickhouseConnection()
 	}
-	//generate  chronus urls.
+	// generate  chronus urls.
 	endpoints = xutils.GenerateUrlsChronusDB(endpoints, user, password, database)
 	connectInfo := util.ConnectInfo{
 		User: user,
-		//Password:  password,
+		// Password:  password,
 		Database:  database,
 		Endpoints: endpoints,
 		SinkType:  ActionType_Chronus,
 	}
 	connectInfo.SetPassword(password)
-	//connetc chronus.
+	// connetc chronus.
 	if err = sink_chronus.Connect(ctx, endpoints, database); nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":      "ChronusVerify",
@@ -1219,7 +1218,7 @@ func (s *RulesService) verify_chronus(ctx context.Context, endpoints []string, m
 		})
 		return sink_chronus.ChronusSinkId, pb.ErrFailedClickhouseConnection()
 	}
-	//push sinkid, configuration.
+	// push sinkid, configuration.
 	key := connectInfo.Key()
 	value := connectInfo.Value()
 	if err = endpoint.GetRedisEndpoint().Set(key, string(value), 0); nil != err {
@@ -1305,7 +1304,6 @@ func (s *RulesService) verify_mysql(ctx context.Context, endpoints []string, met
 }
 
 func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*pb.ASTableListResp, error) {
-
 	var (
 		err      error
 		buf      string
@@ -1315,7 +1313,7 @@ func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*
 	ctx, cancelHandler := context.WithTimeout(ctx, time.Duration(10)*time.Second)
 	defer cancelHandler()
 
-	//get connect informations from redis.
+	// get connect informations from redis.
 	if buf, err = endpoint.GetRedisEndpoint().Get(sinkId); nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":    "TableList",
@@ -1324,7 +1322,7 @@ func (s *RulesService) TableList(ctx context.Context, req *pb.ASTableListReq) (*
 		})
 		return nil, errors.New("get sink info failed")
 	}
-	//unmarshal...
+	// unmarshal...
 	if err = json.Unmarshal([]byte(buf), &connInfo); nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"call":    "TableList",
@@ -1385,11 +1383,10 @@ func (s *RulesService) GetTableDetails(ctx context.Context, req *pb.ASGetTableDe
 }
 
 func (s *RulesService) GetTableMap(ctx context.Context, req *pb.ASGetTableMapReq) (*pb.ASGetTableMapResp, error) {
-
 	if req.TableName == "" {
 		return nil, pb.ErrFailedSinkInfo()
 	}
-	//get connect informations.
+	// get connect informations.
 	connInfo, err := GetConnectInfoBySinkIdFromRedis(req.Id)
 	if nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
@@ -1401,8 +1398,8 @@ func (s *RulesService) GetTableMap(ctx context.Context, req *pb.ASGetTableMapReq
 		return nil, pb.ErrFailedSinkInfo()
 	}
 
-	//construct.
-	//table infomation.
+	// construct.
+	// table infomation.
 	var table action_sink.Table
 	switch strings.ToLower(connInfo.SinkType) {
 	case ActionType_Chronus:
@@ -1450,7 +1447,7 @@ func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
 		connectInfo util.ConnectInfo
 	)
 
-	//get connect informations from redis.
+	// get connect informations from redis.
 	if buf, err = endpoint.GetRedisEndpoint().Get(sinkId); nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"desc":    "get connect informations from redis by sink id failed.",
@@ -1459,7 +1456,7 @@ func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
 		})
 		return nil, err
 	}
-	//unmarshal...
+	// unmarshal...
 	if err = json.Unmarshal([]byte(buf), &connectInfo); nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
 			"descs":   "get connect informations from redis by sink id failed.",
@@ -1472,12 +1469,11 @@ func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
 	return &connectInfo, nil
 }
 
-//action的configuration里的字段
+// action的configuration里的字段
 const MappingInfoKey = "mapping"
 
 func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
-
-	//select action.
+	// select action.
 	targetId, err := strconv.ParseUint(req.TargetId, 10, 0)
 	if err != nil {
 		return nil, pb.ErrInvalidArgument()
@@ -1504,7 +1500,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 		return nil, pb.ErrInternalError()
 	}
 
-	//get connect informations.
+	// get connect informations.
 	connInfo, err = GetConnectInfoBySinkIdFromRedis(sinkId)
 	if nil != err {
 		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
@@ -1518,7 +1514,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 		return nil, pb.ErrFailedSinkInfo()
 	}
 
-	//update configurations, sink_id.
+	// update configurations, sink_id.
 	mapFields := make([]util.MapField, 0)
 	for _, field := range req.Fields {
 		if (field.MField == nil) || (field.TField == nil) {
@@ -1556,7 +1552,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 		return &pb.ASUpdateTableMapResp{}, nil
 	}
 
-	//反序列化action.Configuration.
+	// 反序列化action.Configuration.
 	var info interface{}
 	var exists bool
 	var warn error
@@ -1571,18 +1567,18 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 	} else {
 		configuration = make(map[string]interface{})
 	}
-	//更新映射关系，配置完整性
+	// 更新映射关系，配置完整性
 	mapInfo := &util.MappingInfo{
-		//connInfo:  connInfo,
+		// connInfo:  connInfo,
 		TableName: req.TableName,
 		Maps:      mapFields,
 	}
 	mapInfo.SetConnInfo(*connInfo)
 
-	//对映射关系进行合成...
+	// 对映射关系进行合成...
 	configuration[MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
 
-	//更新action的配置
+	// 更新action的配置
 	configurationData, err := json.Marshal(configuration)
 	if err != nil {
 		return &pb.ASUpdateTableMapResp{}, err
@@ -1598,7 +1594,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 			"validate_error": warn,
 		})
 	}
-	//update Configurations.
+	// update Configurations.
 
 	action.SinkId = connInfo.Key()
 	action.Update()
