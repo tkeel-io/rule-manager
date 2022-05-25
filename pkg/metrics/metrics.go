@@ -7,7 +7,7 @@ const (
 	MetricsLabelTenant = "tenant_id"
 
 	// metrics name.
-	MetricsNameRuleNum = "core_rule_num"
+	MetricsNameRuleNum = "rule_num"
 )
 
 var CollectorRuleNumber = prometheus.NewGaugeVec(
