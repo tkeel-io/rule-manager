@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/tkeel-io/kit/app"
 	"github.com/tkeel-io/kit/log"
@@ -18,8 +19,10 @@ import (
 	"github.com/tkeel-io/rule-manager/pkg/server"
 	"github.com/tkeel-io/rule-manager/pkg/service"
 
+	metrics_v1 "github.com/tkeel-io/rule-manager/api/metrics/v1"
 	openapi "github.com/tkeel-io/rule-manager/api/openapi/v1"
 	rule "github.com/tkeel-io/rule-manager/api/rule/v1"
+	"github.com/tkeel-io/rule-manager/pkg/metrics"
 )
 
 var (
@@ -58,7 +61,13 @@ func main() {
 	if err := s.Run(context.TODO()); err != nil {
 		panic(err)
 	}
-
+	go func() {
+		timer := time.NewTicker(time.Minute)
+		rule := &dao.Rule{}
+		for range timer.C {
+			rule.InitMetrics()
+		}
+	}()
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)
 	<-stop
@@ -77,6 +86,9 @@ func register(httpSrv *transportHTTP.Server, grpcSrv *grpc.Server) {
 		RulesSrv := service.NewRulesService()
 		rule.RegisterRulesHTTPServer(httpSrv.Container, RulesSrv)
 		rule.RegisterRulesServer(grpcSrv.GetServe(), RulesSrv)
+
+		metricsSrv := service.NewMetricsService(metrics.CollectorRuleNumber)
+		metrics_v1.RegisterMetricsHTTPServer(httpSrv.Container, metricsSrv)
 	}
 }
 

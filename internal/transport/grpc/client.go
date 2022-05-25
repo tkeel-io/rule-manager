@@ -3,9 +3,9 @@ package xgrpc
 import (
 	"time"
 
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/tkeel-io/rule-manager/config"
 	_ "github.com/tkeel-io/rule-manager/internal/types"
-	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	"github.com/tkeel-io/rule-util/metadata"
 	pb "github.com/tkeel-io/rule-util/metadata/v1"
 	"github.com/tkeel-io/rule-util/pkg/registry"
@@ -21,7 +21,7 @@ var opts = []grpc.DialOption{
 	grpc.WithUnaryInterceptor(
 		grpc_opentracing.UnaryClientInterceptor(),
 	),
-	//grpc.WithTimeout(timeout),
+	// grpc.WithTimeout(timeout),
 	grpc.WithBackoffMaxDelay(time.Second * 3),
 	grpc.WithInitialWindowSize(1 << 30),
 	grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(64 * 1024 * 1024)),
@@ -33,7 +33,6 @@ type Client struct {
 }
 
 func NewClient() *Client {
-
 	discovery, err0 := etcdv3.New(&registry.Config{
 		Endpoints: config.GetConfig().Etcd.Address,
 	})
@@ -48,7 +47,7 @@ func NewClient() *Client {
 }
 
 func newRuleActionClient(discovery *etcdv3.Discovery) pb.RuleActionClient {
-	//timeout := time.Duration(config.RPCClient.Timeout)
+	// timeout := time.Duration(config.RPCClient.Timeout)
 	resolverBuilder := discovery.GRPCResolver()
 	resolver.Register(resolverBuilder)
 	conn, err := grpc.Dial(
@@ -60,8 +59,9 @@ func newRuleActionClient(discovery *etcdv3.Discovery) pb.RuleActionClient {
 	}
 	return pb.NewRuleActionClient(conn)
 }
+
 func newRulexNodeActionClient(discovery *etcdv3.Discovery) pb.RulexNodeActionClient {
-	//timeout := time.Duration(config.RPCClient.Timeout)
+	// timeout := time.Duration(config.RPCClient.Timeout)
 	resolverBuilder := discovery.GRPCResolver()
 	resolver.Register(resolverBuilder)
 	conn, err1 := grpc.Dial(

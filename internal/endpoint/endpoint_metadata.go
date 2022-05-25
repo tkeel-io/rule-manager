@@ -14,10 +14,10 @@ import (
 	metapb "github.com/tkeel-io/rule-util/metadata/v1"
 )
 
-//1. 创建Rule，在metadata中创建rule
+// 1. 创建Rule，在metadata中创建rule
 //	1. 直接创建Rule
 //	2. 为Rule追加Action
-//2. 删除Rule，在metadata中删除Rule
+// 2. 删除Rule，在metadata中删除Rule
 //	1. 直接删除Rule
 //	2. 删除Action的时候重新生成Rule
 
@@ -104,13 +104,12 @@ func logRule(rule *metapb.RuleQL) {
 }
 
 func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error {
-
 	if nil == rule {
 		return nil
 	}
 
 	var flagStart bool
-	rule.UserId = "admin"
+	//	rule.UserId = "admin"
 	packetId := atomic.AddInt64(&c.packedId, 1)
 	ruleql := &metapb.RuleQL{
 		Id:          rule.Id,
@@ -134,7 +133,7 @@ func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error
 		})
 	}
 
-	//如果没有可用的数据转发action就禁止启动
+	// 如果没有可用的数据转发action就禁止启动
 	if !flagStart {
 		err := errors.New("no available action, please check actions.")
 		log.Error(zap.Any(metadataLogTitle, map[string]interface{}{
@@ -173,11 +172,10 @@ func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error
 	return nil
 }
 
-//require Ruleql{user_id&id}
+// require Ruleql{user_id&id}
 func (c *MetadataEndpoint) DelRule(ctx context.Context, rule *xutils.Rule) error {
-
 	packetId := atomic.AddInt64(&c.packedId, 1)
-	rule.UserId = "admin"
+	//	rule.UserId = "admin"
 	resp, err := c.Client.Rule().DelRule(ctx, &metapb.RuleRequest{
 		Header: &metapb.RequestHeader{
 			UserId: rule.UserId,

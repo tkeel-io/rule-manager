@@ -26,7 +26,7 @@ func ConvertRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 }
 
 func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
-	//query rule.
+	// query rule.
 	var (
 		err error
 	)
@@ -41,12 +41,12 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 
 	res := &Rule{
 		Id:      ruleId2RulexID(rule.ID),
-		UserId:  rule.UserID,
+		UserId:  rule.TenantID,
 		Topic:   xutils.GenerateTopic(rule),
 		Body:    []byte(xutils.GenerateRuleql(rule)),
 		Actions: make([]*Action, 0),
 	}
-	//query actions, update rule from metadata
+	// query actions, update rule from metadata
 	targetConnd := &dao.Target{RuleID: rule.ID}
 	targets := make([]*dao.Target, 0)
 	tx := dao.DB().Model(targetConnd).Where(targetConnd)
@@ -56,7 +56,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 		return nil, result.Error
 	}
 	for _, ac := range targets {
-		//check action status.
+		// check action status.
 		if act := ConvertActionZ(ac); nil != act {
 			res.Actions = append(res.Actions, act)
 		} else {
@@ -76,7 +76,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 		errorSinkHost := "tkeel-middleware-kafka-headless:9092"
 		errorTopic := rule.SubEndpoint
 		const version = "v0.0.1"
-		var options = make(map[string]interface{})
+		options := make(map[string]interface{})
 		errorSink := xutils.GenerateUrlKafka(errorSinkHost, "user", "password", errorTopic)
 		options["sink"] = errorSink
 		options["topic"] = errorTopic
