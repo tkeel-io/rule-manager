@@ -65,6 +65,10 @@ type Rule struct {
 	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
 }
 
+func (s *Rule) UpdateTenantID(userID, tenantID string) {
+	DB().Model(&Rule{}).Where(&Rule{UserID: userID}).Update("tenant_id", tenantID)
+}
+
 func (r *Rule) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
@@ -192,11 +196,6 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
-	if CoreClient == nil {
-		if err := SetCoreClientUp(); err != nil {
-			return err
-		}
-	}
 	field := "*"
 	switch int(e.Rule.Type) {
 	case RuleTypeMessage:
@@ -206,7 +205,7 @@ func (e *RuleEntities) BeforeCreate(tx *gorm.DB) error {
 	default:
 		log.Error("rule type ", e)
 	}
-	if err := CoreClient.Subscribe(subscribeID, e.EntityID, config.RuleTopic, e.Rule.TenantID, field); err != nil {
+	if err := CoreClient().Subscribe(subscribeID, e.EntityID, config.RuleTopic, e.Rule.TenantID, field); err != nil {
 		log.Error("Subscribe entity failed", "entity", e.EntityID, "topic", config.RuleTopic, "error", err)
 		return err
 	}
@@ -227,16 +226,11 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 		e.UniqueKey = GenUniqueKey(e.RuleID, e.EntityID)
 	}
 	subscribeID := fmt.Sprintf(SubscriptionIDFormat, e.EntityID, e.RuleID, config.RuleTopic)
-	if CoreClient == nil {
-		if err := SetCoreClientUp(); err != nil {
-			return err
-		}
-	}
 	var rule Rule
 	if DB().Model(&Rule{}).Where("id=?", e.RuleID).First(&rule).Error != nil {
 		return fmt.Errorf("rule not found")
 	}
-	if err := CoreClient.Unsubscribe(subscribeID, rule.TenantID); err != nil {
+	if err := CoreClient().Unsubscribe(subscribeID, rule.TenantID); err != nil {
 		log.Error("call unsubscribe error", err)
 		return err
 	}
@@ -367,12 +361,7 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	separator := ","
 	patchData := make([]map[string]interface{}, 0)
 
-	if CoreClient == nil {
-		if err := SetCoreClientUp(); err != nil {
-			return err
-		}
-	}
-	device, err := CoreClient.GetDeviceEntity(entityID)
+	device, err := CoreClient().GetDeviceEntity(entityID)
 	log.Debug("get device entity:", device)
 	if err != nil {
 		log.Error("get entity err:", err)
@@ -412,12 +401,7 @@ func UpdateEntityRuleInfo(entityID, ruleinfo string, c choice) error {
 	log.Debug("patchData:", patchData)
 	log.Debug("call patch on choice (add 1, reduce 2):", c)
 
-	if CoreClient == nil {
-		if err := SetCoreClientUp(); err != nil {
-			return err
-		}
-	}
-	if err = CoreClient.PatchEntity(entityID, patchData); err != nil {
+	if err = CoreClient().PatchEntity(entityID, patchData); err != nil {
 		err = errors.Wrap(err, "patch entity err")
 		return err
 	}
