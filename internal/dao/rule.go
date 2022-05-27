@@ -232,12 +232,12 @@ func (e *RuleEntities) BeforeDelete(tx *gorm.DB) error {
 	}
 	if err := CoreClient().Unsubscribe(subscribeID, rule.TenantID); err != nil {
 		log.Error("call unsubscribe error", err)
-		return err
+		//	return err
 	}
 
 	if err := UpdateEntityRuleInfo(e.EntityID, "RULE:"+e.UniqueKey, reduce); err != nil {
 		log.Error("call update entity error", err)
-		return err
+		//	return err
 	}
 	return nil
 }
