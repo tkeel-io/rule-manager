@@ -9,7 +9,6 @@ import (
 	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/rule-manager/config"
 
-	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -17,24 +16,21 @@ import (
 var (
 	_once      sync.Once
 	db         *gorm.DB
-	CoreClient *core.Client
-
-	//	d          dapr.Client
+	coreClient *core.Client
 )
 
-func SetCoreClientUp() (err error) {
-	CoreClient, err = core.NewCoreClient()
-	if err != nil {
-		return errors.Wrap(err, "failed to create core client")
+func CoreClient() *core.Client {
+	if coreClient != nil {
+		return coreClient
 	}
 
-	/*
-		d, err = dapr.NewClient()
-		if err != nil {
-			return errors.Wrap(err, "init dapr client error")
-		}
-	*/
-	return
+	client, err := core.NewCoreClient()
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+	coreClient = client
+	return coreClient
 }
 
 func Setup() error {

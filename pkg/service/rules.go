@@ -297,9 +297,10 @@ func (s *RulesService) RuleQuery(ctx context.Context, req *pb.RuleQueryReq) (*pb
 		tkeelLog.Error(QueryPrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
+	// 更新历史数据中租户id.
+	rule.UpdateTenantID(user.ID, user.TenantID)
 
 	resp := &pb.RuleQueryResp{}
-
 	page.SetTotal(uint(count))
 	if err = page.FillResponse(resp); err != nil {
 		tkeelLog.Error(QueryPrefixTag, err)

@@ -106,9 +106,6 @@ func initDB() {
 	if err := dao.Setup(); err != nil {
 		log.Fatal("setup database failed", err)
 	}
-	if err := dao.SetCoreClientUp(); err != nil {
-		log.Fatal("setup core client failed", err)
-	}
 }
 
 const (
