@@ -53,13 +53,13 @@ const SubscriptionIDFormat = "%s_%d_%s"
 
 type Rule struct {
 	gorm.Model
-	UserID      string `gorm:"index"`
+	UserID      string `gorm:"index;uniqueIndex:user_rule"`
 	TenantID    string
 	ModelID     string
 	ModelName   string
 	SubID       uint
 	SubEndpoint string
-	Name        string `gorm:"not null;size:255"`
+	Name        string `gorm:"not null;size:255;uniqueIndex:user_rule"`
 	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc        string
 	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`

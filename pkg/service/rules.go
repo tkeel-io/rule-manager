@@ -107,6 +107,10 @@ func (s *RulesService) RuleCreate(ctx context.Context, req *pb.RuleCreateReq) (r
 	result := dao.DB().Model(&rule).Create(&rule)
 	if result.Error != nil {
 		log.Error(CreatePrefixTag, result.Error)
+		mysqlErr, ok := result.Error.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return nil, pb.ErrDuplicateName()
+		}
 		return nil, pb.ErrInternalError()
 	}
 	return &pb.RuleCreateResp{
@@ -155,6 +159,10 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 
 	result = dao.DB().Save(&rule)
 	if result.Error != nil {
+		mysqlErr, ok := result.Error.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return nil, pb.ErrDuplicateName()
+		}
 		return nil, pb.ErrInternalError()
 	}
 
@@ -358,6 +366,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 	if ruleReq, err = utils.ConvertRule(ctx, uint(req.Id), user.ID); err != nil {
 		return nil, err
 	}
+
 	switch req.Status {
 	case RuleRunning:
 		if err = endpoint.GetMetadataEndpointIns().AddRule(ctx, ruleReq); err != nil {
@@ -373,7 +382,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 	}
 
 	if err != nil {
-		return nil, errors.Wrap(err, "operator rule err")
+		return nil, errors.Wrap(err, "操作规则错误")
 	}
 
 	rule.Status = uint8(req.Status)
@@ -429,7 +438,7 @@ func (s *RulesService) AddDevicesToRule(ctx context.Context, req *pb.AddDevicesT
 		tkeelLog.Error("save rule_entities records err", err)
 		mysqlErr, ok := err.(*mysql.MySQLError)
 		if ok && mysqlErr.Number == 1062 {
-			return nil, pb.ErrDuplicateCreate()
+			return nil, pb.ErrDuplicateDevice()
 		}
 		return nil, pb.ErrInternalError()
 	}

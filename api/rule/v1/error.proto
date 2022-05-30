@@ -80,4 +80,16 @@ enum Error {
   // @msg=获取数据表信息失败
   // @code=OK
   ERR_FAILED_TABLE_INFO = 17;
+  
+  // @msg=命名重复
+  // @code=INVALID_ARGUMENT
+  ERR_DUPLICATE_NAME = 18;
+
+  // @msg=重复添加设备
+  // @code=INVALID_ARGUMENT
+  ERR_DUPLICATE_DEVICE = 19;
+
+  // @msg=没有可用的转发
+  // @code=INVALID_ARGUMENT
+  ERR_INVALID_RULE = 20;
 }

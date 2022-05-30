@@ -29,6 +29,9 @@ var errFailedClickhouseConnection *errors.TError
 var errFailedSinkInfo *errors.TError
 var errFailedMapInfo *errors.TError
 var errFailedTableInfo *errors.TError
+var errDuplicateName *errors.TError
+var errDuplicateDevice *errors.TError
+var errInvalidRule *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -67,6 +70,12 @@ func init() {
 	errors.Register(errFailedMapInfo)
 	errFailedTableInfo = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_TABLE_INFO", "获取数据表信息失败")
 	errors.Register(errFailedTableInfo)
+	errDuplicateName = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_DUPLICATE_NAME", "命名重复")
+	errors.Register(errDuplicateName)
+	errDuplicateDevice = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_DUPLICATE_DEVICE", "重复添加设备")
+	errors.Register(errDuplicateDevice)
+	errInvalidRule = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_INVALID_RULE", "没有可用的转发")
+	errors.Register(errInvalidRule)
 }
 
 func ErrUnknown() errors.Error {
@@ -139,4 +148,16 @@ func ErrFailedMapInfo() errors.Error {
 
 func ErrFailedTableInfo() errors.Error {
 	return errFailedTableInfo
+}
+
+func ErrDuplicateName() errors.Error {
+	return errDuplicateName
+}
+
+func ErrDuplicateDevice() errors.Error {
+	return errDuplicateDevice
+}
+
+func ErrInvalidRule() errors.Error {
+	return errInvalidRule
 }
