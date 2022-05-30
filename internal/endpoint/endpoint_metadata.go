@@ -2,11 +2,11 @@ package endpoint
 
 import (
 	"context"
-	"errors"
 	"sync/atomic"
 	"time"
 
 	"github.com/tkeel-io/kit/log"
+	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
 	"go.uber.org/zap"
 
 	xutils "github.com/tkeel-io/rule-manager/internal/endpoint/utils"
@@ -135,7 +135,7 @@ func (c *MetadataEndpoint) AddRule(ctx context.Context, rule *xutils.Rule) error
 
 	// 如果没有可用的数据转发action就禁止启动
 	if !flagStart {
-		err := errors.New("no available action, please check actions.")
+		err := pb.ErrInvalidRule()
 		log.Error(zap.Any(metadataLogTitle, map[string]interface{}{
 			"code":  err.Error(),
 			"error": err.Error(),
