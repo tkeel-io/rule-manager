@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "api/rule/v1/dto_rule.proto",
+    "title": "api/rule/v1/wrappers.proto",
     "version": "version not set"
   },
   "tags": [
@@ -18,10 +18,11 @@
   "paths": {
     "/rules": {
       "get": {
-        "operationId": "Rules_RuleQuery",
+        "summary": "Query Rules",
+        "operationId": "QueryRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleQueryResp"
             }
@@ -118,14 +119,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "post": {
-        "operationId": "Rules_RuleCreate",
+        "summary": "Create Rule",
+        "operationId": "CreateRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleCreateResp"
             }
@@ -148,16 +150,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}": {
       "get": {
-        "operationId": "Rules_RuleGet",
+        "summary": "Get Rule",
+        "operationId": "GetRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRule"
             }
@@ -179,14 +182,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "delete": {
-        "operationId": "Rules_RuleDelete",
+        "summary": "Delete Rule",
+        "operationId": "DeleteRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -208,14 +212,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "put": {
-        "operationId": "Rules_RuleUpdate",
+        "summary": "Update Rule",
+        "operationId": "UpdateRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleUpdateResp"
             }
@@ -254,16 +259,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/devices": {
       "get": {
-        "operationId": "Rules_GetRuleDevices",
+        "summary": "Get Rule Devices",
+        "operationId": "GetRuleDevices",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleDevicesResp"
             }
@@ -329,14 +335,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "delete": {
-        "operationId": "Rules_RemoveDevicesFromRule",
+        "summary": "Remove Devices From Rule",
+        "operationId": "RemoveDevicesFromRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -364,14 +371,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "post": {
-        "operationId": "Rules_AddDevicesToRule",
+        "summary": "Add Devices to Rule",
+        "operationId": "AddDevicesToRule",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -409,16 +417,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/devices_id_array": {
       "get": {
-        "operationId": "Rules_GetRuleDevicesID",
+        "summary": "Get Rule Devices ID",
+        "operationId": "GetRuleDevicesID",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleDevicesIDResp"
             }
@@ -440,16 +449,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/running_status": {
       "put": {
-        "operationId": "Rules_RuleStatusSwitch",
+        "summary": "Switch Rule Status",
+        "operationId": "SwitchRuleStatus",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleRuleStatusSwitchResp"
             }
@@ -486,16 +496,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/subscribe/error": {
       "delete": {
-        "operationId": "Rules_ErrUnsubscribe",
+        "summary": "Error UnSubscribe",
+        "operationId": "ErrUnsubscribe",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -517,14 +528,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "post": {
-        "operationId": "Rules_ErrSubscribe",
+        "summary": "Error Subscribe",
+        "operationId": "ErrSubscribe",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -559,14 +571,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "put": {
-        "operationId": "Rules_ChangeErrSubscribe",
+        "summary": "Change Error Subscribe",
+        "operationId": "ChangeErrSubscribe",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -601,16 +614,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/target": {
       "get": {
-        "operationId": "Rules_ListRuleTarget",
+        "summary": "List Rule Target",
+        "operationId": "ListRuleTarget",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleListRuleTargetResp"
             }
@@ -676,14 +690,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "post": {
-        "operationId": "Rules_CreateRuleTarget",
+        "summary": "Create Rule Target",
+        "operationId": "CreateRuleTarget",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleCreateRuleTargetResp"
             }
@@ -742,16 +757,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/rules/{id}/target/{target_id}": {
       "delete": {
-        "operationId": "Rules_DeleteRuleTarget",
+        "summary": "Delete Rule Target",
+        "operationId": "DeleteRuleTarget",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -780,14 +796,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "put": {
-        "operationId": "Rules_UpdateRuleTarget",
+        "summary": "Update Rule Target",
+        "operationId": "UpdateRuleTarget",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleUpdateRuleTargetResp"
             }
@@ -839,16 +856,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/sink/{id}/maps": {
       "get": {
-        "operationId": "Rules_GetTableMap",
+        "summary": "Get Table Map",
+        "operationId": "GetTableMap",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleASGetTableMapResp"
             }
@@ -875,14 +893,15 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       },
       "put": {
-        "operationId": "Rules_UpdateTableMap",
+        "summary": "Update Table Map",
+        "operationId": "UpdateTableMap",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleASUpdateTableMapResp"
             }
@@ -909,8 +928,7 @@
               "type": "object",
               "properties": {
                 "target_id": {
-                  "type": "string",
-                  "format": "uint64"
+                  "type": "string"
                 },
                 "table_name": {
                   "type": "string"
@@ -927,16 +945,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/sink/{id}/tables": {
       "get": {
-        "operationId": "Rules_TableList",
+        "summary": "Table List",
+        "operationId": "TableList",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleASTableListResp"
             }
@@ -957,16 +976,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/sink/{id}/tables/{table_name}": {
       "get": {
-        "operationId": "Rules_GetTableDetails",
+        "summary": "Get Table Details",
+        "operationId": "GetTableDetails",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleASGetTableDetailsResp"
             }
@@ -993,16 +1013,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/testing/kafka": {
       "get": {
-        "operationId": "Rules_TestConnectToKafka",
+        "summary": "Test Kafka config",
+        "operationId": "TesyConnectToKafka",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "properties": {}
             }
@@ -1030,16 +1051,17 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     },
     "/verify/{sink_type}": {
       "post": {
-        "operationId": "Rules_ActionVerify",
+        "summary": "Action Verify",
+        "operationId": "ActionVerify",
         "responses": {
           "200": {
-            "description": "A successful response.",
+            "description": "OK",
             "schema": {
               "$ref": "#/definitions/ruleASVerifyResp"
             }
@@ -1085,7 +1107,7 @@
           }
         ],
         "tags": [
-          "Rules"
+          "Rule"
         ]
       }
     }
@@ -1167,8 +1189,7 @@
           "type": "string"
         },
         "target_id": {
-          "type": "string",
-          "format": "uint64"
+          "type": "string"
         },
         "table_name": {
           "type": "string"
@@ -1326,8 +1347,8 @@
     "ruleMapField": {
       "type": "object",
       "properties": {
-        "tfield_name": {
-          "type": "string"
+        "t_field": {
+          "$ref": "#/definitions/ruleField"
         },
         "m_field": {
           "$ref": "#/definitions/ruleField"
