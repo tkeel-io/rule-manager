@@ -19,6 +19,17 @@ service Rules {
       post : "/rules"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Create Rule";
+        operation_id: "CreateRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp) {
@@ -26,12 +37,33 @@ service Rules {
       put : "/rules/{id}"
       body : "*"
     };
-
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Update Rule";
+        operation_id: "UpdateRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc RuleDelete(RuleDeleteReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete : "/rules/{id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Delete Rule";
+        operation_id: "DeleteRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 
@@ -39,12 +71,34 @@ service Rules {
     option (google.api.http) = {
       get : "/rules/{id}"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Get Rule";
+        operation_id: "GetRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
 
   rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp) {
     option (google.api.http) = {
       get : "/rules"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Query Rules";
+        operation_id: "QueryRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
 
   };
@@ -55,11 +109,33 @@ service Rules {
       put : "/rules/{id}/running_status"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Switch Rule Status";
+        operation_id: "SwitchRuleStatus";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc GetRuleDevicesID(RuleDevicesIDReq) returns (RuleDevicesIDResp) {
     option (google.api.http) = {
       get : "/rules/{id}/devices_id_array"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Get Rule Devices ID";
+        operation_id: "GetRuleDevicesID";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 
@@ -68,17 +144,50 @@ service Rules {
       post : "/rules/{id}/devices"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Add Devices to Rule";
+        operation_id: "AddDevicesToRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc RemoveDevicesFromRule(RemoveDevicesFromRuleReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete : "/rules/{id}/devices"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Remove Devices From Rule";
+        operation_id: "RemoveDevicesFromRule";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc GetRuleDevices(RuleDevicesReq) returns (RuleDevicesResp) {
     option (google.api.http) = {
       get : "/rules/{id}/devices"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Get Rule Devices";
+        operation_id: "GetRuleDevices";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 
@@ -87,6 +196,17 @@ service Rules {
       post : "/rules/{id}/target"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Create Rule Target";
+        operation_id: "CreateRuleTarget";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc UpdateRuleTarget(UpdateRuleTargetReq) returns (UpdateRuleTargetResp) {
@@ -94,11 +214,33 @@ service Rules {
       put: "/rules/{id}/target/{target_id}"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Update Rule Target";
+        operation_id: "UpdateRuleTarget";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc TestConnectToKafka(TestConnectToKafkaReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       get : "/testing/kafka"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Test Kafka config";
+        operation_id: "TesyConnectToKafka";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 
@@ -107,11 +249,33 @@ service Rules {
       post : "/verify/{sink_type}"
       body: "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Action Verify";
+        operation_id: "ActionVerify";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
 rpc TableList (ASTableListReq) returns (ASTableListResp) {
     option (google.api.http) = {
       get: "/sink/{id}/tables"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Table List";
+        operation_id: "TableList";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
 
 };
@@ -120,12 +284,34 @@ rpc GetTableDetails(ASGetTableDetailsReq) returns (ASGetTableDetailsResp) {
     option (google.api.http) = {
       get: "/sink/{id}/tables/{table_name}"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Get Table Details";
+        operation_id: "GetTableDetails";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
 
 };
 
 rpc GetTableMap (ASGetTableMapReq) returns (ASGetTableMapResp) {
     option (google.api.http) = {
       get: "/sink/{id}/maps"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Get Table Map";
+        operation_id: "GetTableMap";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
 
 };
@@ -135,6 +321,17 @@ rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
       put: "/sink/{id}/maps"
       body: "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Update Table Map";
+        operation_id: "UpdateTableMap";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
 };
 
 
@@ -142,11 +339,33 @@ rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
     option (google.api.http) = {
       get : "/rules/{id}/target"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "List Rule Target";
+        operation_id: "ListRuleTarget";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc DeleteRuleTarget(DeleteRuleTargetReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete : "/rules/{id}/target/{target_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Delete Rule Target";
+        operation_id: "DeleteRuleTarget";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 
@@ -155,6 +374,17 @@ rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
       post : "/rules/{id}/subscribe/error"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Error Subscribe";
+        operation_id: "ErrSubscribe";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc ChangeErrSubscribe(ChangeErrSubscribeReq) returns (google.protobuf.Empty) {
@@ -162,11 +392,33 @@ rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
       put : "/rules/{id}/subscribe/error"
       body : "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Change Error Subscribe";
+        operation_id: "ChangeErrSubscribe";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
+    };
   };
 
   rpc ErrUnsubscribe(ErrUnsubscribeReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete : "/rules/{id}/subscribe/error"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        summary: "Error UnSubscribe";
+        operation_id: "ErrUnsubscribe";
+        tags: "Rule";
+        responses: {
+          key: "200"
+          value: {
+            description: "OK";
+        }
+      }
     };
   };
 }
