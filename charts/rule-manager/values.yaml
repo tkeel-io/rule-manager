@@ -23,6 +23,7 @@ fullnameOverride: "rule-manager"
 
 daprConfig: rule
 appPort: 31234
+metricsPort: 31236
 
 resources:
   limits:
