@@ -49,6 +49,10 @@ spec:
         - name: rulex
           image: "{{ .Values.rulex.repository }}:{{ .Values.rulex.tag }}"
           imagePullPolicy: {{ .Values.rulex.pullPolicy }}
+          ports:
+            - name: http-metrics
+              containerPort: {{.Values.metricsPort}}
+              protocol: TCP
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
