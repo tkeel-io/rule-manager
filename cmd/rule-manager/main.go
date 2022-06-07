@@ -87,7 +87,7 @@ func register(httpSrv *transportHTTP.Server, grpcSrv *grpc.Server) {
 		rule.RegisterRulesHTTPServer(httpSrv.Container, RulesSrv)
 		rule.RegisterRulesServer(grpcSrv.GetServe(), RulesSrv)
 
-		metricsSrv := service.NewMetricsService(metrics.CollectorRuleNumber)
+		metricsSrv := service.NewMetricsService(metrics.Metrics...)
 		metrics_v1.RegisterMetricsHTTPServer(httpSrv.Container, metricsSrv)
 	}
 }

@@ -8,6 +8,9 @@ const (
 
 	// metrics name.
 	MetricsNameRuleNum = "rule_num"
+
+	// metrics name.
+	MetricsNameRuleMax = "rule_max"
 )
 
 var CollectorRuleNumber = prometheus.NewGaugeVec(
@@ -17,3 +20,12 @@ var CollectorRuleNumber = prometheus.NewGaugeVec(
 	},
 	[]string{MetricsLabelTenant},
 )
+
+var CollectorRuleMax = prometheus.NewGaugeVec(
+	prometheus.GaugeOpts{
+		Name: MetricsNameRuleMax,
+		Help: "rule max.",
+	},
+	[]string{MetricsLabelTenant},
+)
+var Metrics = []prometheus.Collector{CollectorRuleMax, CollectorRuleNumber}
