@@ -828,6 +828,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 			t.Host, t.Database, t.TableName = getTargetFromExt(*target.Ext)
 		}
 
+		t.Endpoint = fmt.Sprintf("%s://%s/%s/%s", t.SinkType, t.Host, t.Database+t.Value, t.TableName)
 		data = append(data, t)
 	}
 
