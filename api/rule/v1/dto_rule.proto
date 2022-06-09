@@ -735,6 +735,7 @@ message CreateRuleTargetResp {
     string user = 9;
     string password = 10;
     string database = 11;
+  string endpoint = 12;
 }
 
 message UpdateRuleTargetReq {
