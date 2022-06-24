@@ -16,195 +16,171 @@ option java_package = "api.rule";
 service Rules {
   rpc RuleCreate(RuleCreateReq) returns (RuleCreateResp) {
     option (google.api.http) = {
-      post : "/rules"
-      body : "*"
+      post: "/rules"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "创建路由";
-        operation_id: "CreateRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "创建路由"
+      operation_id: "CreateRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc RuleUpdate(RuleUpdateReq) returns (RuleUpdateResp) {
     option (google.api.http) = {
-      put : "/rules/{id}"
-      body : "*"
+      put: "/rules/{id}"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "更新路由";
-        operation_id: "UpdateRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "更新路由"
+      operation_id: "UpdateRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc RuleDelete(RuleDeleteReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete : "/rules/{id}"
+      delete: "/rules/{id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "删除路由";
-        operation_id: "DeleteRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "删除路由"
+      operation_id: "DeleteRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc RuleGet(RuleGetReq) returns (Rule) {
     option (google.api.http) = {
-      get : "/rules/{id}"
+      get: "/rules/{id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询路由详情";
-        operation_id: "GetRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询路由详情"
+      operation_id: "GetRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
-
 
   rpc RuleQuery(RuleQueryReq) returns (RuleQueryResp) {
     option (google.api.http) = {
-      get : "/rules"
+      get: "/rules"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询路由列表";
-        operation_id: "QueryRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询路由列表"
+      operation_id: "QueryRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
-
   };
-
 
   rpc RuleStatusSwitch(RuleStatusSwitchReq) returns (RuleStatusSwitchResp) {
     option (google.api.http) = {
-      put : "/rules/{id}/running_status"
-      body : "*"
+      put: "/rules/{id}/running_status"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "切换路由状态";
-        operation_id: "SwitchRuleStatus";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "切换路由状态"
+      operation_id: "SwitchRuleStatus"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc GetRuleDevicesID(RuleDevicesIDReq) returns (RuleDevicesIDResp) {
     option (google.api.http) = {
-      get : "/rules/{id}/devices_id_array"
+      get: "/rules/{id}/devices_id_array"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询路由的设备id列表";
-        operation_id: "GetRuleDevicesID";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询路由的设备id列表"
+      operation_id: "GetRuleDevicesID"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc AddDevicesToRule(AddDevicesToRuleReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post : "/rules/{id}/devices"
-      body : "*"
+      post: "/rules/{id}/devices"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "添加设备到路由";
-        operation_id: "AddDevicesToRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "添加设备到路由"
+      operation_id: "AddDevicesToRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc RemoveDevicesFromRule(RemoveDevicesFromRuleReq) returns (google.protobuf.Empty) {
+  rpc RemoveDevicesFromRule(RemoveDevicesFromRuleReq)
+      returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete : "/rules/{id}/devices"
+      delete: "/rules/{id}/devices"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "从路由设备中删除设备";
-        operation_id: "RemoveDevicesFromRule";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "从路由设备中删除设备"
+      operation_id: "RemoveDevicesFromRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc GetRuleDevices(RuleDevicesReq) returns (RuleDevicesResp) {
     option (google.api.http) = {
-      get : "/rules/{id}/devices"
+      get: "/rules/{id}/devices"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询路由的设备列表";
-        operation_id: "GetRuleDevices";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询路由的设备列表"
+      operation_id: "GetRuleDevices"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc CreateRuleTarget(CreateRuleTargetReq) returns (CreateRuleTargetResp) {
     option (google.api.http) = {
-      post : "/rules/{id}/target"
-      body : "*"
+      post: "/rules/{id}/target"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "创建路由转发目标";
-        operation_id: "CreateRuleTarget";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "创建路由转发目标"
+      operation_id: "CreateRuleTarget"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
@@ -212,72 +188,64 @@ service Rules {
   rpc UpdateRuleTarget(UpdateRuleTargetReq) returns (UpdateRuleTargetResp) {
     option (google.api.http) = {
       put: "/rules/{id}/target/{target_id}"
-      body : "*"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "更新路由转发目标";
-        operation_id: "UpdateRuleTarget";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "更新路由转发目标"
+      operation_id: "UpdateRuleTarget"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc TestConnectToKafka(TestConnectToKafkaReq) returns (google.protobuf.Empty) {
+  rpc TestConnectToKafka(TestConnectToKafkaReq)
+      returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      get : "/testing/kafka"
+      get: "/testing/kafka"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "测试kafka配置";
-        operation_id: "TesyConnectToKafka";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "测试kafka配置"
+      operation_id: "TesyConnectToKafka"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc ActionVerify(ASVerifyReq) returns (ASVerifyResp) {
     option (google.api.http) = {
-      post : "/verify/{sink_type}"
+      post: "/verify/{sink_type}"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "验证转发配置";
-        operation_id: "ActionVerify";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "验证转发配置"
+      operation_id: "ActionVerify"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc TableList (ASTableListReq) returns (ASTableListResp) {
+  rpc TableList(ASTableListReq) returns (ASTableListResp) {
     option (google.api.http) = {
       get: "/sink/{id}/tables"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询数据表列表";
-        operation_id: "TableList";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询数据表列表"
+      operation_id: "TableList"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
-
   };
 
   rpc GetTableDetails(ASGetTableDetailsReq) returns (ASGetTableDetailsResp) {
@@ -285,967 +253,978 @@ service Rules {
       get: "/sink/{id}/tables/{table_name}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询数据表详情";
-        operation_id: "GetTableDetails";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询数据表详情"
+      operation_id: "GetTableDetails"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc GetTableMap (ASGetTableMapReq) returns (ASGetTableMapResp) {
+  rpc GetTableMap(ASGetTableMapReq) returns (ASGetTableMapResp) {
     option (google.api.http) = {
       get: "/sink/{id}/maps"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询数据表结构映射";
-        operation_id: "GetTableMap";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询数据表结构映射"
+      operation_id: "GetTableMap"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc UpdateTableMap (ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
-
+  rpc UpdateTableMap(ASUpdateTableMapReq) returns (ASUpdateTableMapResp) {
     option (google.api.http) = {
       put: "/sink/{id}/maps"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "更新数据表映射";
-        operation_id: "UpdateTableMap";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "更新数据表映射"
+      operation_id: "UpdateTableMap"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-
   rpc ListRuleTarget(ListRuleTargetReq) returns (ListRuleTargetResp) {
     option (google.api.http) = {
-      get : "/rules/{id}/target"
+      get: "/rules/{id}/target"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "查询路由目标列表";
-        operation_id: "ListRuleTarget";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "查询路由目标列表"
+      operation_id: "ListRuleTarget"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc DeleteRuleTarget(DeleteRuleTargetReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete : "/rules/{id}/target/{target_id}"
+      delete: "/rules/{id}/target/{target_id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "删除路由目标";
-        operation_id: "DeleteRuleTarget";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "删除路由目标"
+      operation_id: "DeleteRuleTarget"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc ErrSubscribe(ErrSubscribeReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      post : "/rules/{id}/subscribe/error"
-      body : "*"
+      post: "/rules/{id}/subscribe/error"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "错误信息订阅";
-        operation_id: "ErrSubscribe";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "错误信息订阅"
+      operation_id: "ErrSubscribe"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
-  rpc ChangeErrSubscribe(ChangeErrSubscribeReq) returns (google.protobuf.Empty) {
+  rpc ChangeErrSubscribe(ChangeErrSubscribeReq)
+      returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      put : "/rules/{id}/subscribe/error"
-      body : "*"
+      put: "/rules/{id}/subscribe/error"
+      body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "改变错误信息订阅";
-        operation_id: "ChangeErrSubscribe";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "改变错误信息订阅"
+      operation_id: "ChangeErrSubscribe"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 
   rpc ErrUnsubscribe(ErrUnsubscribeReq) returns (google.protobuf.Empty) {
     option (google.api.http) = {
-      delete : "/rules/{id}/subscribe/error"
+      delete: "/rules/{id}/subscribe/error"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-        summary: "取消错误信息订阅";
-        operation_id: "ErrUnsubscribe";
-        tags: "Rule";
-        responses: {
-          key: "200"
-          value: {
-            description: "OK";
-        }
+      summary: "取消错误信息订阅"
+      operation_id: "ErrUnsubscribe"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
       }
     };
   };
 }
 
-
-
-//Rule create.
+// Rule create.
 message RuleCreateReq {
   string name = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   string desc = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "描述",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "描述",
+      }];
   uint32 type = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 消息路由, 类型 2 时序路由",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 消息路由, 类型 2 时序路由",
+      }];
   string model_id = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "模板id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板id",
+      }];
   string model_name = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "模板名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板名称",
+      }];
 }
 
 message RuleCreateResp {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   string desc = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "描述",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "描述",
+      }];
   uint32 type = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 消息路由, 类型 2 时序路由",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 消息路由, 类型 2 时序路由",
+      }];
   uint32 status = 5
-    [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "状态 1 运行中, 状态 0 停止",
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
       }];
   int64 created_at = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "创建时间"
+      }];
   int64 updated_at = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "更新时间"
+      }];
   string model_id = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板id"
+      }];
   string model_name = 9
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板名称"
+      }];
 }
 
 message Rule {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   string desc = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "描述",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "描述",
+      }];
   uint32 type = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 消息路由, 类型 2 时序路由",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 消息路由, 类型 2 时序路由",
+      }];
   uint32 status = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "状态 1 运行中, 状态 0 停止",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
+      }];
   int64 created_at = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "创建时间"
+      }];
   int64 updated_at = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "更新时间"
+      }];
   uint32 devices_status = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "路由设备数量",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由设备数量",
+      }];
   uint32 targets_status = 9
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "路由目标数量",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由目标数量",
+      }];
   uint32 sub_id = 10
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "错误订阅id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "错误订阅id",
+      }];
   string model_id = 11
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板id"
+      }];
   string model_name = 12
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板名称"
+      }];
 }
 
-
-//rule update
+// rule update
 message RuleUpdateReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   string desc = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "描述",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "描述",
+      }];
 }
 
 message RuleUpdateResp {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   string desc = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "描述",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "描述",
+      }];
   uint32 type = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 消息路由, 类型 2 时序路由",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 消息路由, 类型 2 时序路由",
+      }];
   uint32 status = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "状态 1 运行中, 状态 0 停止",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
+      }];
   int64 created_at = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "创建时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "创建时间"
+      }];
   int64 updated_at = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "更新时间"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "更新时间"
+      }];
   string model_id = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板id"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板id"
+      }];
   string model_name = 9
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {description: "模板名称"}];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板名称"
+      }];
 }
 
-//rule delete.
+// rule delete.
 message RuleDeleteReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
-//rule delete.
+// rule delete.
 message RuleGetReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
-//rule query
+// rule query
 message RuleQueryReq {
-  uint32 page_num = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 page_num = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 page_size = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  string order_by = 3
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string order_by = 3 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "排序字段",
-  }];
-  bool is_descending = 4
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  bool is_descending = 4 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "倒序",
-  }];
-  string key_words = 5
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string key_words = 5 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字",
-  }];
-  string search_key = 6
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string search_key = 6 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字值"
-  }];
-  Uint64 id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    }
+  ];
+  Uint64 id = 7 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   repeated string ids = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "路由 id 列表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由 id 列表",
+      }];
   String name = 9
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "名称",
+      }];
   uint32 type = 10
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 消息路由, 类型 2 时序路由",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 消息路由, 类型 2 时序路由",
+      }];
   Uint32 status = 11
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-  description: "状态 1 运行中, 状态 0 停止",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
+      }];
 }
 
 message RuleQueryResp {
-  uint32 total = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 total = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "总数",
-    }];
-  uint32 page_num = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_num = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 last_page = 3
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 last_page = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "上一页",
-  }];
-  uint32 page_size = 4
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  repeated Rule data = 5
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  repeated Rule data = 5 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "路由列表",
-  }];
+    }
+  ];
 }
 
 message RuleStatusSwitchReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint32 status = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "状态 1 运行中, 状态 0 停止",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
+      }];
 }
 
 message RuleStatusSwitchResp {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint32 status = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "状态 1 运行中, 状态 0 停止",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "状态 1 运行中, 状态 0 停止",
+      }];
 }
 
 message RuleDevicesIDReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
 message RuleDevicesIDResp {
   repeated string devices_ids = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "路由设备id列表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由设备id列表",
+      }];
 }
 
 message RuleDevicesReq {
-  uint32 page_num = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 page_num = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 page_size = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  string order_by = 3
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string order_by = 3 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "排序字段",
-  }];
-  bool is_descending = 4
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  bool is_descending = 4 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "倒序",
-  }];
-  string key_words = 5
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string key_words = 5 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字",
-  }];
-  string search_key = 6
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string search_key = 6 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字值"
-  }];
-  uint64 id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    }
+  ];
+  uint64 id = 7 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
 message RuleDevicesResp {
-  uint32 total = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 total = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "总数",
-  }];
-  uint32 page_num = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_num = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 last_page = 3
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 last_page = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "上一页",
-  }];
-  uint32 page_size = 4
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  repeated Device data = 5
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  repeated Device data = 5 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "设备列表",
-  }];
+    }
+  ];
 }
 
 message AddDevicesToRuleReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   repeated string devices_ids = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备id列表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备id列表",
+      }];
 }
 
 message RemoveDevicesFromRuleReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string devices_ids = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备id列表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备id列表",
+      }];
 }
 
 message Device {
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "设备id",
   }];
   string name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备名称",
+      }];
   string template = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备模板",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备模板",
+      }];
   string group_name = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备组",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备组",
+      }];
   string status = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "设备状态",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备状态",
+      }];
 }
 
 message CreateRuleTargetReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint32 type = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 Kafka, 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 Kafka, 仅 kafka 类型使用",
+      }];
   string host = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka 地址， 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka 地址， 仅 kafka 类型使用",
+      }];
   string value = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka topic， 仅 kafka 类型使用",
-  }];
-  //string ext = 5;
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka topic， 仅 kafka 类型使用",
+      }];
+  // string ext = 5;
   string table_name = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "表名",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "表名",
+      }];
   string sink_type = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "mysql 或者 clickhouse",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "mysql 或者 clickhouse",
+      }];
   string sink_id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "验证成功后返回的id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "验证成功后返回的id",
+      }];
   repeated MapField fields = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
 }
 
 message CreateRuleTargetResp {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由目标id",
   }];
   uint32 type = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 Kafka, 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 Kafka, 仅 kafka 类型使用",
+      }];
   string host = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka 地址， 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka 地址， 仅 kafka 类型使用",
+      }];
   string value = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka topic， 仅 kafka 类型使用",
-  }];
-  //string ext = 5;
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka topic， 仅 kafka 类型使用",
+      }];
+  // string ext = 5;
   string table_name = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "表名",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "表名",
+      }];
   string sink_type = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "mysql 或者 clickhouse",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "mysql 或者 clickhouse",
+      }];
   string sink_id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "验证成功后返回的id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "验证成功后返回的id",
+      }];
   repeated MapField fields = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
   string user = 9
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "用户名",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "用户名",
+      }];
   string password = 10
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "密码",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "密码",
+      }];
   string database = 11
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据库",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据库",
+      }];
   string endpoint = 12
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "目标地址字符串",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "目标地址字符串",
+      }];
 }
 
 message UpdateRuleTargetReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint64 target_id = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "目标id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "目标id",
+      }];
   string host = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka 地址， 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka 地址， 仅 kafka 类型使用",
+      }];
   string value = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka topic， 仅 kafka 类型使用",
-  }];
- // string ext = 5;
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka topic， 仅 kafka 类型使用",
+      }];
+  // string ext = 5;
   string sink_type = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "mysql 或者 clickhouse",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "mysql 或者 clickhouse",
+      }];
   string sink_id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "验证成功后返回的id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "验证成功后返回的id",
+      }];
 }
 
 message UpdateRuleTargetResp {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint32 type = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "类型 1 Kafka, 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "类型 1 Kafka, 仅 kafka 类型使用",
+      }];
   string host = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka 地址， 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka 地址， 仅 kafka 类型使用",
+      }];
   string value = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "kafka topic， 仅 kafka 类型使用",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "kafka topic， 仅 kafka 类型使用",
+      }];
   string sink_type = 6
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "mysql 或者 clickhouse",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "mysql 或者 clickhouse",
+      }];
   string sink_id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "验证成功后返回的id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "验证成功后返回的id",
+      }];
   repeated MapField fields = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
 }
 
 message TestConnectToKafkaReq {
-  string host = 1
-  [(google.api.field_behavior) = REQUIRED,
+  string host = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "kafka地址, ','分割",
-  }];
-  string topic = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  string topic = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "topic",
-  }];
+    }
+  ];
 }
 
-//verify.
-message ASVerifyReq{
-  string sink_type = 1
-  [(google.api.field_behavior) = REQUIRED,
+// verify.
+message ASVerifyReq {
+  string sink_type = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "目标类型， clickhouse 或者 mysql",
-  }];
-  string urls  = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  string urls = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "连接地址",
-  }];
-  map<string, string> meta  =4
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  map<string, string> meta = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "meta用于储存不同类型的特有信息，如chronus需要user，和password",
-  }];
+    }
+  ];
 }
 
-message ASVerifyResp{
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+message ASVerifyResp {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证id",
   }];
   repeated string types = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "目标支持的数据类型",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "目标支持的数据类型",
+      }];
 }
 
 message ListRuleTargetReq {
-  uint32 page_num = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 page_num = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 page_size = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  string order_by = 3
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string order_by = 3 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "排序字段",
-  }];
-  bool is_descending = 4
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  bool is_descending = 4 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "倒序",
-  }];
-  string key_words = 5
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string key_words = 5 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字",
-  }];
-  string search_key = 6
-  [(google.api.field_behavior) = OPTIONAL,
+    }
+  ];
+  string search_key = 6 [
+    (google.api.field_behavior) = OPTIONAL,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "关键字值"
-  }];
-  uint64 id = 7
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    }
+  ];
+  uint64 id = 7 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
 message ListRuleTargetResp {
-  uint32 total = 1
-  [(google.api.field_behavior) = REQUIRED,
+  uint32 total = 1 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "总数",
-  }];
-  uint32 page_num = 2
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_num = 2 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "页码",
-  }];
-  uint32 last_page = 3
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 last_page = 3 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "上一页",
-  }];
-  uint32 page_size = 4
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  uint32 page_size = 4 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "每页数量",
-  }];
-  repeated CreateRuleTargetResp data = 5
-  [(google.api.field_behavior) = REQUIRED,
+    }
+  ];
+  repeated CreateRuleTargetResp data = 5 [
+    (google.api.field_behavior) = REQUIRED,
     (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "路由目标列表",
-  }];
+    }
+  ];
 }
 
 message DeleteRuleTargetReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   uint64 target_id = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "路由目标id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由目标id",
+      }];
 }
 
 message ErrSubscribeReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string subscribe_id = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据订阅id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据订阅id",
+      }];
 }
 
 message ChangeErrSubscribeReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
   string subscribe_id = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据订阅id",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据订阅id",
+      }];
 }
 
 message ErrUnsubscribeReq {
-  uint64 id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "路由id",
   }];
 }
 
 message Field {
-  string name =1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "字段名称",
-  }];
-  string type =2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "字段类型",
-  }];
-  bool isPK = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string name = 1
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "字段名称",
+      }];
+  string type = 2
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "字段类型",
+      }];
+  bool isPK = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "是否为主键",
   }];
 }
 
 message Table {
   string Name = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "表名",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "表名",
+      }];
   repeated Field fields = 8
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "表字段",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "表字段",
+      }];
 }
 
 message MapField {
-    Field t_field = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "模板字段",
-  }];
-    Field m_field = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "表字段",
-  }];
+  Field t_field = 1
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "模板字段",
+      }];
+  Field m_field = 2
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "表字段",
+      }];
 }
 
-//table list
-message ASTableListReq{
-   string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+// table list
+message ASTableListReq {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
 }
 
-message ASTableListResp{
+message ASTableListResp {
   repeated Table tables = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表列表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表列表",
+      }];
 }
 
-//get table map
-message ASGetTableMapReq{
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+// get table map
+message ASGetTableMapReq {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
   string table_name = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表名称",
+      }];
 }
 
 message ASGetTableMapResp {
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
   string table_name = 2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表名称",
+      }];
   repeated Field table_fields = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据库表字段",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据库表字段",
+      }];
   repeated MapField map_fields = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
 }
 
-//update table map.
-message ASUpdateTableMapReq{
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+// update table map.
+message ASUpdateTableMapReq {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
-  string target_id =2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "路由目标id",
-  }];
-  string table_name =3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表名称",
-  }];
+  string target_id = 2
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由目标id",
+      }];
+  string table_name = 3
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表名称",
+      }];
   repeated MapField fields = 5
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
 }
 
-message ASUpdateTableMapResp{
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+message ASUpdateTableMapResp {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
-  string target_id =2
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "路由目标id",
-  }];
-  string table_name =3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表名称",
-  }];
+  string target_id = 2
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "路由目标id",
+      }];
+  string table_name = 3
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表名称",
+      }];
   repeated MapField fields = 4
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "映射表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "映射表",
+      }];
 }
 
-//get table details.
-message ASGetTableDetailsReq{
-  string id = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+// get table details.
+message ASGetTableDetailsReq {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
     description: "验证成功后返回的id",
   }];
   string table_name = 3
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表名称",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表名称",
+      }];
 }
 
 message ASGetTableDetailsResp {
   Table table = 1
-  [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "数据表",
-  }];
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "数据表",
+      }];
 }

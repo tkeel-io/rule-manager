@@ -60,7 +60,7 @@ enum Error {
   // @msg=不能删除正在运行的规则
   // @code=INVALID_ARGUMENT
   ERR_CANT_DELETE_RUNNING_RULE = 12;
-  
+
   // @msg=建立连接失败
   // @code=OK
   ERR_FAILED_MYSQL_CONNECTION = 13;
@@ -80,7 +80,7 @@ enum Error {
   // @msg=获取数据表信息失败
   // @code=OK
   ERR_FAILED_TABLE_INFO = 17;
-  
+
   // @msg=命名重复
   // @code=INVALID_ARGUMENT
   ERR_DUPLICATE_NAME = 18;
