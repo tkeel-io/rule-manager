@@ -16,7 +16,7 @@ require (
 	github.com/tkeel-io/kit v0.0.0-20220516081405-657ecd52268a
 	github.com/tkeel-io/rule-rulex v0.0.0-20220405115923-88c8d3c289c9
 	github.com/tkeel-io/rule-util v0.0.0-20220410081249-7a1e485c463b
-	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220424073125-8edc0200490f
+	github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220624023618-32db91cf0860
 	google.golang.org/genproto v0.0.0-20220310185008-1973136f34c6
 	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.28.0

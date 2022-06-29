@@ -389,8 +389,8 @@ github.com/tkeel-io/rule-rulex v0.0.0-20220405115923-88c8d3c289c9 h1:cwrfpEnh6z9
 github.com/tkeel-io/rule-rulex v0.0.0-20220405115923-88c8d3c289c9/go.mod h1:0GptWfCcBUM1VFjJ1s/ARkK12M+lqXaRuOLXT6i3rSg=
 github.com/tkeel-io/rule-util v0.0.0-20220410081249-7a1e485c463b h1:B/2Dr2gqg7aNLNBMwbjhFCYyhP/pYztApvxJ+/LT5+Q=
 github.com/tkeel-io/rule-util v0.0.0-20220410081249-7a1e485c463b/go.mod h1:TKY4b1LdJUB9oNuc3qeKAt2Xp7Eoit80XQjBm7VEClo=
-github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220424073125-8edc0200490f h1:ceiytk2mifoDUxdKqCmaapngRv5EXNRQ2GQ+S25qI3Y=
-github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220424073125-8edc0200490f/go.mod h1:tjJgHPar2pFjydhnOCLspww8tSOvcKch241PeP9OL8E=
+github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220624023618-32db91cf0860 h1:k8EFmOucfdYpdz6EuD9q+wOOdkGMNzx9rApTPrksiBY=
+github.com/tkeel-io/tkeel-interface/openapi v0.0.0-20220624023618-32db91cf0860/go.mod h1:tjJgHPar2pFjydhnOCLspww8tSOvcKch241PeP9OL8E=
 github.com/uber/jaeger-client-go v2.30.0+incompatible h1:D6wyKGCecFaSRUpo8lCVbaOOb6ThwMmTEbhRwtKR97o=
 github.com/uber/jaeger-client-go v2.30.0+incompatible/go.mod h1:WVhlPFC8FDjOFMMWRy2pZqQJSXxYSwNYOkTr/Z6d3Kk=
 github.com/uber/jaeger-lib v2.4.1+incompatible h1:td4jdvLcExb4cBISKIpHuGoVXh+dVKhn2Um6rjCsSsg=

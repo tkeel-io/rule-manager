@@ -30,12 +30,16 @@ func (s *OpenapiService) AddonsIdentify(ctx context.Context, in *openapi_v1.Addo
 
 // Identify implements Identify.OpenapiServer.
 func (s *OpenapiService) Identify(ctx context.Context, in *emptypb.Empty) (*openapi_v1.IdentifyResponse, error) {
+	profiles := map[string]*openapi_v1.ProfileSchema{
+		"rule_max":  &openapi_v1.ProfileSchema{Type: "number", Title: "规则最大数", Default: 5, MultipleOf: 1, Maximum: 20, Minimum: 0},
+	}
 	return &openapi_v1.IdentifyResponse{
 		Res:                     util.GetV1ResultOK(),
 		PluginId:                "rule-manager",
 		Version:                 "0.4.1",
 		TkeelVersion:            "v0.4.0",
 		DisableManualActivation: true,
+		Profiles: profiles,
 	}, nil
 }
 
