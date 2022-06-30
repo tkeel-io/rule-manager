@@ -21,6 +21,7 @@ var CollectorRuleNumber = prometheus.NewGaugeVec(
 	[]string{MetricsLabelTenant},
 )
 
+/*
 var CollectorRuleMax = prometheus.NewGaugeVec(
 	prometheus.GaugeOpts{
 		Name: MetricsNameRuleMax,
@@ -29,3 +30,5 @@ var CollectorRuleMax = prometheus.NewGaugeVec(
 	[]string{MetricsLabelTenant},
 )
 var Metrics = []prometheus.Collector{CollectorRuleMax, CollectorRuleNumber}
+*/
+var Metrics = []prometheus.Collector{CollectorRuleNumber}
