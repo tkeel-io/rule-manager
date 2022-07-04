@@ -154,6 +154,22 @@ service Rules {
     };
   };
 
+  rpc RemoveDeviceFromAllRule(RemoveDeviceFromAllRuleReq)
+      returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/devices/{id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "从所有的路由设备中删除设备"
+      operation_id: "RemoveDeviceFromAllRule"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
+      }
+    };
+  };
+
   rpc GetRuleDevices(RuleDevicesReq) returns (RuleDevicesResp) {
     option (google.api.http) = {
       get: "/rules/{id}/devices"
@@ -770,6 +786,12 @@ message RemoveDevicesFromRuleReq {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "设备id列表",
       }];
+}
+
+message RemoveDeviceFromAllRuleReq {
+  string id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "设备id",
+  }];
 }
 
 message Device {

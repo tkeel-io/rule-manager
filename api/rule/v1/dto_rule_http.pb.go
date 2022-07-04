@@ -40,6 +40,7 @@ type RulesHTTPServer interface {
 	GetTableDetails(context.Context, *ASGetTableDetailsReq) (*ASGetTableDetailsResp, error)
 	GetTableMap(context.Context, *ASGetTableMapReq) (*ASGetTableMapResp, error)
 	ListRuleTarget(context.Context, *ListRuleTargetReq) (*ListRuleTargetResp, error)
+	RemoveDeviceFromAllRule(context.Context, *RemoveDeviceFromAllRuleReq) (*emptypb.Empty, error)
 	RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error)
 	RuleCreate(context.Context, *RuleCreateReq) (*RuleCreateResp, error)
 	RuleDelete(context.Context, *RuleDeleteReq) (*emptypb.Empty, error)
@@ -793,6 +794,67 @@ func (h *RulesHTTPHandler) ListRuleTarget(req *go_restful.Request, resp *go_rest
 	}
 }
 
+func (h *RulesHTTPHandler) RemoveDeviceFromAllRule(req *go_restful.Request, resp *go_restful.Response) {
+	in := RemoveDeviceFromAllRuleReq{}
+	if err := transportHTTP.GetQuery(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	if err := transportHTTP.GetPathValue(req, &in); err != nil {
+		resp.WriteHeaderAndJson(http.StatusBadRequest,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	ctx := transportHTTP.ContextWithHeader(req.Request.Context(), req.Request.Header)
+
+	out, err := h.srv.RemoveDeviceFromAllRule(ctx, &in)
+	if err != nil {
+		tErr := errors.FromError(err)
+		httpCode := errors.GRPCToHTTPStatusCode(tErr.GRPCStatus().Code())
+		if httpCode == http.StatusMovedPermanently {
+			resp.Header().Set("Location", tErr.Message)
+		}
+		resp.WriteHeaderAndJson(httpCode,
+			result.Set(tErr.Reason, tErr.Message, out), "application/json")
+		return
+	}
+	anyOut, err := anypb.New(out)
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+
+	outB, err := protojson.MarshalOptions{
+		UseProtoNames:   true,
+		EmitUnpopulated: true,
+	}.Marshal(&result.Http{
+		Code: errors.Success.Reason,
+		Msg:  "",
+		Data: anyOut,
+	})
+	if err != nil {
+		resp.WriteHeaderAndJson(http.StatusInternalServerError,
+			result.Set(errors.InternalError.Reason, err.Error(), nil), "application/json")
+		return
+	}
+	resp.AddHeader(go_restful.HEADER_ContentType, "application/json")
+
+	var remain int
+	for {
+		outB = outB[remain:]
+		remain, err = resp.Write(outB)
+		if err != nil {
+			return
+		}
+		if remain == 0 {
+			break
+		}
+	}
+}
+
 func (h *RulesHTTPHandler) RemoveDevicesFromRule(req *go_restful.Request, resp *go_restful.Response) {
 	in := RemoveDevicesFromRuleReq{}
 	if err := transportHTTP.GetQuery(req, &in); err != nil {
@@ -1483,6 +1545,8 @@ func RegisterRulesHTTPServer(container *go_restful.Container, srv RulesHTTPServe
 		To(handler.AddDevicesToRule))
 	ws.Route(ws.DELETE("/rules/{id}/devices").
 		To(handler.RemoveDevicesFromRule))
+	ws.Route(ws.DELETE("/devices/{id}").
+		To(handler.RemoveDeviceFromAllRule))
 	ws.Route(ws.GET("/rules/{id}/devices").
 		To(handler.GetRuleDevices))
 	ws.Route(ws.POST("/rules/{id}/target").

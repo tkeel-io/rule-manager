@@ -16,6 +16,38 @@
     "application/json"
   ],
   "paths": {
+    "/devices/{id}": {
+      "delete": {
+        "summary": "从所有的路由设备中删除设备",
+        "operationId": "RemoveDeviceFromAllRule",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "设备id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Rule"
+        ]
+      }
+    },
     "/rules": {
       "get": {
         "summary": "查询路由列表",
