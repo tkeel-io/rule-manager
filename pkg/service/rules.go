@@ -478,6 +478,26 @@ func (s *RulesService) RemoveDevicesFromRule(ctx context.Context, req *pb.Remove
 	return &emptypb.Empty{}, nil
 }
 
+func (s *RulesService) RemoveDeviceFromAllRule(ctx context.Context, req *pb.RemoveDeviceFromAllRuleReq) (*emptypb.Empty, error) {
+	_, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+
+	ruleEntites := make([]dao.RuleEntities, 0)
+	res := dao.DB().Model(&dao.RuleEntities{}).Where(&dao.RuleEntities{EntityID: req.Id}).Find(&ruleEntites)
+	if res.Error != nil {
+		return &emptypb.Empty{}, nil
+	}
+	for _, e := range ruleEntites {
+		s.RemoveDevicesFromRule(ctx, &pb.RemoveDevicesFromRuleReq{
+			Id:         uint64(e.RuleID),
+			DevicesIds: req.Id,
+		})
+	}
+	return &emptypb.Empty{}, nil
+}
+
 func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesReq) (*pb.RuleDevicesResp, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {

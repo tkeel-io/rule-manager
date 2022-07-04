@@ -28,6 +28,7 @@ type RulesClient interface {
 	GetRuleDevicesID(ctx context.Context, in *RuleDevicesIDReq, opts ...grpc.CallOption) (*RuleDevicesIDResp, error)
 	AddDevicesToRule(ctx context.Context, in *AddDevicesToRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	RemoveDevicesFromRule(ctx context.Context, in *RemoveDevicesFromRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RemoveDeviceFromAllRule(ctx context.Context, in *RemoveDeviceFromAllRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetRuleDevices(ctx context.Context, in *RuleDevicesReq, opts ...grpc.CallOption) (*RuleDevicesResp, error)
 	CreateRuleTarget(ctx context.Context, in *CreateRuleTargetReq, opts ...grpc.CallOption) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(ctx context.Context, in *UpdateRuleTargetReq, opts ...grpc.CallOption) (*UpdateRuleTargetResp, error)
@@ -127,6 +128,15 @@ func (c *rulesClient) AddDevicesToRule(ctx context.Context, in *AddDevicesToRule
 func (c *rulesClient) RemoveDevicesFromRule(ctx context.Context, in *RemoveDevicesFromRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
 	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/api.rule.Rules/RemoveDevicesFromRule", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rulesClient) RemoveDeviceFromAllRule(ctx context.Context, in *RemoveDeviceFromAllRuleReq, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/RemoveDeviceFromAllRule", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -272,6 +282,7 @@ type RulesServer interface {
 	GetRuleDevicesID(context.Context, *RuleDevicesIDReq) (*RuleDevicesIDResp, error)
 	AddDevicesToRule(context.Context, *AddDevicesToRuleReq) (*emptypb.Empty, error)
 	RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error)
+	RemoveDeviceFromAllRule(context.Context, *RemoveDeviceFromAllRuleReq) (*emptypb.Empty, error)
 	GetRuleDevices(context.Context, *RuleDevicesReq) (*RuleDevicesResp, error)
 	CreateRuleTarget(context.Context, *CreateRuleTargetReq) (*CreateRuleTargetResp, error)
 	UpdateRuleTarget(context.Context, *UpdateRuleTargetReq) (*UpdateRuleTargetResp, error)
@@ -319,6 +330,9 @@ func (UnimplementedRulesServer) AddDevicesToRule(context.Context, *AddDevicesToR
 }
 func (UnimplementedRulesServer) RemoveDevicesFromRule(context.Context, *RemoveDevicesFromRuleReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveDevicesFromRule not implemented")
+}
+func (UnimplementedRulesServer) RemoveDeviceFromAllRule(context.Context, *RemoveDeviceFromAllRuleReq) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDeviceFromAllRule not implemented")
 }
 func (UnimplementedRulesServer) GetRuleDevices(context.Context, *RuleDevicesReq) (*RuleDevicesResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRuleDevices not implemented")
@@ -533,6 +547,24 @@ func _Rules_RemoveDevicesFromRule_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(RulesServer).RemoveDevicesFromRule(ctx, req.(*RemoveDevicesFromRuleReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Rules_RemoveDeviceFromAllRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveDeviceFromAllRuleReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).RemoveDeviceFromAllRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/RemoveDeviceFromAllRule",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).RemoveDeviceFromAllRule(ctx, req.(*RemoveDeviceFromAllRuleReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -831,6 +863,10 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveDevicesFromRule",
 			Handler:    _Rules_RemoveDevicesFromRule_Handler,
+		},
+		{
+			MethodName: "RemoveDeviceFromAllRule",
+			Handler:    _Rules_RemoveDeviceFromAllRule_Handler,
 		},
 		{
 			MethodName: "GetRuleDevices",
