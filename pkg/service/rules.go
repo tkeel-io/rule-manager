@@ -247,7 +247,8 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		TargetsStatus: uint32(ts),
 		ModelId:       rule.ModelID,
 		ModelName:     rule.ModelName,
-		Sql:           xutils.GenerateRuleql(rule),
+		SelectExpr:    rule.SelectExpr,
+		WhereExpr:     rule.WhereExpr,
 	}, nil
 }
 
@@ -1675,7 +1676,8 @@ func (s RulesService) RuleSQLUpdate(ctx context.Context, req *pb.RuleSqlUpdateRe
 		tkeelLog.Error(UpdatePrefixTag, result.Error)
 		return nil, pb.ErrInternalError()
 	}
-	rule.Sql = req.GetSql()
+	rule.SelectExpr = req.GetSelectExpr()
+	rule.WhereExpr = req.GetWhereExpr()
 	result = dao.DB().Save(&rule)
 	if result.Error != nil {
 		mysqlErr, ok := result.Error.(*mysql.MySQLError)
@@ -1684,11 +1686,10 @@ func (s RulesService) RuleSQLUpdate(ctx context.Context, req *pb.RuleSqlUpdateRe
 		}
 		return nil, pb.ErrInternalError()
 	}
-
 	return &pb.RuleSqlUpdateResp{
-		Id:          req.GetId(),
-		UpdatedAt:   rule.UpdatedAt.Unix(),
-		Sql:         rule.Sql,
-		Placeholder: xutils.GenerateRuleql(rule),
+		Id:         req.GetId(),
+		UpdatedAt:  rule.UpdatedAt.Unix(),
+		SelectExpr: rule.SelectExpr,
+		WhereExpr:  rule.WhereExpr,
 	}, nil
 }

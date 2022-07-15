@@ -579,9 +579,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "sql": {
+                "select_expr": {
                   "type": "string",
-                  "description": "规则sql"
+                  "description": "select语句"
+                },
+                "where_expr": {
+                  "type": "string",
+                  "description": "where语句"
                 }
               }
             }
@@ -1586,9 +1590,13 @@
           "type": "string",
           "description": "模板名称"
         },
-        "sql": {
+        "select_expr": {
           "type": "string",
-          "description": "规则sql"
+          "description": "select语句"
+        },
+        "where_expr": {
+          "type": "string",
+          "description": "where语句"
         }
       }
     },
@@ -1798,13 +1806,13 @@
           "format": "int64",
           "description": "更新时间"
         },
-        "sql": {
+        "select_expr": {
           "type": "string",
-          "description": "规则sql"
+          "description": "select语句"
         },
-        "placeholder": {
+        "where_expr": {
           "type": "string",
-          "description": "默认规则sql"
+          "description": "where语句"
         }
       }
     },

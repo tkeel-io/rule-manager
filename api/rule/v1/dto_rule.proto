@@ -515,9 +515,13 @@ message Rule {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "模板名称"
       }];
-  string sql = 13
+  string select_expr = 13
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-        description: "规则sql"
+        description: "select语句"
+      }];
+  string where_expr = 14
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "where语句"
       }];
 }
 
@@ -1275,8 +1279,11 @@ message RuleSqlUpdateReq {
     uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "路由id",
     }];
-    string sql = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description: "规则sql",
+    string select_expr = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "select语句",
+    }];
+    string where_expr = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "where语句",
     }];
 }
 
@@ -1287,10 +1294,10 @@ message RuleSqlUpdateResp {
     int64 updated_at = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
       description: "更新时间"
     }];
-    string sql = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-      description: "规则sql"
+    string select_expr = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "select语句"
     }];
-    string placeholder = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-    description: "默认规则sql"
-  }];
+    string where_expr = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "where语句"
+    }];
 }
