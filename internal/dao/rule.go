@@ -63,6 +63,7 @@ type Rule struct {
 	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc        string
 	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+	Sql         string
 }
 
 func (s *Rule) UpdateTenantID(userID, tenantID string) {

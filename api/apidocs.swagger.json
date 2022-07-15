@@ -545,6 +545,53 @@
         ]
       }
     },
+    "/rules/{id}/sql": {
+      "put": {
+        "summary": "更新路由SQL规则",
+        "operationId": "UpdateRuleSQL",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ruleRuleSqlUpdateResp"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "路由id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "sql": {
+                  "type": "string",
+                  "description": "规则sql"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Rule"
+        ]
+      }
+    },
     "/rules/{id}/subscribe/error": {
       "delete": {
         "summary": "取消错误信息订阅",
@@ -1538,6 +1585,10 @@
         "model_name": {
           "type": "string",
           "description": "模板名称"
+        },
+        "sql": {
+          "type": "string",
+          "description": "规则sql"
         }
       }
     },
@@ -1733,6 +1784,29 @@
         "page_size",
         "data"
       ]
+    },
+    "ruleRuleSqlUpdateResp": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uint64",
+          "description": "路由id"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "int64",
+          "description": "更新时间"
+        },
+        "sql": {
+          "type": "string",
+          "description": "规则sql"
+        },
+        "placeholder": {
+          "type": "string",
+          "description": "默认规则sql"
+        }
+      }
     },
     "ruleRuleStatusSwitchResp": {
       "type": "object",

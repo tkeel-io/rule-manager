@@ -387,6 +387,22 @@ service Rules {
       }
     };
   };
+
+  rpc RuleSQLUpdate(RuleSqlUpdateReq) returns (RuleSqlUpdateResp) {
+    option (google.api.http) = {
+      put: "/rules/{id}/sql"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "更新路由SQL规则"
+      operation_id: "UpdateRuleSQL"
+      tags: "Rule"
+      responses: {
+        key: "200"
+        value: { description: "OK" }
+      }
+    };
+  };
 }
 
 // Rule create.
@@ -498,6 +514,10 @@ message Rule {
   string model_name = 12
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "模板名称"
+      }];
+  string sql = 13
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "规则sql"
       }];
 }
 
@@ -1249,4 +1269,28 @@ message ASGetTableDetailsResp {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "数据表",
       }];
+}
+
+message RuleSqlUpdateReq {
+    uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "路由id",
+    }];
+    string sql = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "规则sql",
+    }];
+}
+
+message RuleSqlUpdateResp {
+    uint64 id = 1 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "路由id",
+    }];
+    int64 updated_at = 2 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "更新时间"
+    }];
+    string sql = 3 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+      description: "规则sql"
+    }];
+    string placeholder = 4 [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+    description: "默认规则sql"
+  }];
 }

@@ -9,8 +9,10 @@ import (
 func GenerateRuleql(rule *dao.Rule) string {
 
 	//rule.ShortTopic = thingId/deviceId
-
-	sql := fmt.Sprintf("select %s from %s", "*", GenerateTopic(rule))
+	sql := rule.Sql
+	if "" == sql {
+		sql = fmt.Sprintf("select %s from %s", "*", GenerateTopic(rule))
+	}
 	return sql
 }
 
