@@ -92,4 +92,8 @@ enum Error {
   // @msg=没有可用的转发
   // @code=INVALID_ARGUMENT
   ERR_INVALID_RULE = 20;
+
+  // @msg=建立连接失败
+  // @code=OK
+  ERR_FAILED_INFLUXDB_CONNECTION = 21;
 }

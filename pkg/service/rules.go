@@ -19,10 +19,12 @@ import (
 	"github.com/tkeel-io/kit/log"
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
+	"github.com/tkeel-io/rule-manager/constant"
 	"github.com/tkeel-io/rule-manager/internal/dao"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_chronus "github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
+	sink_influxdb "github.com/tkeel-io/rule-manager/internal/dao/action_sink/influxdb"
 	sink_kafka "github.com/tkeel-io/rule-manager/internal/dao/action_sink/kafka"
 	sink_mysql "github.com/tkeel-io/rule-manager/internal/dao/action_sink/mysql"
 	daoutils "github.com/tkeel-io/rule-manager/internal/daoutil"
@@ -62,6 +64,7 @@ const (
 	ActionType_MYSQL      = "mysql"
 	ActionType_POSTGRESQL = "postgresql"
 	ActionType_REDIS      = "redis"
+	ActionType_INFLUXDB   = "influxdb"
 )
 
 var (
@@ -619,6 +622,10 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 			})
 		}
 
+		tagsInfo := make(map[string]string)
+		tagsInfo["model_id"] = rule.ModelID
+		tagsInfo = req.Tags
+
 		configuration := make(map[string]interface{})
 		// 更新映射关系，配置完整性
 		mapInfo := &util.MappingInfo{
@@ -628,7 +635,9 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		}
 		mapInfo.SetConnInfo(*connInfo)
 		// 对映射关系进行合成...
-		configuration[MappingInfoKey] = mapInfo
+		configuration[constant.MappingInfoKey] = mapInfo
+		// 对influxdb的标签合成...
+		configuration[constant.TagsInfoKey] = tagsInfo
 
 		// 更新action的配置
 		configurationData, err := json.Marshal(configuration)
@@ -661,6 +670,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		SinkType: ruleTarget.SinkType,
 		SinkId:   ruleTarget.SinkId,
 		Fields:   req.Fields,
+		Tags:     req.Tags,
 	}
 	if (ruleTarget.Ext != nil) && (*ruleTarget.Ext != "") {
 		// get connect informations.
@@ -726,7 +736,7 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 	var exists bool
 	var oldmapInfo *util.MappingInfo
 
-	info, exists = configuration[MappingInfoKey]
+	info, exists = configuration[constant.MappingInfoKey]
 	if exists {
 		oldmapInfo = util.NewConnectInfoFromJson(info)
 	}
@@ -752,6 +762,24 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 	return
 }
 
+func getTagsFromExt(ext string) map[string]string {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return nil
+	}
+
+	info, exists := configuration[constant.TagsInfoKey]
+	if exists {
+		switch tags := info.(type) {
+		case map[string]string:
+			return tags
+
+		}
+	}
+	return nil
+}
+
 func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	configuration := make(map[string]interface{})
 	err := json.Unmarshal([]byte(ext), &configuration)
@@ -763,7 +791,7 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	var exists bool
 	var odlmapInfo *util.MappingInfo
 
-	info, exists = configuration[MappingInfoKey]
+	info, exists = configuration[constant.MappingInfoKey]
 	if exists {
 		odlmapInfo = util.NewConnectInfoFromJson(info)
 	}
@@ -829,8 +857,10 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 	for _, target := range targets {
 
 		fields := make([]*pb.MapField, 0)
+		tags := make(map[string]string)
 		if target.Ext != nil {
 			fields = getFieldsFromExt(*target.Ext)
+			tags = getTagsFromExt(*target.Ext)
 		}
 
 		t := &pb.CreateRuleTargetResp{
@@ -841,6 +871,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 			SinkType: target.SinkType,
 			SinkId:   target.SinkId,
 			Fields:   fields,
+			Tags:     tags,
 		}
 
 		if target.Ext != nil {
@@ -1143,6 +1174,8 @@ func (s *RulesService) ActionVerify(ctx context.Context, req *pb.ASVerifyReq) (*
 	case ActionType_MYSQL:
 		sink_id, err = s.verify_mysql(ctx, urls, req.Meta)
 		types = sink_mysql.GetTableFieldTypes()
+	case ActionType_INFLUXDB:
+		sink_id, err = s.verify_influxdb(ctx, urls, req.Meta)
 	default:
 		return nil, errors.New("type not supported")
 	}
@@ -1195,6 +1228,65 @@ func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, met
 	client.Close()
 
 	return sink_kafka.KafkaSinkId, err
+}
+
+// verify chronus
+func (s *RulesService) verify_influxdb(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
+	var err error
+	if nil == meta {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "ChronusVerify",
+			"error": "meta field is empty.",
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+	token, ok1 := meta["token"]
+	org, ok2 := meta["org"]
+	bucket, ok3 := meta["bucket"]
+	if !ok1 || !ok2 || !ok3 {
+		err = errors.New("verify influxdb required token, org, bucket.")
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "InfluxdbVerify",
+			"error": err,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+	// check endpoints
+	if !xutils.CheckHost(endpoints) {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "InfluxdbVerify",
+			"error":     "check host failed.",
+			"endpoints": endpoints,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+
+	if !sink_influxdb.PingInfluxdb(endpoints[0], token, org, bucket) {
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+
+	connectInfo := util.ConnectInfo{
+		User: org,
+		// Password:  password,
+		Database:  bucket,
+		Endpoints: endpoints,
+		SinkType:  ActionType_INFLUXDB,
+	}
+	connectInfo.SetPassword(token)
+	// push sinkid, configuration.
+	key := connectInfo.Key()
+	value := connectInfo.Value()
+	if err = endpoint.GetRedisEndpoint().Set(key, string(value), 0); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "InfluxdbVerify",
+			"org":       org,
+			"bucket":    bucket,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedClickhouseConnection()
+	}
+	return key, nil
 }
 
 // verify chronus
@@ -1500,9 +1592,6 @@ func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
 	return &connectInfo, nil
 }
 
-// action的configuration里的字段
-const MappingInfoKey = "mapping"
-
 func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
 	// select action.
 	targetId, err := strconv.ParseUint(req.TargetId, 10, 0)
@@ -1591,7 +1680,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 
 	configuration := make(map[string]interface{})
 	if nil != configuration {
-		info, exists = configuration[MappingInfoKey]
+		info, exists = configuration[constant.MappingInfoKey]
 		if exists {
 			odlmapInfo = util.NewConnectInfoFromJson(info)
 		}
@@ -1607,7 +1696,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 	mapInfo.SetConnInfo(*connInfo)
 
 	// 对映射关系进行合成...
-	configuration[MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
+	configuration[constant.MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
 
 	// 更新action的配置
 	configurationData, err := json.Marshal(configuration)

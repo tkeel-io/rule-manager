@@ -72,8 +72,69 @@ func ConvertActionZ(ac *dao.Target) *Action {
 		options["topic"] = topic
 		configuration["sink"] = options["sink"]
 		configuration["topic"] = options["topic"]
-	case constant.Action1Type_Chronus, constant.Action1Type_MYSQL, constant.Action1Type_POSTGRESQL:
+	case constant.Action1Type_INFLUXDB:
+		if ac.Ext == nil {
+			log.L().Error("target config error")
+			return nil
+		}
+		err := json.Unmarshal([]byte(*ac.Ext), &configuration)
+		if err != nil {
+			log.Error(err)
+			return nil
+		}
+		o, ok := configuration[constant.MappingInfoKey]
+		if !ok {
+			commonlog.ErrorWithFields(convertLogTitle, commonlog.Fields{
+				"call":      "ConvertActionZ",
+				"adtion_id": ac.ID,
+				"rule_id":   ac.RuleID,
+				"err":       "configuration has no mapping.",
+			})
+			return nil
+		}
+		mapping := util.NewConnectInfoFromJson(o)
+		if nil == mapping {
+			commonlog.ErrorWithFields(convertLogTitle, commonlog.Fields{
+				"call":      "ConvertActionZ",
+				"adtion_id": ac.ID,
+				"rule_id":   ac.RuleID,
+				"err":       "configuration has no mapping.",
+			})
+			return nil
+		}
 
+		//construct
+		if len(mapping.GetEndpoints()) > 0 {
+			configuration["sink"] = mapping.GetEndpoints()[0]
+		} else {
+			configuration["sink"] = ""
+		}
+		tags := make(map[string]string)
+		info, exists := configuration[constant.TagsInfoKey]
+		if exists {
+			switch tags1 := info.(type) {
+			case map[string]string:
+				tags = tags1
+			default:
+			}
+		}
+
+		options["urls"] = mapping.GetEndpoints()
+		options["bucket"] = mapping.GetDatabase()
+		options["org"] = mapping.GetUser()
+		options["token"] = mapping.GetPassword()
+		options["tags"] = tags
+		commonlog.InfoWithFields(convertLogTitle, commonlog.Fields{
+			"call":      "ConvertActionZ",
+			"bucket":    mapping.GetDatabase(),
+			"endpoints": mapping.GetEndpoints(),
+			"org":       mapping.GetUser(),
+			"option":    options,
+			"tags":      tags,
+			"error":     err,
+		})
+
+	case constant.Action1Type_Chronus, constant.Action1Type_MYSQL, constant.Action1Type_POSTGRESQL:
 		if ac.Ext == nil {
 			log.L().Error("target config error")
 			return nil
