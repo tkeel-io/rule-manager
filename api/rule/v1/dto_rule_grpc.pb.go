@@ -43,6 +43,7 @@ type RulesClient interface {
 	ErrSubscribe(ctx context.Context, in *ErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ChangeErrSubscribe(ctx context.Context, in *ChangeErrSubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ErrUnsubscribe(ctx context.Context, in *ErrUnsubscribeReq, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RuleSQLUpdate(ctx context.Context, in *RuleSqlUpdateReq, opts ...grpc.CallOption) (*RuleSqlUpdateResp, error)
 }
 
 type rulesClient struct {
@@ -269,6 +270,15 @@ func (c *rulesClient) ErrUnsubscribe(ctx context.Context, in *ErrUnsubscribeReq,
 	return out, nil
 }
 
+func (c *rulesClient) RuleSQLUpdate(ctx context.Context, in *RuleSqlUpdateReq, opts ...grpc.CallOption) (*RuleSqlUpdateResp, error) {
+	out := new(RuleSqlUpdateResp)
+	err := c.cc.Invoke(ctx, "/api.rule.Rules/RuleSQLUpdate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RulesServer is the server API for Rules service.
 // All implementations must embed UnimplementedRulesServer
 // for forward compatibility
@@ -297,6 +307,7 @@ type RulesServer interface {
 	ErrSubscribe(context.Context, *ErrSubscribeReq) (*emptypb.Empty, error)
 	ChangeErrSubscribe(context.Context, *ChangeErrSubscribeReq) (*emptypb.Empty, error)
 	ErrUnsubscribe(context.Context, *ErrUnsubscribeReq) (*emptypb.Empty, error)
+	RuleSQLUpdate(context.Context, *RuleSqlUpdateReq) (*RuleSqlUpdateResp, error)
 	mustEmbedUnimplementedRulesServer()
 }
 
@@ -375,6 +386,9 @@ func (UnimplementedRulesServer) ChangeErrSubscribe(context.Context, *ChangeErrSu
 }
 func (UnimplementedRulesServer) ErrUnsubscribe(context.Context, *ErrUnsubscribeReq) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ErrUnsubscribe not implemented")
+}
+func (UnimplementedRulesServer) RuleSQLUpdate(context.Context, *RuleSqlUpdateReq) (*RuleSqlUpdateResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RuleSQLUpdate not implemented")
 }
 func (UnimplementedRulesServer) mustEmbedUnimplementedRulesServer() {}
 
@@ -821,6 +835,24 @@ func _Rules_ErrUnsubscribe_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Rules_RuleSQLUpdate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RuleSqlUpdateReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RulesServer).RuleSQLUpdate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.rule.Rules/RuleSQLUpdate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RulesServer).RuleSQLUpdate(ctx, req.(*RuleSqlUpdateReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Rules_ServiceDesc is the grpc.ServiceDesc for Rules service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -923,6 +955,10 @@ var Rules_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ErrUnsubscribe",
 			Handler:    _Rules_ErrUnsubscribe_Handler,
+		},
+		{
+			MethodName: "RuleSQLUpdate",
+			Handler:    _Rules_RuleSQLUpdate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
