@@ -250,6 +250,8 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		TargetsStatus: uint32(ts),
 		ModelId:       rule.ModelID,
 		ModelName:     rule.ModelName,
+		SelectExpr:    rule.SelectExpr,
+		WhereExpr:     rule.WhereExpr,
 	}, nil
 }
 
@@ -1735,4 +1737,48 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 		TableName: req.TableName,
 		Fields:    req.Fields,
 	}, err
+}
+
+func (s RulesService) RuleSQLUpdate(ctx context.Context, req *pb.RuleSqlUpdateReq) (*pb.RuleSqlUpdateResp, error) {
+	user, err := auth.GetUser(ctx)
+	if err != nil {
+		return nil, pb.ErrUnauthorized()
+	}
+	rule := &dao.Rule{
+		Model:  gorm.Model{ID: uint(req.GetId())},
+		UserID: user.ID,
+	}
+
+	var c int
+	result := dao.DB().Model(&rule).Select("1").
+		Where(&rule).
+		First(&c)
+	if errors.Is(
+		result.Error,
+		gorm.ErrRecordNotFound,
+	) || result.RowsAffected == 0 {
+		return nil, pb.ErrForbidden()
+	}
+
+	result = dao.DB().Model(&rule).First(&rule)
+	if result.Error != nil {
+		tkeelLog.Error(UpdatePrefixTag, result.Error)
+		return nil, pb.ErrInternalError()
+	}
+	rule.SelectExpr = req.GetSelectExpr()
+	rule.WhereExpr = req.GetWhereExpr()
+	result = dao.DB().Save(&rule)
+	if result.Error != nil {
+		mysqlErr, ok := result.Error.(*mysql.MySQLError)
+		if ok && mysqlErr.Number == 1062 {
+			return nil, pb.ErrDuplicateName()
+		}
+		return nil, pb.ErrInternalError()
+	}
+	return &pb.RuleSqlUpdateResp{
+		Id:         req.GetId(),
+		UpdatedAt:  rule.UpdatedAt.Unix(),
+		SelectExpr: rule.SelectExpr,
+		WhereExpr:  rule.WhereExpr,
+	}, nil
 }

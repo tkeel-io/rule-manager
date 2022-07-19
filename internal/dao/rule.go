@@ -63,6 +63,8 @@ type Rule struct {
 	Status      uint8  `gorm:"default:0;comment:'0:not_running,1:running'"`
 	Desc        string
 	Type        uint8 `gorm:"not null;index;comment:'1:message;2:timeseries'"`
+	SelectExpr  string
+	WhereExpr   string
 }
 
 func (s *Rule) UpdateTenantID(userID, tenantID string) {
@@ -177,7 +179,7 @@ func (r *Rule) InitMetrics() {
 	DB().Model(r).Select("tenant_id as tenant, count(1) as count").Group("tenant").Find(&ress)
 	for _, v := range ress {
 		metrics.CollectorRuleNumber.WithLabelValues(v.Tenant).Set(float64(v.Count))
-	//	metrics.CollectorRuleMax.WithLabelValues(v.Tenant).Set(20)
+		//	metrics.CollectorRuleMax.WithLabelValues(v.Tenant).Set(20)
 	}
 }
 
