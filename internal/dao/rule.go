@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/tkeel-io/kit/log"
 	"github.com/tkeel-io/rule-manager/config"
@@ -52,7 +53,10 @@ const SubscribeService string = "http://localhost:3500/v1.0/invoke/keel/method/a
 const SubscriptionIDFormat = "%s_%d_%s"
 
 type Rule struct {
-	gorm.Model
+	// gorm.Model
+	ID          uint `gorm:"primarykey"`
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
 	UserID      string `gorm:"index;uniqueIndex:user_rule"`
 	TenantID    string
 	ModelID     string

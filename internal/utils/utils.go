@@ -132,6 +132,14 @@ func GenerateUrlMysql(endpoints []string, user, passwd, db string) []string {
 	return urls
 }
 
+func GenerateUrlInfluxdb(endpoints []string, token, org, bucket string) []string {
+	urls := []string{}
+	for _, endpoint := range endpoints {
+		urls = append(urls, fmt.Sprintf("%s:%s@%s/%s?%s", "", token, endpoint, org, bucket))
+	}
+	return urls
+}
+
 func GenerateUrlPostgresql(endpoints []string, user, passwd, db string) []string {
 	urls := []string{}
 	for _, endpoint := range endpoints {
