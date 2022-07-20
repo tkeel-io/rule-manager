@@ -1440,6 +1440,14 @@
             "type": "string"
           },
           "description": "自定义标签"
+        },
+        "org": {
+          "type": "string",
+          "description": "influxdb org"
+        },
+        "bucket": {
+          "type": "string",
+          "description": "influxdb bucket"
         }
       }
     },

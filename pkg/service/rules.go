@@ -629,7 +629,9 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 
 		tagsInfo := make(map[string]string)
 		tagsInfo["model_id"] = rule.ModelID
-		tagsInfo = req.Tags
+		for k, v := range req.Tags {
+			tagsInfo[k] = v
+		}
 
 		configuration := make(map[string]interface{})
 		// 更新映射关系，配置完整性
@@ -715,7 +717,14 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		if target.Ext != nil {
 			json.Unmarshal([]byte(*target.Ext), &configuration)
 		}
-		configuration[constant.TagsInfoKey] = req.Tags
+
+		tagsInfo := make(map[string]string)
+		tagsInfo["model_id"] = rule.ModelID
+		for k, v := range req.Tags {
+			tagsInfo[k] = v
+		}
+
+		configuration[constant.TagsInfoKey] = tagsInfo
 
 		// 更新action的配置
 		configurationData, err := json.Marshal(configuration)
@@ -797,6 +806,9 @@ func getTagsFromExt(ext string) map[string]string {
 		switch tags := info.(type) {
 		case map[string]interface{}:
 			for k, v := range tags {
+				if k == "model_id" {
+					continue
+				}
 				switch value := v.(type) {
 				case string:
 					res[k] = value
@@ -835,6 +847,31 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 		})
 	}
 
+	return
+}
+
+func getInfluxdbFromExt(ext string) (org, bucket string) {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return
+	}
+	// 反序列化action.Configuration.
+	var info interface{}
+	var exists bool
+	var mapInfo *util.MappingInfo
+
+	info, exists = configuration[constant.MappingInfoKey]
+	if exists {
+		mapInfo = util.NewConnectInfoFromJson(info)
+	}
+	database := mapInfo.ConnInfo.Database
+	items := strings.Split(database, "/")
+	if len(items) != 2 {
+		return
+	}
+	org = items[0]
+	bucket = items[1]
 	return
 }
 
@@ -885,9 +922,12 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 
 		fields := make([]*pb.MapField, 0)
 		tags := make(map[string]string)
+		bucket := ""
+		org := ""
 		if target.Ext != nil {
 			fields = getFieldsFromExt(*target.Ext)
 			tags = getTagsFromExt(*target.Ext)
+			org, bucket = getInfluxdbFromExt(*target.Ext)
 		}
 
 		t := &pb.CreateRuleTargetResp{
@@ -899,6 +939,8 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 			SinkId:   target.SinkId,
 			Fields:   fields,
 			Tags:     tags,
+			Bucket:   bucket,
+			Org:      org,
 		}
 
 		if target.Ext != nil {

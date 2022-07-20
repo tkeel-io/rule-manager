@@ -932,6 +932,14 @@ message CreateRuleTargetResp {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "自定义标签",
       }];
+  string org = 14
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "influxdb org",
+      }];
+  string bucket = 15
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "influxdb bucket",
+      }];
 }
 
 message UpdateRuleTargetReq {
