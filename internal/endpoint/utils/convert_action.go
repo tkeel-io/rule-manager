@@ -113,16 +113,18 @@ func ConvertActionZ(ac *dao.Target) *Action {
 		info, exists := configuration[constant.TagsInfoKey]
 		if exists {
 			switch tags1 := info.(type) {
-			case map[string]string:
-				tags = tags1
+			case map[string]interface{}:
+				for k, v := range tags1 {
+					switch value := v.(type) {
+					case string:
+						tags[k] = value
+					}
+				}
 			default:
 			}
 		}
 
 		options["urls"] = mapping.GetEndpoints()
-		options["bucket"] = mapping.GetDatabase()
-		options["org"] = mapping.GetUser()
-		options["token"] = mapping.GetPassword()
 		options["tags"] = tags
 		commonlog.InfoWithFields(convertLogTitle, commonlog.Fields{
 			"call":      "ConvertActionZ",
