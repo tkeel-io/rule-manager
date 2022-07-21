@@ -9,12 +9,12 @@ rulemanager:
   pullPolicy: Always
 
 metadata:
-  repository: tkeelio/metadata
+  repository: harbor.tkeel.io/tkeel-io/metadata
   pullPolicy: Always
   tag: 0.4.1
 
 rulex:
-  repository: tkeelio/rulex
+  repository: harbor.tkeel.io/tkeel-io/rulex
   pullPolicy: Always
   tag: 0.4.1
 
