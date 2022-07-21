@@ -19,10 +19,12 @@ import (
 	"github.com/tkeel-io/kit/log"
 	tkeelLog "github.com/tkeel-io/kit/log"
 	pb "github.com/tkeel-io/rule-manager/api/rule/v1"
+	"github.com/tkeel-io/rule-manager/constant"
 	"github.com/tkeel-io/rule-manager/internal/dao"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink"
 	"github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
 	sink_chronus "github.com/tkeel-io/rule-manager/internal/dao/action_sink/chronus"
+	sink_influxdb "github.com/tkeel-io/rule-manager/internal/dao/action_sink/influxdb"
 	sink_kafka "github.com/tkeel-io/rule-manager/internal/dao/action_sink/kafka"
 	sink_mysql "github.com/tkeel-io/rule-manager/internal/dao/action_sink/mysql"
 	daoutils "github.com/tkeel-io/rule-manager/internal/daoutil"
@@ -62,6 +64,7 @@ const (
 	ActionType_MYSQL      = "mysql"
 	ActionType_POSTGRESQL = "postgresql"
 	ActionType_REDIS      = "redis"
+	ActionType_INFLUXDB   = "influxdb"
 )
 
 var (
@@ -133,7 +136,7 @@ func (s *RulesService) RuleUpdate(ctx context.Context, req *pb.RuleUpdateReq) (*
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 
@@ -187,7 +190,7 @@ func (s *RulesService) RuleDelete(ctx context.Context, req *pb.RuleDeleteReq) (*
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	result := dao.DB().Model(&rule).Where(&rule).First(&rule)
@@ -218,7 +221,7 @@ func (s *RulesService) RuleGet(ctx context.Context, req *pb.RuleGetReq) (*pb.Rul
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	if result := rule.SelectFirst(); result.Error != nil {
@@ -350,7 +353,7 @@ func (s *RulesService) RuleStatusSwitch(ctx context.Context, req *pb.RuleStatusS
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:    gorm.Model{ID: uint(req.Id)},
+		ID:       uint(req.Id),
 		UserID:   user.ID,
 		TenantID: user.TenantID,
 	}
@@ -401,7 +404,7 @@ func (s *RulesService) GetRuleDevicesID(ctx context.Context, req *pb.RuleDevices
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -424,7 +427,7 @@ func (s *RulesService) AddDevicesToRule(ctx context.Context, req *pb.AddDevicesT
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -454,7 +457,7 @@ func (s *RulesService) RemoveDevicesFromRule(ctx context.Context, req *pb.Remove
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -506,7 +509,7 @@ func (s *RulesService) GetRuleDevices(ctx context.Context, req *pb.RuleDevicesRe
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -550,7 +553,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -564,7 +567,10 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 			return nil, pb.ErrInvalidArgument()
 		}
 		req.SinkType = ActionType_Kafka
-	} else if req.SinkId == "" || req.SinkType == "" || req.TableName == "" {
+	} else if req.SinkId == "" || req.SinkType == "" {
+		return nil, pb.ErrInvalidArgument()
+	}
+	if (req.SinkType == ActionType_MYSQL || req.SinkType == ActionType_Chronus) && req.TableName == "" {
 		return nil, pb.ErrInvalidArgument()
 	}
 
@@ -621,6 +627,12 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 			})
 		}
 
+		tagsInfo := make(map[string]string)
+		tagsInfo["model_id"] = rule.ModelID
+		for k, v := range req.Tags {
+			tagsInfo[k] = v
+		}
+
 		configuration := make(map[string]interface{})
 		// 更新映射关系，配置完整性
 		mapInfo := &util.MappingInfo{
@@ -630,7 +642,9 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		}
 		mapInfo.SetConnInfo(*connInfo)
 		// 对映射关系进行合成...
-		configuration[MappingInfoKey] = mapInfo
+		configuration[constant.MappingInfoKey] = mapInfo
+		// 对influxdb的标签合成...
+		configuration[constant.TagsInfoKey] = tagsInfo
 
 		// 更新action的配置
 		configurationData, err := json.Marshal(configuration)
@@ -663,6 +677,7 @@ func (s *RulesService) CreateRuleTarget(ctx context.Context, req *pb.CreateRuleT
 		SinkType: ruleTarget.SinkType,
 		SinkId:   ruleTarget.SinkId,
 		Fields:   req.Fields,
+		Tags:     req.Tags,
 	}
 	if (ruleTarget.Ext != nil) && (*ruleTarget.Ext != "") {
 		// get connect informations.
@@ -678,7 +693,7 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -693,8 +708,32 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		return nil, pb.ErrForbidden()
 	}
 
-	target.Value = req.Value
-	target.Host = req.Host
+	if target.Type == 1 {
+		target.Value = req.Value
+		target.Host = req.Host
+
+	} else if target.SinkType == ActionType_INFLUXDB {
+		configuration := make(map[string]interface{})
+		if target.Ext != nil {
+			json.Unmarshal([]byte(*target.Ext), &configuration)
+		}
+
+		tagsInfo := make(map[string]string)
+		tagsInfo["model_id"] = rule.ModelID
+		for k, v := range req.Tags {
+			tagsInfo[k] = v
+		}
+
+		configuration[constant.TagsInfoKey] = tagsInfo
+
+		// 更新action的配置
+		configurationData, err := json.Marshal(configuration)
+		if err != nil {
+			return nil, err
+		}
+		configurationStr := string(configurationData)
+		target.Ext = &configurationStr
+	}
 
 	if err = dao.DB().Save(target).Error; err != nil {
 		tkeelLog.Error("save target record error", err)
@@ -713,6 +752,7 @@ func (s *RulesService) UpdateRuleTarget(ctx context.Context, req *pb.UpdateRuleT
 		SinkType: target.SinkType,
 		SinkId:   target.SinkId,
 		Fields:   fields,
+		Tags:     req.Tags,
 	}
 	return resp, nil
 }
@@ -728,7 +768,7 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 	var exists bool
 	var oldmapInfo *util.MappingInfo
 
-	info, exists = configuration[MappingInfoKey]
+	info, exists = configuration[constant.MappingInfoKey]
 	if exists {
 		oldmapInfo = util.NewConnectInfoFromJson(info)
 	}
@@ -754,6 +794,31 @@ func getTargetFromExt(ext string) (host, database, tableName string) {
 	return
 }
 
+func getTagsFromExt(ext string) map[string]string {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return nil
+	}
+	res := make(map[string]string)
+	info, exists := configuration[constant.TagsInfoKey]
+	if exists {
+		switch tags := info.(type) {
+		case map[string]interface{}:
+			for k, v := range tags {
+				if k == "model_id" {
+					continue
+				}
+				switch value := v.(type) {
+				case string:
+					res[k] = value
+				}
+			}
+		}
+	}
+	return res
+}
+
 func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	configuration := make(map[string]interface{})
 	err := json.Unmarshal([]byte(ext), &configuration)
@@ -765,7 +830,7 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	var exists bool
 	var odlmapInfo *util.MappingInfo
 
-	info, exists = configuration[MappingInfoKey]
+	info, exists = configuration[constant.MappingInfoKey]
 	if exists {
 		odlmapInfo = util.NewConnectInfoFromJson(info)
 	}
@@ -785,13 +850,38 @@ func getFieldsFromExt(ext string) (fields []*pb.MapField) {
 	return
 }
 
+func getInfluxdbFromExt(ext string) (org, bucket string) {
+	configuration := make(map[string]interface{})
+	err := json.Unmarshal([]byte(ext), &configuration)
+	if err != nil {
+		return
+	}
+	// 反序列化action.Configuration.
+	var info interface{}
+	var exists bool
+	var mapInfo *util.MappingInfo
+
+	info, exists = configuration[constant.MappingInfoKey]
+	if exists {
+		mapInfo = util.NewConnectInfoFromJson(info)
+	}
+	database := mapInfo.ConnInfo.Database
+	items := strings.Split(database, "/")
+	if len(items) != 2 {
+		return
+	}
+	org = items[0]
+	bucket = items[1]
+	return
+}
+
 func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTargetReq) (*pb.ListRuleTargetResp, error) {
 	user, err := auth.GetUser(ctx)
 	if err != nil {
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -831,8 +921,13 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 	for _, target := range targets {
 
 		fields := make([]*pb.MapField, 0)
+		tags := make(map[string]string)
+		bucket := ""
+		org := ""
 		if target.Ext != nil {
 			fields = getFieldsFromExt(*target.Ext)
+			tags = getTagsFromExt(*target.Ext)
+			org, bucket = getInfluxdbFromExt(*target.Ext)
 		}
 
 		t := &pb.CreateRuleTargetResp{
@@ -843,6 +938,9 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 			SinkType: target.SinkType,
 			SinkId:   target.SinkId,
 			Fields:   fields,
+			Tags:     tags,
+			Bucket:   bucket,
+			Org:      org,
 		}
 
 		if target.Ext != nil {
@@ -851,6 +949,7 @@ func (s *RulesService) ListRuleTarget(ctx context.Context, req *pb.ListRuleTarge
 		}
 
 		t.Endpoint = fmt.Sprintf("%s://%s/%s/%s", t.SinkType, t.Host, t.Database+t.Value, t.TableName)
+		t.Endpoint = strings.TrimSuffix(t.Endpoint, "/")
 		data = append(data, t)
 	}
 
@@ -869,7 +968,7 @@ func (s *RulesService) DeleteRuleTarget(ctx context.Context, req *pb.DeleteRuleT
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 	_, err = rule.Exists()
@@ -923,7 +1022,7 @@ func (s *RulesService) ErrSubscribe(ctx context.Context, req *pb.ErrSubscribeReq
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 
@@ -956,7 +1055,7 @@ func (s *RulesService) ChangeErrSubscribe(ctx context.Context, req *pb.ChangeErr
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 
@@ -989,7 +1088,7 @@ func (s RulesService) ErrUnsubscribe(ctx context.Context, req *pb.ErrUnsubscribe
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.Id)},
+		ID:     uint(req.Id),
 		UserID: user.ID,
 	}
 
@@ -1145,6 +1244,8 @@ func (s *RulesService) ActionVerify(ctx context.Context, req *pb.ASVerifyReq) (*
 	case ActionType_MYSQL:
 		sink_id, err = s.verify_mysql(ctx, urls, req.Meta)
 		types = sink_mysql.GetTableFieldTypes()
+	case ActionType_INFLUXDB:
+		sink_id, err = s.verify_influxdb(ctx, urls, req.Meta)
 	default:
 		return nil, errors.New("type not supported")
 	}
@@ -1197,6 +1298,67 @@ func (s *RulesService) verify_kafka(ctx context.Context, endpoints []string, met
 	client.Close()
 
 	return sink_kafka.KafkaSinkId, err
+}
+
+// verify chronus
+func (s *RulesService) verify_influxdb(ctx context.Context, endpoints []string, meta map[string]string) (string, error) {
+	var err error
+	if nil == meta {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "ChronusVerify",
+			"error": "meta field is empty.",
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+	token, ok1 := meta["token"]
+	org, ok2 := meta["org"]
+	bucket, ok3 := meta["bucket"]
+	if !ok1 || !ok2 || !ok3 {
+		err = errors.New("verify influxdb required token, org, bucket.")
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":  "InfluxdbVerify",
+			"error": err,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+	// check endpoints
+	if !xutils.CheckHost(endpoints) {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "InfluxdbVerify",
+			"error":     "check host failed.",
+			"endpoints": endpoints,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+
+	if !sink_influxdb.PingInfluxdb(endpoints[0], token, org, bucket) {
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedInfluxdbConnection()
+	}
+
+	endpoints = xutils.GenerateUrlInfluxdb(endpoints, token, org, bucket)
+	connectInfo := util.ConnectInfo{
+		//User: org,
+		// Password:  password,
+		Database: org + "/" + bucket,
+
+		Endpoints: endpoints,
+		SinkType:  ActionType_INFLUXDB,
+	}
+	connectInfo.SetPassword(token)
+	// push sinkid, configuration.
+	key := connectInfo.Key()
+	value := connectInfo.Value()
+	if err = endpoint.GetRedisEndpoint().Set(key, string(value), 0); nil != err {
+		commonlog.ErrorWithFields(actionSinkLogTitle, commonlog.Fields{
+			"call":      "InfluxdbVerify",
+			"org":       org,
+			"bucket":    bucket,
+			"endpoints": endpoints,
+			"error":     err,
+		})
+		return sink_influxdb.InfluxdbSinkId, pb.ErrFailedClickhouseConnection()
+	}
+	return key, nil
 }
 
 // verify chronus
@@ -1502,9 +1664,6 @@ func GetConnectInfoBySinkIdFromRedis(id string) (*util.ConnectInfo, error) {
 	return &connectInfo, nil
 }
 
-// action的configuration里的字段
-const MappingInfoKey = "mapping"
-
 func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTableMapReq) (*pb.ASUpdateTableMapResp, error) {
 	// select action.
 	targetId, err := strconv.ParseUint(req.TargetId, 10, 0)
@@ -1593,7 +1752,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 
 	configuration := make(map[string]interface{})
 	if nil != configuration {
-		info, exists = configuration[MappingInfoKey]
+		info, exists = configuration[constant.MappingInfoKey]
 		if exists {
 			odlmapInfo = util.NewConnectInfoFromJson(info)
 		}
@@ -1609,7 +1768,7 @@ func (s *RulesService) UpdateTableMap(ctx context.Context, req *pb.ASUpdateTable
 	mapInfo.SetConnInfo(*connInfo)
 
 	// 对映射关系进行合成...
-	configuration[MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
+	configuration[constant.MappingInfoKey] = util.MergeMapping(odlmapInfo, mapInfo)
 
 	// 更新action的配置
 	configurationData, err := json.Marshal(configuration)
@@ -1656,7 +1815,7 @@ func (s RulesService) RuleSQLUpdate(ctx context.Context, req *pb.RuleSqlUpdateRe
 		return nil, pb.ErrUnauthorized()
 	}
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(req.GetId())},
+		ID:     uint(req.GetId()),
 		UserID: user.ID,
 	}
 

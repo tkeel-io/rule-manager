@@ -873,6 +873,10 @@ message CreateRuleTargetReq {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "映射表",
       }];
+  map<string, string> tags = 9
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "自定义标签",
+      }];
 }
 
 message CreateRuleTargetResp {
@@ -924,6 +928,18 @@ message CreateRuleTargetResp {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "目标地址字符串",
       }];
+  map<string, string> tags = 13
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "自定义标签",
+      }];
+  string org = 14
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "influxdb org",
+      }];
+  string bucket = 15
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "influxdb bucket",
+      }];
 }
 
 message UpdateRuleTargetReq {
@@ -950,6 +966,10 @@ message UpdateRuleTargetReq {
   string sink_id = 7
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "验证成功后返回的id",
+      }];
+  map<string, string> tags = 8
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "自定义标签",
       }];
 }
 
@@ -980,6 +1000,10 @@ message UpdateRuleTargetResp {
   repeated MapField fields = 8
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "映射表",
+      }];
+  map<string, string> tags = 9
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "自定义标签",
       }];
 }
 

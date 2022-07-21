@@ -32,7 +32,7 @@ func genRule(ctx context.Context, id uint, userId string) (*Rule, error) {
 	)
 
 	rule := &dao.Rule{
-		Model:  gorm.Model{ID: uint(id)},
+		ID:     uint(id),
 		UserID: userId,
 	}
 	if result := rule.SelectFirst(); result.Error != nil {

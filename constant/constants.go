@@ -33,6 +33,7 @@ const (
 	Action1Type_MYSQL      = "mysql"
 	Action1Type_POSTGRESQL = "postgresql"
 	Action1Type_REDIS      = "redis"
+	Action1Type_INFLUXDB   = "influxdb"
 )
 
 var Action1Types = []string{
@@ -121,3 +122,4 @@ const ErrorPrefix = "RuleErr-"
 
 //action的configuration里的字段
 const MappingInfoKey = "mapping"
+const TagsInfoKey = "tags"

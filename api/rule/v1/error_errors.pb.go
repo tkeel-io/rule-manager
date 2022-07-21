@@ -32,6 +32,7 @@ var errFailedTableInfo *errors.TError
 var errDuplicateName *errors.TError
 var errDuplicateDevice *errors.TError
 var errInvalidRule *errors.TError
+var errFailedInfluxdbConnection *errors.TError
 
 func init() {
 	errUnknown = errors.New(int(codes.Unknown), "rule.v1.ERR_UNKNOWN", "未知类型")
@@ -76,6 +77,8 @@ func init() {
 	errors.Register(errDuplicateDevice)
 	errInvalidRule = errors.New(int(codes.InvalidArgument), "rule.v1.ERR_INVALID_RULE", "没有可用的转发")
 	errors.Register(errInvalidRule)
+	errFailedInfluxdbConnection = errors.New(int(codes.OK), "rule.v1.ERR_FAILED_INFLUXDB_CONNECTION", "建立连接失败")
+	errors.Register(errFailedInfluxdbConnection)
 }
 
 func ErrUnknown() errors.Error {
@@ -160,4 +163,8 @@ func ErrDuplicateDevice() errors.Error {
 
 func ErrInvalidRule() errors.Error {
 	return errInvalidRule
+}
+
+func ErrFailedInfluxdbConnection() errors.Error {
+	return errFailedInfluxdbConnection
 }

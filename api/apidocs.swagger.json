@@ -860,6 +860,13 @@
                     "$ref": "#/definitions/ruleMapField"
                   },
                   "description": "映射表"
+                },
+                "tags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "自定义标签"
                 }
               }
             }
@@ -967,6 +974,13 @@
                 "sink_id": {
                   "type": "string",
                   "description": "验证成功后返回的id"
+                },
+                "tags": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "自定义标签"
                 }
               }
             }
@@ -1419,6 +1433,21 @@
         "endpoint": {
           "type": "string",
           "description": "目标地址字符串"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "自定义标签"
+        },
+        "org": {
+          "type": "string",
+          "description": "influxdb org"
+        },
+        "bucket": {
+          "type": "string",
+          "description": "influxdb bucket"
         }
       }
     },
@@ -1954,6 +1983,13 @@
             "$ref": "#/definitions/ruleMapField"
           },
           "description": "映射表"
+        },
+        "tags": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "自定义标签"
         }
       }
     }

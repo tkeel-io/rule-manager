@@ -1,6 +1,6 @@
 module github.com/tkeel-io/rule-manager
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Shopify/sarama v1.32.0
@@ -8,6 +8,7 @@ require (
 	github.com/emicklei/go-restful v2.15.0+incompatible
 	github.com/goinggo/mapstructure v0.0.0-20140717182941-194205d9b4a9
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0
+	github.com/influxdata/influxdb-client-go/v2 v2.9.1
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
@@ -33,8 +34,10 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/dapr/go-sdk v1.3.1 // indirect
+	github.com/deepmap/oapi-codegen v1.8.2 // indirect
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/gofrs/uuid v3.3.0+incompatible // indirect
+	github.com/influxdata/line-protocol v0.0.0-20210311194329-9aa0e372d097 // indirect
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jonboulle/clockwork v0.2.3 // indirect
 	github.com/lestrrat/go-envload v0.0.0-20180220120943-6ed08b54a570 // indirect
