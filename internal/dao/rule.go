@@ -88,6 +88,7 @@ func (r *Rule) BeforeDelete(tx *gorm.DB) (err error) {
 	}
 
 	for _, re := range res {
+		newtx := tx.Session(&gorm.Session{NewDB: true}).Model(&RuleEntities{})
 		if err = newtx.Where(&re).Delete(&re).Error; err != nil {
 			return err
 		}
