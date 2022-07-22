@@ -29,7 +29,7 @@ spec:
       containers:
         - name: rule-manager
           image: "{{ .Values.rulemanager.repository }}:{{ .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.rulemanager.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
             - name: DSN
               value: {{ .Values.env.dsn }}
@@ -43,12 +43,12 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: metadata
           image: "{{ .Values.metadata.repository }}:{{ .Values.metadata.tag }}"
-          imagePullPolicy: {{ .Values.metadata.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: rulex
           image: "{{ .Values.rulex.repository }}:{{ .Values.rulex.tag }}"
-          imagePullPolicy: {{ .Values.rulex.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http-metrics
               containerPort: {{.Values.metricsPort}}
