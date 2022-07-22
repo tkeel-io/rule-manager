@@ -3,19 +3,18 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+image:
+  pullPolicy: IfNotPresent
 
 rulemanager:
   repository: tkeelio/rule-manager
-  pullPolicy: Always
 
 metadata:
   repository: harbor.tkeel.io/tkeel-io/metadata
-  pullPolicy: Always
   tag: 0.4.1
 
 rulex:
   repository: harbor.tkeel.io/tkeel-io/rulex
-  pullPolicy: Always
   tag: 0.4.1
 
 nameOverride: "rule-manager"
