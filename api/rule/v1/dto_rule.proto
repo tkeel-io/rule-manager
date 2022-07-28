@@ -838,6 +838,10 @@ message Device {
       [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
         description: "设备状态",
       }];
+  string template_id = 6
+      [(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "设备模板id",
+      }];
 }
 
 message CreateRuleTargetReq {
