@@ -1473,6 +1473,10 @@
         "status": {
           "type": "string",
           "description": "设备状态"
+        },
+        "template_id": {
+          "type": "string",
+          "description": "设备模板id"
         }
       }
     },

@@ -1205,11 +1205,12 @@ func (s RulesService) getEntitiesByConditions(conditions deviceutil.Conditions, 
 
 	for _, item := range resp.Data.Items {
 		entity := &pb.Device{
-			Id:        item.Id,
-			Name:      item.Properties.BasicInfo.Name,
-			Template:  item.Properties.BasicInfo.TemplateName,
-			GroupName: item.Properties.BasicInfo.ParentName,
-			Status:    "offline",
+			Id:         item.Id,
+			Name:       item.Properties.BasicInfo.Name,
+			Template:   item.Properties.BasicInfo.TemplateName,
+			GroupName:  item.Properties.BasicInfo.ParentName,
+			TemplateId: item.Properties.BasicInfo.TemplateID,
+			Status:     "offline",
 		}
 		if item.Properties.ConnectionInfo.IsOnline {
 			entity.Status = "online"
