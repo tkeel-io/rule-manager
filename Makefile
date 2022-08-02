@@ -1,8 +1,8 @@
 GOPATH:=$(shell go env GOPATH)
 VERSION=$(shell git describe --tags --always)
 INTERNAL_PROTO_FILES=$(shell find internal -name *.proto)
-API_PROTO_FILES := api/rule/v1/dto_rule.proto
-DOCKERTAG?=tkeelio/rule-manager:dev
+API_PROTO_FILES := api/rule/v1/dto_rule.proto api/rule/v1/error.proto
+DOCKERTAG?=tkeelio/rule-manager:1.0.0
 BINNAME = rule-manager
 
 GOCMD = GO111MODULE=on go

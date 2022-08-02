@@ -5,11 +5,11 @@ annotations:
   tkeel.io/tag: manager
   tkeel.io/version: v0.4.0
 apiVersion: v2
-appVersion: 0.4.1
+appVersion: 1.0.0
 description: 后端租户平台的「数据路由」插件
 name: rule-manager
 type: application
-version: 0.4.1
+version: 1.0.0
 maintainers:
   - email: tkeel@yunify.com
     name: tkeel

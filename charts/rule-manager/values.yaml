@@ -8,6 +8,7 @@ image:
 
 rulemanager:
   repository: tkeelio/rule-manager
+  tag: 1.0.0
 
 metadata:
   repository: harbor.tkeel.io/tkeel-io/metadata
